@@ -33,6 +33,39 @@ function addToCart(event) {
 
 
 
+//add to wishlist
+function addToWishlist(event) {
+  event.preventDefault();
+  const productId = event.target.dataset.productId;
+  const productName = event.target.dataset.productName;
+  const productPrice = event.target.dataset.productPrice;
+  const productImage = event.target.dataset.productImage;
+
+  // Check if all required data is present
+  if (!productId || !productName || !productPrice || !productImage) {
+    console.error("Unable to add item to wishlist - missing data");
+    return;
+  }
+
+  let wishlistItems = JSON.parse(sessionStorage.getItem("wishlistItems")) || [];
+  let wishlistItem = wishlistItems.find(item => item.id === productId);
+  if (wishlistItem) {
+    // Product already exists in wishlist
+    window.alert("Product already present in wishlist");
+    return;
+  } else {
+    // Product doesn't exist in wishlist, add as new item
+    wishlistItem = { id: productId, name: productName, price: productPrice, image: productImage };
+    wishlistItems.push(wishlistItem);
+    sessionStorage.setItem("wishlistItems", JSON.stringify(wishlistItems));
+    window.alert("Item added to wishlist");
+  }
+}
+
+
+
+
+
 
 // function addToCart(product) {
 //   let cart = JSON.parse(localStorage.getItem("cart")) || {};

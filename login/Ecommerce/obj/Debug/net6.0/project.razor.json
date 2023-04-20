@@ -183,61 +183,39 @@
         }
       },
       {
-        "HashCode": 1234207740,
+        "HashCode": 1079634851,
         "Kind": "Components.Component",
-        "Name": "Ecommerce.Pages.Wishlist",
+        "Name": "Ecommerce.Pages.Index",
         "AssemblyName": "Ecommerce",
         "CaseSensitive": true,
         "TagMatchingRules": [
           {
-            "TagName": "Wishlist"
-          }
-        ],
-        "BoundAttributes": [
-          {
-            "Kind": "Components.Component",
-            "Name": "ProdId",
-            "TypeName": "System.String",
-            "Metadata": {
-              "Common.PropertyName": "ProdId",
-              "Common.GloballyQualifiedTypeName": "global::System.String"
-            }
+            "TagName": "Index"
           }
         ],
         "Metadata": {
           "Runtime.Name": "Components.IComponent",
-          "Common.TypeName": "Ecommerce.Pages.Wishlist",
+          "Common.TypeName": "Ecommerce.Pages.Index",
           "Common.TypeNamespace": "Ecommerce.Pages",
-          "Common.TypeNameIdentifier": "Wishlist"
+          "Common.TypeNameIdentifier": "Index"
         }
       },
       {
-        "HashCode": -2112839378,
+        "HashCode": -867292063,
         "Kind": "Components.Component",
-        "Name": "Ecommerce.Pages.Wishlist",
+        "Name": "Ecommerce.Pages.Index",
         "AssemblyName": "Ecommerce",
         "CaseSensitive": true,
         "TagMatchingRules": [
           {
-            "TagName": "Ecommerce.Pages.Wishlist"
-          }
-        ],
-        "BoundAttributes": [
-          {
-            "Kind": "Components.Component",
-            "Name": "ProdId",
-            "TypeName": "System.String",
-            "Metadata": {
-              "Common.PropertyName": "ProdId",
-              "Common.GloballyQualifiedTypeName": "global::System.String"
-            }
+            "TagName": "Ecommerce.Pages.Index"
           }
         ],
         "Metadata": {
           "Runtime.Name": "Components.IComponent",
-          "Common.TypeName": "Ecommerce.Pages.Wishlist",
+          "Common.TypeName": "Ecommerce.Pages.Index",
           "Common.TypeNamespace": "Ecommerce.Pages",
-          "Common.TypeNameIdentifier": "Wishlist",
+          "Common.TypeNameIdentifier": "Index",
           "Components.NameMatch": "Components.FullyQualifiedNameMatch"
         }
       },
@@ -279,39 +257,39 @@
         }
       },
       {
-        "HashCode": 1079634851,
+        "HashCode": -394135307,
         "Kind": "Components.Component",
-        "Name": "Ecommerce.Pages.Index",
+        "Name": "Ecommerce.Pages.Wishlist",
         "AssemblyName": "Ecommerce",
         "CaseSensitive": true,
         "TagMatchingRules": [
           {
-            "TagName": "Index"
+            "TagName": "Wishlist"
           }
         ],
         "Metadata": {
           "Runtime.Name": "Components.IComponent",
-          "Common.TypeName": "Ecommerce.Pages.Index",
+          "Common.TypeName": "Ecommerce.Pages.Wishlist",
           "Common.TypeNamespace": "Ecommerce.Pages",
-          "Common.TypeNameIdentifier": "Index"
+          "Common.TypeNameIdentifier": "Wishlist"
         }
       },
       {
-        "HashCode": -867292063,
+        "HashCode": -2056953810,
         "Kind": "Components.Component",
-        "Name": "Ecommerce.Pages.Index",
+        "Name": "Ecommerce.Pages.Wishlist",
         "AssemblyName": "Ecommerce",
         "CaseSensitive": true,
         "TagMatchingRules": [
           {
-            "TagName": "Ecommerce.Pages.Index"
+            "TagName": "Ecommerce.Pages.Wishlist"
           }
         ],
         "Metadata": {
           "Runtime.Name": "Components.IComponent",
-          "Common.TypeName": "Ecommerce.Pages.Index",
+          "Common.TypeName": "Ecommerce.Pages.Wishlist",
           "Common.TypeNamespace": "Ecommerce.Pages",
-          "Common.TypeNameIdentifier": "Index",
+          "Common.TypeNameIdentifier": "Wishlist",
           "Components.NameMatch": "Components.FullyQualifiedNameMatch"
         }
       },

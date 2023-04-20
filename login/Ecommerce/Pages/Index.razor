@@ -131,7 +131,15 @@ private async Task<List<Products>> GetProduct()
 </a>
 
            
-                  <a href="@($"/wishlist/{product.ProdId}")" class="btn btn-light border px-3 pt-2 icon-hover mx-5" data-toggle="tooltip" data-placement="top" title="Add to wishlist"><i class="bi bi-heart text-danger " style="font-size: 2rem;"></i></a>
+                  @* <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-5" data-toggle="tooltip" data-placement="top" title="Add to wishlist"><i class="bi bi-heart text-danger " style="font-size: 2rem;"></i></a> *@
+   <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-2" title="Add to wishlist"
+  data-product-id="@product.ProdId"
+  data-product-image="@product.ImageURL"
+   data-product-name="@product.ProdName"
+   data-product-price="@product.Price"
+   onclick="addToWishlist(event)">
+  <i class="bi bi-heart text-danger " style="font-size: 2rem;"></i>
+</a>
                 </div>
               </div>
             </div>
