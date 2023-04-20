@@ -1,0 +1,119 @@
+﻿@page "/details/{ProdId}"
+@using Ecommerce.Models
+@using Newtonsoft.Json;
+@inject NavigationManager NavigationManager
+@using System.Text.RegularExpressions;
+@inject IHttpContextAccessor HttpContextAccessor
+
+@if (Product != null)
+{
+<div>
+<h4>Product Specifications</h4>
+<hr />
+<dl>
+<div class="col-lg-3 col-md-6 col-sm-6 d-flex">
+<div class="shadow-lg card w-100 my-2 shadow-2-strong">
+<img src="@Product.ImageURL" class="card-img-top" style="aspect-ratio: 1 / 1" />
+</div>
+</div> <br/>
+<div class="row">
+@if((HttpContextAccessor.HttpContext?.Session?.GetString("UserRole")) == "Admin")
+{
+<dt class="col-sm-1">
+<label>@nameof(Product.ImageURL)</label>
+</dt>
+<dd class="col-sm-11">
+<span>@Product.ImageURL</span>
+</dd>
+                <dt class="col-sm-1">
+                    <label>@nameof(Product.StartDate)</label>
+                </dt>
+                <dd class="col-sm-11">
+                    <span>@Product.StartDate</span>
+                </dd>
+            }
+
+            @if((HttpContextAccessor.HttpContext?.Session?.GetString("UserRole")) == "Admin")
+            {
+                <dt class="col-sm-1">
+                    <label>@nameof(Product.ProdId)</label>
+                </dt>
+                <dd class="col-sm-11">
+                    <span>@Product.ProdId</span>
+                </dd>
+            }
+
+            <dt class="col-sm-1">
+                <label>@nameof(Product.ProdName)</label>
+            </dt>
+            <dd class="col-sm-11">
+                <span>@Product.ProdName</span>
+            </dd>
+            <dt class="col-sm-1">
+                <label>@nameof(Product.Description)</label>
+            </dt>
+            <dd class="col-sm-11">
+                <span>@Product.Description</span>
+            </dd>
+            <dt class="col-sm-1">
+                <label>@nameof(Product.Price)</label>
+            </dt>
+            <dd class="col-sm-11">
+                <span>@Product.Price</span>
+            </dd>
+
+
+            <dt class="col-sm-1">
+                <label>@nameof(Product.StockQty)</label>
+            </dt>
+            <dd class="col-sm-11">
+                <span>@Product.StockQty</span>
+            </dd>
+        </div>
+
+    </dl>
+</div>
+
+
+@if((HttpContextAccessor.HttpContext?.Session?.GetString("UserRole")) == "Admin")
+{
+    <div>
+        <a href="@($"Edit/{Product.ProdId}")">Edit</a> |
+        <a href="@($"Index")">View All Products</a>
+    </div>
+}
+
+<a href="@($"/cart/{Product.ProdId}")" class="btn btn-light border px-3 pt-2 icon-hover m-2" data-toggle="tooltip" data-placement="top" title="Add item to cart"><i class="bi bi-cart4" style="font-size: 2rem;"></i></a>
+<a href="@($"/wishlist/{Product.ProdId}")" class="btn btn-light border px-3 pt-2 icon-hover m-5" data-toggle="tooltip" data-placement="top" title="Add to wishlist"><i class="bi bi-heart text-danger " style="font-size: 2rem;"></i></a>
+}
+
+
+
+
+@code{
+  [Parameter]
+public string ProdId { get; set; }
+    public Products Product { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var id = Convert.ToInt32(Regex.Match(NavigationManager.Uri, @"\d+$").Value);
+        Product = await GetProductById(id);
+    }
+
+    private async Task<Products> GetProductById(int id)
+    {
+        var baseUrl = "https://localhost:7044/api/products/";
+        using (var httpClientHandler = new HttpClientHandler())
+        {
+            // httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; }; // Below used as not all implementations support this callback, and some throw PlatformNotSupportedException.
+            httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator; // (NOT SECURE) connect to a server with a certificate that shouldn't be validated
+            using (var httpClient = new HttpClient(httpClientHandler))
+            {
+                var jsonStr = await httpClient.GetStringAsync(baseUrl + id);
+                var product = JsonConvert.DeserializeObject<Products>(jsonStr);
+                return product;
+            }
+        }
+    }
+}

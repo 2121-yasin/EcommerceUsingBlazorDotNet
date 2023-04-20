@@ -1,0 +1,124 @@
+﻿@model Auth.DTOs.UserDto
+@{
+    ViewData["Title"] = "Registration Page";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@**@
+@if(TempData["Error"] != null)
+{
+    <div class="row justify-content-end">
+        <div class="col-md-6 alert alert-danger">
+            <span><b>Sorry!</b> - @TempData["Error"] </span>
+        </div>
+    </div>
+}
+
+<section class="vh-100">
+  <div class="container-fluid h-custom">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+      <div class="col-md-9 col-lg-6 col-xl-5">
+        <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp"
+          class="img-fluid" alt="Sample image">
+      </div>
+      <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
+        <form asp-action="RegisterUser" asp-controller="Home">
+          <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+          <div class="d-flex flex-row align-items-center justify-content-center justify-content-lg-start">
+            <p class="lead fw-normal mb-0 me-3">Register with</p>
+          
+
+            <button type="button" class="btn btn-primary btn-floating mx-1">
+             <i class="bi bi-google"></i>
+            </button>
+
+          </div>
+
+          <div class="divider d-flex align-items-center my-4">
+            <p class="text-center fw-bold mx-3 mb-0">Or</p>
+          </div>
+
+           <!-- Username input -->
+          <div class="form-outline mb-4">
+            <input type="UserName" asp-for="UserName" id="form3Example3" class="form-control form-control-lg"
+              placeholder="Enter a Username" />
+            <label class="form-label" ></label>
+            <span asp-validation-for="UserName" class="text-danger"></span>
+          </div>
+
+
+          <!-- Email input -->
+          <div class="form-outline mb-4">
+            <input type="Email" asp-for="Email" id="form3Example3" class="form-control form-control-lg"
+              placeholder="Enter a valid Email Address" />
+            <label class="form-label" ></label>
+            <span asp-validation-for="Email" class="text-danger"></span>
+          </div>
+
+          <!-- Password input -->
+          <div class="form-outline mb-3">
+            <input type="Password" asp-for="Password" id="form3Example4" class="form-control form-control-lg"
+              placeholder="Enter password" />
+            <label class="form-label" ></label>
+            <span asp-validation-for="Password" class="text-danger"></span>
+          </div>
+
+                 <!-- Phone input -->
+          <div class="form-outline mb-3">
+            <input type="Phone" asp-for="Phone" id="form3Example4" class="form-control form-control-lg"
+              placeholder="Enter Phone Number" />
+            <label class="form-label" ></label>
+            <span asp-validation-for="Phone" class="text-danger"></span>
+          </div>
+
+            <!-- Street input -->
+          <div class="form-outline mb-3">
+            <input type="Street" asp-for="Street" id="form3Example4" class="form-control form-control-lg"
+              placeholder="Enter Street Name" />
+            <label class="form-label" ></label>
+            <span asp-validation-for="Street" class="text-danger"></span>
+          </div>
+
+              <!-- City input -->
+          <div class="form-outline mb-3">
+            <input type="City" asp-for="City" id="form3Example4" class="form-control form-control-lg"
+              placeholder="Enter City" />
+            <label class="form-label" ></label>
+            <span asp-validation-for="City" class="text-danger"></span>
+          </div>
+
+              <!-- State input -->
+          <div class="form-outline mb-3">
+            <input type="State" asp-for="State" id="form3Example4" class="form-control form-control-lg"
+              placeholder="Enter State" />
+            <label class="form-label" ></label>
+            <span asp-validation-for="State" class="text-danger"></span>
+          </div>
+
+              <!-- Pincode input -->
+          <div class="form-outline mb-3">
+            <input type="Pincode" asp-for="Pincode" id="form3Example4" class="form-control form-control-lg"
+              placeholder="Enter Pincode" />
+            <label class="form-label" ></label>
+            <span asp-validation-for="Pincode" class="text-danger"></span>
+          </div>
+
+
+
+<div class="text-center text-lg-start mt-4 pt-2">
+            <button type="submit" class="btn btn-primary btn-lg"
+              style="padding-left: 2.5rem; padding-right: 2.5rem;" value="Log in">Sign Up</button>
+            <p class="small fw-bold mt-2 pt-1 mb-0">Already have an account? <a asp-controller="Home" asp-action="Login">Login</a></p>
+          </div>
+
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+@section Scripts {
+  @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

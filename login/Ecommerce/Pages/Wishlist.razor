@@ -1,0 +1,58 @@
+﻿@page "/wishlist/{ProdId}"
+@using Ecommerce.Models
+@using Newtonsoft.Json;
+@inject NavigationManager NavigationManager
+@using System.Text.RegularExpressions;
+@inject IHttpContextAccessor HttpContextAccessor
+
+@if (Product != null)
+{
+    <div class="row">
+      <div class="col-lg-3 col-md-6 col-sm-6 d-flex">
+        <a href="@($"/details/{Product.ProdId}")">
+          <div class="shadow-lg card w-100 my-2 shadow-2-strong">
+            <img src="@Product.ImageURL" class="card-img-top" style="aspect-ratio: 1 / 1" />
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title">@Product.ProdName</h5>
+              <p class="card-text">@Product.Price.ToString("c")</p>
+              <div class="card-footer d-flex align-items-end pt-3 px-0 pb-0 mt-auto">
+                <a href="#!" class="btn btn-light border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="Add item to cart"><i class="bi bi-cart4" style="font-size: 2rem;"></i></a>
+                <a href="#!" class="btn btn-light border px-3 pt-2 icon-hover mx-5" data-toggle="tooltip" data-placement="top" title="Remove from wishlist"><i class="bi bi-x-circle " style="font-size: 2rem;"></i></a>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+}
+
+
+
+
+@code{
+  [Parameter]
+public string ProdId { get; set; }
+    public Products Product { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var id = Convert.ToInt32(Regex.Match(NavigationManager.Uri, @"\d+$").Value);
+        Product = await GetProductById(id);
+    }
+
+    private async Task<Products> GetProductById(int id)
+    {
+        var baseUrl = "https://localhost:7044/api/products/";
+        using (var httpClientHandler = new HttpClientHandler())
+        {
+            // httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; }; // Below used as not all implementations support this callback, and some throw PlatformNotSupportedException.
+            httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator; // (NOT SECURE) connect to a server with a certificate that shouldn't be validated
+            using (var httpClient = new HttpClient(httpClientHandler))
+            {
+                var jsonStr = await httpClient.GetStringAsync(baseUrl + id);
+                var product = JsonConvert.DeserializeObject<Products>(jsonStr);
+                return product;
+            }
+        }
+    }
+}

@@ -1,0 +1,93 @@
+﻿@page "/profile"
+<PageTitle>My Profile</PageTitle>
+@using System.IdentityModel.Tokens.Jwt;
+@inject IJSRuntime JSRuntime
+
+@code {
+    private string username;
+    private string email;
+    private string street;
+    private string city;
+    private string state;
+    private string pincode;
+
+    private string phone;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+
+            var handler = new JwtSecurityTokenHandler();
+            var decodedToken = handler.ReadJwtToken(token);
+            username = decodedToken.Claims.FirstOrDefault(c => c.Type == "UserName")?.Value;
+            email = decodedToken.Claims.FirstOrDefault(c => c.Type == "Email")?.Value;
+            phone = decodedToken.Claims.FirstOrDefault(c => c.Type == "Phone")?.Value;
+            street = decodedToken.Claims.FirstOrDefault(c => c.Type == "Street")?.Value;
+            city = decodedToken.Claims.FirstOrDefault(c => c.Type == "City")?.Value;
+            state = decodedToken.Claims.FirstOrDefault(c => c.Type == "State")?.Value;
+            pincode = decodedToken.Claims.FirstOrDefault(c => c.Type == "Pincode")?.Value;
+
+            StateHasChanged();
+        }
+    }
+}
+<section class="vh-100" style="background-color: #f4f5f7;">
+  <div class="container py-5 h-100">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+      <div class="col col-lg-6 mb-4 mb-lg-0">
+        <div class="card mb-3" style="border-radius: .5rem;">
+          <div class="row g-0">
+            <div class="col-md-4 gradient-custom text-center text-white"
+              style="border-top-left-radius: .5rem; border-bottom-left-radius: .5rem;">
+              <img src="data:image/png;base64,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"
+                alt="Avatar" class="img-fluid my-5" style="width: 80px;" />
+              <h5>@username</h5>
+              <i class="far fa-edit mb-5"></i>
+            </div>
+            <div class="col-md-8">
+              <div class="card-body p-4">
+                <h6>Information</h6>
+                <hr class="mt-0 mb-4">
+                <div class="row pt-1">
+                  <div class="col-6 mb-3">
+                    <h6>Email</h6>
+                    <p class="text-muted">@email</p>
+                  </div>
+                  <div class="col-6 mb-3">
+                    <h6>Phone</h6>
+                    <p class="text-muted">@phone</p>
+                  </div>
+                </div>
+
+                <h6>Address Details</h6>
+                <hr class="mt-0 mb-4">
+                <div class="row pt-1">
+                  <div class="col-6 mb-3">
+                    <h6>Street</h6>
+                    <p class="text-muted">@street</p>
+                  </div>
+                  <div class="col-6 mb-3">
+                    <h6>City</h6>
+                    <p class="text-muted">@city</p>
+                  </div>
+                </div>
+                <div class="row pt-1">
+                  <div class="col-6 mb-3">
+                    <h6>State</h6>
+                    <p class="text-muted">@state</p>
+                  </div>
+                  <div class="col-6 mb-3">
+                    <h6>Pincode</h6>
+                    <p class="text-muted">@pincode</p>
+                  </div>
+                </div>
+                
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</section>

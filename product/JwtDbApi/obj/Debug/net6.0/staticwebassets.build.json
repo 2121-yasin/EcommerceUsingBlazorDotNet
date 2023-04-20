@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "b0qeaQYkop/U5wIdiTPd3kqV03UTJ947JBfJSiim6O0=",
+  "Source": "ConsumeJwtDbApi",
+  "BasePath": "_content/ConsumeJwtDbApi",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

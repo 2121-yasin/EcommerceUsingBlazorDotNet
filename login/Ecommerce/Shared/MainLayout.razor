@@ -1,0 +1,139 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@inject HttpClient httpClient
+@inject IConfiguration Configuration
+@using System.IdentityModel.Tokens.Jwt;
+<PageTitle>Ecommerce</PageTitle>
+
+@code {
+    private bool isLoggedIn = false;
+
+     private string clientId;
+    private string username;
+    
+    protected override void OnInitialized()
+    {
+        clientId = Configuration.GetValue<string>("AppSettings:ClientId");
+    }
+
+    @* private async Task<Guid> GetClientId()
+{
+    var response = await httpClient.GetAsync("/api/UserInfo/clientId");
+    if (response.IsSuccessStatusCode)
+    {
+        var clientId = await response.Content.ReadAsStringAsync();
+        return Guid.Parse(clientId);
+    }
+    else
+    {
+        throw new Exception($"Failed to retrieve client ID. Status code: {response.StatusCode}");
+    }
+}
+
+private Guid clientId;
+
+protected override async Task OnInitializedAsync()
+{
+    httpClient.BaseAddress = new Uri("https://localhost:7240");
+    clientId = await GetClientId();
+}
+
+ *@
+
+     protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var uri = new Uri(NavigationManager.Uri);
+            if (uri.Query.Contains("token="))
+            {
+                var token = uri.Query.Split("=")[1];
+                await JSRuntime.InvokeVoidAsync("localStorage.setItem", "token", token);
+                isLoggedIn = true;
+               
+
+        //string token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+
+            var handler = new JwtSecurityTokenHandler();
+            var decodedToken = handler.ReadJwtToken(token);
+// loop through claims and find email claim
+foreach (var claim in decodedToken.Claims)
+{
+    if (claim.Type == "UserName")
+    {
+        // display email
+        username = claim.Value;
+    }
+}
+
+ StateHasChanged();
+            }
+
+    @* var uri1 = new Uri((NavigationManager as NavigationManager).ToAbsoluteUri(NavigationManager.Uri).ToString());
+if (!string.IsNullOrEmpty(uri.Query))
+{
+    var queryParams = System.Web.HttpUtility.ParseQueryString(uri1.Query);
+    var email = queryParams["email"];
+    var password = queryParams["password"];
+    await JSRuntime.InvokeVoidAsync("localStorage.setItem", "email", email);
+    await JSRuntime.InvokeVoidAsync("localStorage.setItem", "password", password);
+    isLoggedIn = true;
+    StateHasChanged();
+} *@
+        }
+    }
+
+    private async Task Logout()
+    {
+        await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "token");
+        isLoggedIn = false;
+        StateHasChanged();
+        NavigationManager.NavigateTo("/");
+    }
+}
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+      
+        <div class="top-row px-4">
+            <form class="d-flex" role="search">
+                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+            <a href="cart" class="btn btn-light border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart"><i class="bi bi-cart4"></i></a>
+            <a href="wishlist" class="btn btn-light border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Wishlist"><i class="bi bi-heart-fill text-danger"></i></a>
+            @if (!isLoggedIn)
+            {
+                <button class="btn btn-outline-danger my-2 my-sm-0 mx-2" @onclick='() => NavigationManager.NavigateTo($"https://localhost:7085/?ClientId={clientId}")'>Login</button>
+
+
+                @* <button class="btn btn-outline-danger my-2 my-sm-0 mx-2" @onclick='() => NavigationManager.NavigateTo($"https://localhost:7085/?ClientId=a70def6b-c110-4ddc-ad33-440085b89384")'>Login</button> *@
+                @* <button class="btn btn-outline-danger my-2 my-sm-0 mx-2" @onclick='() => NavigationManager.NavigateTo($"https://localhost:7085/?redirect={Uri.EscapeDataString("https://localhost:7042/")}")'>Login</button> *@
+            }
+            else
+            {
+                <a href="profile">
+                    <button  class="btn btn-outline-success " type="button" id="profile-btn"  aria-expanded="false" data-toggle="tooltip" data-placement="top" title="My Profile">
+                    <i class="bi bi-person-badge"></i>Welcome, @username!
+                </button>
+                </a>
+                
+                 <button class="btn btn-outline-danger my-2 my-sm-0 mx-2" @onclick="Logout">Logout</button>
+            }
+            
+          @* <div id="mode" class=" toggle btn btn-outline-danger my-2 my-sm-0 mx-2 data-toggle="tooltip" data-placement="top" title="Change Mode">
+                <i class="bi bi-moon-stars"></i>
+          </div> *@
+    
+        </div>
+ <article class="content px-4">
+            @Body
+    </article>
+        
+    </main>
+</div>
