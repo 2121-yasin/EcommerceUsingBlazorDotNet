@@ -21,17 +21,27 @@ else
                 <p>@item.price</p>
             </li> *@
       <div class="col-lg-3 col-md-6 col-sm-6 d-flex">
+        <a href="@($"/details/{item.id}")">
           <div class="shadow-lg card w-100 my-2 shadow-2-strong">
             <img src="@item.image" alt="@item.name" class="card-img-top" style="aspect-ratio: 1 / 1" />
             <div class="card-body d-flex flex-column">
               <h5 class="card-title">@item.name</h5>
               <p class="card-text">Price: @item.price</p>
               <div class="card-footer d-flex align-items-end pt-3 px-0 pb-0 mt-auto">
-                  <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="Remove item from cart" onclick="@(() => RemoveFromWishlist(item.id))"><i class="bi bi-cart-x" style="font-size: 2rem;"></i></a>
-                <a href="#!" class="btn btn-light border px-3 pt-2 icon-hover mx-5" data-toggle="tooltip" data-placement="top" title="Add to wishlist"><i class="bi bi-heart text-danger " style="font-size: 2rem;"></i></a>
+                  <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4" data-toggle="tooltip" data-placement="top" title="Remove from wishlist" onclick="@(() => RemoveFromWishlist(item.id))"><i class="bi bi-x-circle" style="font-size: 2rem;"></i></a>
+                               <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4" title="Add to cart"
+  data-product-id="@item.id"
+  data-product-image="@item.image"
+   data-product-name="@item.name"
+   data-product-price="@item.price"
+   onclick="addToCart(event)">
+  <i class="bi bi-cart4 " style="font-size: 2rem;"></i>
+</a>
               </div>
+              @* <button class="btn btn-outline-danger" data-toggle="tooltip" data-placement="top" title="Checkout for Payment Options"><i class="bi bi-bag-check" style="font-size: 2rem;">Checkout</i></button> *@
             </div>
           </div>
+          </a>
       </div>
 
         }

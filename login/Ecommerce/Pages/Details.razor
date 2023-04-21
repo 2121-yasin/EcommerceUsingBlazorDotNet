@@ -83,8 +83,27 @@
     </div>
 }
 
-<a href="@($"/cart/{Product.ProdId}")" class="btn btn-light border px-3 pt-2 icon-hover m-2" data-toggle="tooltip" data-placement="top" title="Add item to cart"><i class="bi bi-cart4" style="font-size: 2rem;"></i></a>
-<a href="@($"/wishlist/{Product.ProdId}")" class="btn btn-light border px-3 pt-2 icon-hover m-5" data-toggle="tooltip" data-placement="top" title="Add to wishlist"><i class="bi bi-heart text-danger " style="font-size: 2rem;"></i></a>
+@* <a href="@($"/cart/{Product.ProdId}")" class="btn btn-light border px-3 pt-2 icon-hover m-2" data-toggle="tooltip" data-placement="top" title="Add item to cart"><i class="bi bi-cart4" style="font-size: 2rem;"></i></a>
+<a href="@($"/wishlist/{Product.ProdId}")" class="btn btn-light border px-3 pt-2 icon-hover m-5" data-toggle="tooltip" data-placement="top" title="Add to wishlist"><i class="bi bi-heart text-danger " style="font-size: 2rem;"></i></a> *@
+ <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-2" title="Add to cart"
+  data-product-id="@Product.ProdId"
+  data-product-image="@Product.ImageURL"
+   data-product-name="@Product.ProdName"
+   data-product-price="@Product.Price"
+   onclick="addToCart(event)">
+  <i class="bi bi-cart4 " style="font-size: 2rem;"></i>
+</a>
+
+           
+                  @* <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-5" data-toggle="tooltip" data-placement="top" title="Add to wishlist"><i class="bi bi-heart text-danger " style="font-size: 2rem;"></i></a> *@
+   <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-2" title="Add to wishlist"
+  data-product-id="@Product.ProdId"
+  data-product-image="@Product.ImageURL"
+   data-product-name="@Product.ProdName"
+   data-product-price="@Product.Price"
+   onclick="addToWishlist(event)">
+  <i class="bi bi-heart text-danger " style="font-size: 2rem;"></i>
+</a>
 }
 
 
