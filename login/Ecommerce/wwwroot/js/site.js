@@ -18,21 +18,17 @@ function addToCart(event) {
   let cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
   let cartItem = cartItems.find(item => item.id === productId);
   if (cartItem) {
-    // Product already exists in cart, ask for confirmation before adding again
-    if (window.confirm("This item is already in your cart. Are you sure you want to add it again?")) {
-      cartItem.quantity += 1;
-      cartItem.totalPrice = (parseFloat(cartItem.totalPrice) + parseFloat(cartItem.price)).toFixed(2);
-    } else {
-      return;
-    }
+    // Product already exists in cart, increment quantity and update total price
+    cartItem.quantity += 1;
+    cartItem.totalPrice = (parseFloat(cartItem.totalPrice) + parseFloat(cartItem.price)).toFixed(2);
   } else {
     // Product doesn't exist in cart, add as new item with initial total price
     cartItem = { id: productId, name: productName, price: productPrice, image: productImage, quantity: 1, totalPrice: productPrice };
     cartItems.push(cartItem);
   }
   localStorage.setItem("cartItems", JSON.stringify(cartItems));
-  // Display alert box
-  window.alert("Item added to cart");
+   // Display alert box
+   window.alert("Item added to cart");
 }
 
 

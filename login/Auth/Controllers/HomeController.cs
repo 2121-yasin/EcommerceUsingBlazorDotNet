@@ -140,9 +140,9 @@ public async Task<IActionResult> Login(string clientId)
                         ViewBag.Message = "Incorrect UserId or Password!";
                         return Redirect("~/Home/Login");
                     }
-                     HttpContext.Session.SetString("JWToken", token);
+                    HttpContext.Session.SetString("JWToken", token);
 
-                     HttpContext.Session.SetString("Email", user.Email);
+                    HttpContext.Session.SetString("Email", user.Email);
 
                     // Setting role in HttpContext.Session to use for conditionally rendering HTML elements.
 
