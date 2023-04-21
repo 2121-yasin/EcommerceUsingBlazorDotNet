@@ -102,12 +102,12 @@ private async Task HandleCheckoutClick()
         var result = await JSRuntime.InvokeAsync<bool>("confirm", "Please login to your account");
         if (result)
         {
-            NavigationManager.NavigateTo($"https://localhost:7085/?redirect=https://localhost:7042/checkout");
+            NavigationManager.NavigateTo($"https://localhost:7085/?ClientId=a0d0b3a2-efa4-47ca-b193-45bdbd950f3a");
         }
     }
     else
     {
-        NavigationManager.NavigateTo($"/checkout?token={token}");
+        NavigationManager.NavigateTo($"/checkout");
     }
 }
 
