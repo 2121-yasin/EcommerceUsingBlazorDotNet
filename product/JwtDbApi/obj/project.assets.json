@@ -7536,19 +7536,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Yasin.H\\.nuget\\packages\\": {}
+    "C:\\Users\\Suraj.P\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\WD\\Ecom_V1.2\\product\\JwtDbApi\\ConsumeJwtDbApi.csproj",
+      "projectUniqueName": "d:\\Ecommerce\\EcommerceUsingBlazorDotNet\\product\\JwtDbApi\\ConsumeJwtDbApi.csproj",
       "projectName": "ConsumeJwtDbApi",
-      "projectPath": "D:\\WD\\Ecom_V1.2\\product\\JwtDbApi\\ConsumeJwtDbApi.csproj",
-      "packagesPath": "C:\\Users\\Yasin.H\\.nuget\\packages\\",
-      "outputPath": "D:\\WD\\Ecom_V1.2\\product\\JwtDbApi\\obj\\",
+      "projectPath": "d:\\Ecommerce\\EcommerceUsingBlazorDotNet\\product\\JwtDbApi\\ConsumeJwtDbApi.csproj",
+      "packagesPath": "C:\\Users\\Suraj.P\\.nuget\\packages\\",
+      "outputPath": "d:\\Ecommerce\\EcommerceUsingBlazorDotNet\\product\\JwtDbApi\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Yasin.H\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Suraj.P\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [

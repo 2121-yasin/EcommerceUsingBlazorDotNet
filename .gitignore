@@ -1,0 +1,6 @@
+# Ignore bin, obj, .vscode, .vs, and node_modules directories
+**/bin/
+**/obj/
+**/.vscode/
+**/.vs/
+**/node_modules/
