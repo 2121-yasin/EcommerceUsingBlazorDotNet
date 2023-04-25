@@ -11,11 +11,10 @@ namespace JwtDbApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")]
     public class ProductsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        
+
         public ProductsController(ApplicationDbContext context)
         {
             _context = context;
@@ -25,18 +24,18 @@ namespace JwtDbApi.Controllers
 
 
 
-        // GET: api/Products
+        // GET: api/Product
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<Products>>> GetProducts()
+        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
             return await _context.Products.ToListAsync();
         }
 
-        // GET: api/Products/5
+        // GET: api/Product/5
         [HttpGet("{id}")]
         [AllowAnonymous]
-        public async Task<ActionResult<Products>> GetProducts(int id)
+        public async Task<ActionResult<Product>> GetProducts(int id)
         {
             var products = await _context.Products.FindAsync(id);
 
@@ -48,9 +47,11 @@ namespace JwtDbApi.Controllers
             return products;
         }
 
-        // PUT: api/Products/5
+        // PUT: api/Product/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProducts(int id, Products products)
+        [Authorize(Roles = "Admin,Vendor")]
+
+        public async Task<IActionResult> PutProducts(int id, Product products)
         {
             if (id != products.ProdId)
             {
@@ -78,9 +79,10 @@ namespace JwtDbApi.Controllers
             return NoContent();
         }
 
-        // POST: api/Products
+        // POST: api/Product
         [HttpPost]
-        public async Task<ActionResult<Products>> PostProducts(Products products)
+        [Authorize(Roles = "Admin,Vendor")]
+        public async Task<ActionResult<Product>> PostProducts(Product products)
         {
             _context.Products.Add(products);
             await _context.SaveChangesAsync();
@@ -88,9 +90,10 @@ namespace JwtDbApi.Controllers
             return CreatedAtAction("GetProducts", new { id = products.ProdId }, products);
         }
 
-        // DELETE: api/Products/5
+        // DELETE: api/Product/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Products>> DeleteProducts(int id)
+        [Authorize(Roles = "Admin,Vendor")]
+        public async Task<ActionResult<Product>> DeleteProducts(int id)
         {
             var products = await _context.Products.FindAsync(id);
             if (products == null)

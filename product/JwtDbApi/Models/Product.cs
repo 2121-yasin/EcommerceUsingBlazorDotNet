@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace JwtDbApi.Models
 {
-    public class Products
+    public class Product
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -16,8 +16,14 @@ namespace JwtDbApi.Models
         public string Description { get; set; }
         public double Price { get; set; }
         public string ImageURL { get; set; }
-        public DateTime StartDate { get; set; } = DateTime.Now;
-        public int StockQty { get; set; }   
+        public DateTime? StartDate { get; set; } = DateTime.Now;
+        public int CategoryId { get; set; }
+        [ForeignKey("CategoryId")]
+        public Category Category { get; set; }
+        public int StockQty { get; set; }
+
+        //Relationships
+        public List<ProductVendor> ProductVendors { get; set; }
 
     }
 }
