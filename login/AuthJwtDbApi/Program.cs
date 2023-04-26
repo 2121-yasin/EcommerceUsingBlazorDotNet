@@ -93,6 +93,14 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 AppDbInitializer.Seed(app);
+
+// for CORS
+app.UseCors(builder =>
+{
+    builder.WithOrigins("http://localhost:3000", "http://localhost:3002")
+           .AllowAnyHeader()
+           .AllowAnyMethod();
+});
 app.MapControllers();
 
 app.Run();
