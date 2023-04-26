@@ -77,6 +77,17 @@ namespace AuthJwtDbApi.Data
                         new UserInfo()
                         {
 
+                            UserName="Suraj2",
+                            Email="suraj2@gmail.com",
+                            Phone="123",
+                            Password= BCrypt.Net.BCrypt.HashPassword("Suraj2@123"),
+                            Role="Vendor",
+                            AddressId=2
+
+                        },
+                        new UserInfo()
+                        {
+
                             UserName="Yasin",
                             Email="yasin@gmail.com",
                             Phone="123",
