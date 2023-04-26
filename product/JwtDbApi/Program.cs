@@ -1,4 +1,5 @@
 using System.Text;
+using JwtDbApi.Data;
 using JwtDbApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -91,6 +92,8 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+AppDbInitializer.Seed(app);
 
 app.MapControllers();
 

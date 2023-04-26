@@ -57,10 +57,12 @@ namespace JwtDbApi.Models
 
         public DbSet<Category> Categories { get; set; }
         public DbSet<Vendor> Vendors { get; set; }
+        public DbSet<Product> Products { get; set; }
         public DbSet<ProductVendor> ProductVendors { get; set; }
+        public DbSet<Admin> Admins { get; set; }
 
-        public virtual DbSet<Product> Products { get; set; }
-        public virtual DbSet<UserInfo> UserInfo { get; set; }
+
+        public DbSet<UserInfo> UserInfo { get; set; }
 
         //public DbSet<CartItem> CartItems { get; set; }
     }
