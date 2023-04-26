@@ -102,73 +102,31 @@ namespace AuthJwtDbApi.Data
                         {
                             Id=1,
                             Name="Admin",
-                           RedirectUrl="http://localhost:3000"
+                            ClientId = new Guid("b6782e13-5669-4156-82a8-1850883214e4"),
+                            RedirectUrl="http://localhost:3000"
 
                         },
                         new ClientProfile()
                         {
                             Id=2,
                             Name="Vendor",
-                           RedirectUrl="http://localhost:3002"
+                            ClientId = new Guid("ff84a00f-99ab-4f81-9f52-26df485a9dcf"),
+                            RedirectUrl="http://localhost:3002"
 
-                        }
+                        },
+                        new ClientProfile()
+                        {
+                            Id=3,
+                            Name="User",
+                            ClientId = new Guid("A0D0B3A2-EFA4-47CA-B193-45BDBD950F3A"),
+                            RedirectUrl="https://localhost:7042"
+
+                        },
 
                     });
                     context.SaveChanges();
                 }
-
             }
-
         }
-
-        // public static async Task SeedUsersAndRolesAsync(IApplicationBuilder applicationBuilder)
-        // {
-        //     using (var serviceScope = applicationBuilder.ApplicationServices.CreateScope())
-        //     {
-
-        //         //Roles
-        //         var roleManager = serviceScope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-        //         if (!await roleManager.RoleExistsAsync(UserRoles.Admin))
-        //             await roleManager.CreateAsync(new IdentityRole(UserRoles.Admin));
-        //         if (!await roleManager.RoleExistsAsync(UserRoles.User))
-        //             await roleManager.CreateAsync(new IdentityRole(UserRoles.User));
-
-        //         //Users
-        //         var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        //         string adminUserEmail = "admin@etickets.com";
-
-        //         var adminUser = await userManager.FindByEmailAsync(adminUserEmail);
-        //         if (adminUser == null)
-        //         {
-        //             var newAdminUser = new ApplicationUser()
-        //             {
-        //                 FullName = "Admin User",
-        //                 UserName = "admin-user",
-        //                 Email = adminUserEmail,
-        //                 EmailConfirmed = true
-        //             };
-        //             await userManager.CreateAsync(newAdminUser, "Coding@1234?");
-        //             await userManager.AddToRoleAsync(newAdminUser, UserRoles.Admin);
-        //         }
-
-
-        //         string appUserEmail = "user@etickets.com";
-
-        //         var appUser = await userManager.FindByEmailAsync(appUserEmail);
-        //         if (appUser == null)
-        //         {
-        //             var newAppUser = new ApplicationUser()
-        //             {
-        //                 FullName = "Application User",
-        //                 UserName = "app-user",
-        //                 Email = appUserEmail,
-        //                 EmailConfirmed = true
-        //             };
-        //             await userManager.CreateAsync(newAppUser, "Coding@1234?");
-        //             await userManager.AddToRoleAsync(newAppUser, UserRoles.User);
-        //         }
-        //     }
-        // }
     }
 }
