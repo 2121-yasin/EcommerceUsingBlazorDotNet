@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using JwtDbApi.Data;
 using JwtDbApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,20 +10,15 @@ namespace JwtDbApi.Controllers
     [Route("api/[controller]")]
     public class ProductsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly AppDbContext _context;
 
-        public ProductsController(ApplicationDbContext context)
+        public ProductsController(AppDbContext context)
         {
             _context = context;
         }
 
-
-
-
-
         // GET: api/Product
         [HttpGet]
-        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
             return await _context.Products.ToListAsync();
@@ -34,31 +26,29 @@ namespace JwtDbApi.Controllers
 
         // GET: api/Product/5
         [HttpGet("{id}")]
-        [AllowAnonymous]
-        public async Task<ActionResult<Product>> GetProducts(int id)
+        public async Task<ActionResult<Product>> GetProduct(int id)
         {
-            var products = await _context.Products.FindAsync(id);
+            var product = await _context.Products.FindAsync(id);
 
-            if (products == null)
+            if (product == null)
             {
                 return NotFound();
             }
 
-            return products;
+            return product;
         }
 
         // PUT: api/Product/5
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin,Vendor")]
-
-        public async Task<IActionResult> PutProducts(int id, Product products)
+        public async Task<IActionResult> PutProduct(int id, Product product)
         {
-            if (id != products.ProdId)
+            if (id != product.ProdId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(products).State = EntityState.Modified;
+            _context.Entry(product).State = EntityState.Modified;
 
             try
             {
@@ -66,7 +56,7 @@ namespace JwtDbApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ProductsExists(id))
+                if (!ProductExists(id))
                 {
                     return NotFound();
                 }
@@ -82,32 +72,32 @@ namespace JwtDbApi.Controllers
         // POST: api/Product
         [HttpPost]
         [Authorize(Roles = "Admin,Vendor")]
-        public async Task<ActionResult<Product>> PostProducts(Product products)
+        public async Task<ActionResult<Product>> PostProduct(Product product)
         {
-            _context.Products.Add(products);
+            _context.Products.Add(product);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetProducts", new { id = products.ProdId }, products);
+            return CreatedAtAction("GetProducts", new { id = product.ProdId }, product);
         }
 
         // DELETE: api/Product/5
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin,Vendor")]
-        public async Task<ActionResult<Product>> DeleteProducts(int id)
+        public async Task<ActionResult<Product>> DeleteProduct(int id)
         {
-            var products = await _context.Products.FindAsync(id);
-            if (products == null)
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
             {
                 return NotFound();
             }
 
-            _context.Products.Remove(products);
+            _context.Products.Remove(product);
             await _context.SaveChangesAsync();
 
-            return products;
+            return product;
         }
 
-        private bool ProductsExists(int id)
+        private bool ProductExists(int id)
         {
             return _context.Products.Any(e => e.ProdId == id);
         }

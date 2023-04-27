@@ -1,21 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using JwtDbApi.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace JwtDbApi.Models
+namespace JwtDbApi.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class AppDbContext : DbContext
     {
-        public ApplicationDbContext()
-        {
-        }
-
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
-        {
-
-        }
+        public AppDbContext()
+        { }
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+        { }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Category>()
@@ -23,36 +16,28 @@ namespace JwtDbApi.Models
                 .WithOne(p => p.Category)
                 .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.Cascade);
-
             modelBuilder.Entity<Category>()
                 .HasOne(c => c.ParentCategory)
                 .WithMany(c => c.ChildCategories)
                 .HasForeignKey(c => c.ParentCategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Category>()
-            .HasMany(c => c.ChildCategories)
-            .WithOne(p => p.ParentCategory)
-            .HasForeignKey(f => f.ParentCategoryId);
+                .HasMany(c => c.ChildCategories)
+                .WithOne(p => p.ParentCategory)
+                .HasForeignKey(f => f.ParentCategoryId);
 
             modelBuilder.Entity<ProductVendor>()
                 .HasKey(pv => new { pv.ProductId, pv.VendorId });
-
-
             modelBuilder.Entity<ProductVendor>()
                 .HasOne(pv => pv.Product)
                 .WithMany(p => p.ProductVendors)
                 .HasForeignKey(pv => pv.ProductId)
                 .OnDelete(DeleteBehavior.NoAction);
-
             modelBuilder.Entity<ProductVendor>()
                 .HasOne(pv => pv.Vendor)
                 .WithMany(v => v.ProductVendors)
                 .HasForeignKey(pv => pv.VendorId)
                 .OnDelete(DeleteBehavior.NoAction);
-
-
-
-
         }
 
         public DbSet<Category> Categories { get; set; }
@@ -60,9 +45,6 @@ namespace JwtDbApi.Models
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductVendor> ProductVendors { get; set; }
         public DbSet<Admin> Admins { get; set; }
-
-
-        public DbSet<UserInfo> UserInfo { get; set; }
 
         //public DbSet<CartItem> CartItems { get; set; }
     }
