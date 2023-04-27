@@ -8,6 +8,7 @@ namespace JwtDbApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin,Vendor")]
     public class VendorsController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -17,9 +18,7 @@ namespace JwtDbApi.Controllers
             _context = context;
         }
 
-
         [HttpGet("{id}")]
-        [AllowAnonymous]
         public async Task<ActionResult<Vendor>> GetVendorInfo(int id)
         {
             var vendor = await _context.Vendors.FirstOrDefaultAsync(v => v.UserId == id);
