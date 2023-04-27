@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using JwtDbApi.Data;
 using JwtDbApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,9 +10,9 @@ namespace JwtDbApi.Controllers
     [Route("api/[controller]")]
     public class VendorsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly AppDbContext _context;
 
-        public VendorsController(ApplicationDbContext context)
+        public VendorsController(AppDbContext context)
         {
             _context = context;
         }
