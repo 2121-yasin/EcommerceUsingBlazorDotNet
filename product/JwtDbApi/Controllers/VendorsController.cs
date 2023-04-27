@@ -11,11 +11,11 @@ namespace JwtDbApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class VendorController : ControllerBase
+    public class VendorsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
 
-        public VendorController(ApplicationDbContext context)
+        public VendorsController(ApplicationDbContext context)
         {
             _context = context;
         }
