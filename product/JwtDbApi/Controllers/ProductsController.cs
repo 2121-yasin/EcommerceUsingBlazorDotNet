@@ -26,7 +26,7 @@ namespace JwtDbApi.Controllers
 
         // GET: api/Product/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProduct(int id)
+        public async Task<ActionResult<Product>> GetProduct([FromRoute] int id)
         {
             var product = await _context.Products.FindAsync(id);
 
@@ -35,7 +35,18 @@ namespace JwtDbApi.Controllers
                 return NotFound();
             }
 
-            return product;
+             return Ok(product);
+        }
+
+        // POST: api/Product
+        [HttpPost]
+        [Authorize(Roles = "Admin,Vendor")]
+        public async Task<ActionResult<Product>> PostProduct(Product product)
+        {
+            _context.Products.Add(product);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetProduct", new { id = product.ProdId }, product);
         }
 
         // PUT: api/Product/5
@@ -67,17 +78,6 @@ namespace JwtDbApi.Controllers
             }
 
             return NoContent();
-        }
-
-        // POST: api/Product
-        [HttpPost]
-        [Authorize(Roles = "Admin,Vendor")]
-        public async Task<ActionResult<Product>> PostProduct(Product product)
-        {
-            _context.Products.Add(product);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetProducts", new { id = product.ProdId }, product);
         }
 
         // DELETE: api/Product/5
