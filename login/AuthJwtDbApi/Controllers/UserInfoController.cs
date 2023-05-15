@@ -12,7 +12,7 @@ namespace AuthJwtDbApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public class UserInfoController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -24,6 +24,7 @@ namespace AuthJwtDbApi.Controllers
 
         // GET: api/UserInfo
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<UserInfo>>> GetUserInfo()
         {
             return await _context.UserInfo.Include(u => u.Address).ToListAsync();
@@ -45,6 +46,7 @@ namespace AuthJwtDbApi.Controllers
 
         // PUT: api/UserInfo/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "User,Vendor")]
         public async Task<IActionResult> PutUserInfo(int id, UserInfo userInfo)
         {
             if (id != userInfo.UserId)
@@ -126,20 +128,20 @@ namespace AuthJwtDbApi.Controllers
             return userInfo;
         }
 
-[AllowAnonymous]
-// GET: api/UserInfo/RedirectUrl
-[HttpGet("RedirectUrl")]
-public async Task<ActionResult<string>> GetClientRedirectUrl(Guid clientId)
-{
-    var RedirectUrl = await _context.ClientProfile.Where(e => e.ClientId==clientId).Select(c => c.RedirectUrl).FirstOrDefaultAsync();
+        [AllowAnonymous]
+        // GET: api/UserInfo/RedirectUrl
+        [HttpGet("RedirectUrl")]
+        public async Task<ActionResult<string>> GetClientRedirectUrl(Guid clientId)
+        {
+            var RedirectUrl = await _context.ClientProfile.Where(e => e.ClientId == clientId).Select(c => c.RedirectUrl).FirstOrDefaultAsync();
 
-    if (RedirectUrl == null)
-    {
-        return NotFound();
-    }
+            if (RedirectUrl == null)
+            {
+                return NotFound();
+            }
 
-    return RedirectUrl.ToString();
-}
+            return RedirectUrl.ToString();
+        }
 
 
         private bool UserInfoExists(int id)
