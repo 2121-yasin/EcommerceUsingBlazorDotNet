@@ -1,6 +1,29 @@
-function toggleDarkMode() {
-    document.documentElement.classList.toggle('dark');
-}
+
+
+// $(document).ready(function () {
+//   var clicked = localStorage.getItem('clicked') === 'true' || false;
+
+//   function setMode() {
+//       if (clicked == true) {
+//           $('body').attr('data-bs-theme', 'dark');
+//           $('#mode i').attr('class', 'bi bi-brightness-high');
+//           $('.menu').attr('class', 'menu bi bi-list text-light')
+//       } else {
+//           $('body').attr('data-bs-theme', 'light');
+//           $('#mode i').attr('class', 'bi bi-moon-stars')
+//           $('.menu').attr('class', 'menu bi bi-list')
+
+//       }
+//   }
+//   setMode();
+
+//   $('.toggle').click(function () {
+//       clicked = !clicked;
+//       setMode();
+//       localStorage.setItem('clicked', clicked);
+//   });
+// });
+
 
 function addToCart(event) {
   event.preventDefault();
@@ -67,8 +90,150 @@ function addToWishlist(event) {
 }
 
 
+function DecodeJwtToken(token) {
+  var base64Url = token.split('.')[1];
+  var base64 = base64Url.replace('-', '+').replace('_', '/');
+  return JSON.parse(window.atob(base64));
+}
+
+window.RazorpayCheckout = {
+  createPayment: function(orderId, keyId, totalAmount) {
+      return new Promise((resolve, reject) => {
+          var options = {
+              "key": keyId,
+              "amount": totalAmount * 100,
+              "currency": "INR",
+              "name": "E Shop",
+              "description": "Payment for your order",
+              "image": "../../../Assets/eshop.jpg",
+              "order_id": orderId,
+              "handler": function(response) {
+                // Call RazorpayPaymentSuccessHandler method on payment success
+                // DotNet.invokeMethodAsync('Ecommerce', 'RazorpayPaymentSuccessHandler', response.razorpay_payment_id);
+                  
+                var paymentDetails = {
+                  paymentId: response.razorpay_payment_id,
+                  // status: response.razorpay_payment_status,
+                  // paymentMethod: response.razorpay_payment_method,
+                  createdAt: new Date().toISOString(),
+                  description: options.description,
+                  customer: options.prefill.name,
+                  email: options.prefill.email,
+                  contact: options.prefill.contact,
+                  street: options.prefill.street,
+                  city: options.prefill.city,
+                  state:options.prefill.state,
+                  pincode:options.prefill.pincode,
+                  totalFee: (options.amount / 100).toFixed(2),
+                  orderId: options.order_id,
+                  notes: JSON.stringify(options.notes)
+                };
+                
+                //resolve(`alert('Payment successful.\\nPayment ID: ${paymentDetails.paymentId}\\nStatus: ${paymentDetails.status}\\nPayment Method: ${paymentDetails.paymentMethod}\\nCreated At: ${paymentDetails.createdAt}\\nDescription: ${paymentDetails.description}\\nCustomer: ${paymentDetails.customer}\\nEmail: ${paymentDetails.email}\\nContact: ${paymentDetails.contact}\\nStreet: ${paymentDetails.street}\\nCity: ${paymentDetails.city}\\nState: ${paymentDetails.state}\\nPincode: ${paymentDetails.pincode}\\nOrder ID: ${paymentDetails.orderId}\\nNotes: ${paymentDetails.notes}\\nTotal Fee Paid: ${paymentDetails.totalFee}')`);
+                //localStorage.setItem('paymentDetails', JSON.stringify(paymentDetails));
+
+                 resolve(`alert('Payment successful.\\nPayment ID: ${paymentDetails.paymentId}\\nCreated At: ${paymentDetails.createdAt}\\nDescription: ${paymentDetails.description}\\nName: ${paymentDetails.customer}\\nEmail: ${paymentDetails.email}\\nContact: ${paymentDetails.contact}\\nStreet: ${paymentDetails.street}\\nCity: ${paymentDetails.city}\\nState: ${paymentDetails.state}\\nPincode: ${paymentDetails.pincode}\\nOrder ID: ${paymentDetails.orderId}\\nNotes: ${paymentDetails.notes}\\nTotal Fee Paid: ${paymentDetails.totalFee}')`);
+                
+              },
+              "prefill": {
+                  "name": "",
+                  "email": "",
+                  "contact": "",
+                  "street": "",
+                  "city": "",
+                  "state": "",
+                  "pincode": ""
+              },
+              "notes": {
+                  "address": "Razorpay Corporate Office"
+              },
+              "theme": {
+                  "color": "#F37254"
+              }
+          };
+          
+          var token = localStorage.getItem('token');
+          var decodedToken = DecodeJwtToken(token);
+          
+          options.prefill.name = decodedToken.UserName;
+          options.prefill.email = decodedToken.Email;
+          options.prefill.contact = decodedToken.Phone;
+
+          options.prefill.street = decodedToken.Street;
+          options.prefill.city = decodedToken.City;
+          options.prefill.state = decodedToken.State;
+          options.prefill.pincode = decodedToken.Pincode;
+          
+          var rzp = new Razorpay(options);
+          rzp.open();
+      });
+  }
+};
+
+function updateAmountToPay(amountToPayElement, totalAmount) {
+  amountToPayElement.textContent = "Amount to Pay: " + totalAmount;
+}
+// function DecodeJwtToken(token) {
+//   var base64Url = token.split('.')[1];
+//   var base64 = base64Url.replace('-', '+').replace('_', '/');
+//   return JSON.parse(window.atob(base64));
+// }
+
+// window.RazorpayCheckout = {
+//   createPayment: function(orderId, keyId, totalAmount) {
+//       return new Promise((resolve, reject) => {
+//           var options = {
+//               "key": keyId,
+//               "amount": totalAmount * 100,
+//               "currency": "INR",
+//               "name": "E Shop",
+//               "description": "Payment for your order",
+//               "image": "../../../Assets/eshop.jpg",
+//               "order_id": orderId,
+//               "handler": function(response) {
+//                 //  /// Call RazorpayPaymentSuccessHandler method on payment success
+//                 //    DotNet.invokeMethodAsync('Ecommerce', 'RazorpayPaymentSuccessHandler', response.razorpay_payment_id);
+                  
+//                   resolve(`alert('Payment successful. Payment ID: ${response.razorpay_payment_id}')`);
+//               },
+//               "prefill": {
+//                   "name": "",
+//                   "email": "",
+//                   "contact": "",
+//                   "street": "",
+//                   "city": "",
+//                   "state": "",
+//                   "pincode": ""
+//               },
+//               "notes": {
+//                   "address": "Razorpay Corporate Office"
+//               },
+//               "theme": {
+//                   "color": "#F37254"
+//               },
+//               "webhook": "/webhookhandler"
+//           };
+          
+//           var token = localStorage.getItem('token');
+//           var decodedToken = DecodeJwtToken(token);
+          
+//           options.prefill.name = decodedToken.UserName;
+//           options.prefill.email = decodedToken.Email;
+//           options.prefill.contact = decodedToken.Phone;
+
+//           options.prefill.street = decodedToken.Street;
+//           options.prefill.city = decodedToken.City;
+//           options.prefill.state = decodedToken.State;
+//           options.prefill.pincode = decodedToken.Pincode;
+          
+//           var rzp = new Razorpay(options);
+//           rzp.open();
+//       });
+//   }
+// };
 
 
+//redirect with token to details page
 
 
 // function addToCart(product) {

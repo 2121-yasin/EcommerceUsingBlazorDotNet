@@ -1,16 +1,36 @@
 ﻿@page "/"
 @using Ecommerce.Models
 @using Newtonsoft.Json;
+@inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
 <PageTitle>Index</PageTitle>
 
 
-@* <iframe id="product-listing" src="https://localhost:7140/" style="width:100%; height:1000px; overflow:hidden; overflow-y:scroll;"></iframe>
- *@
 
 @code{
+    @* private string searchQuery; *@
     public List<Products> Product { get; set; }
 
+@*
+protected override async Task OnInitializedAsync()
+{
+    var uri = new Uri(NavigationManager.Uri);
+    using (var httpClientHandler = new HttpClientHandler())
+    {
+       httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator; // (NOT SECURE) connect to a server with a certificate that shouldn't be validated
+    using (var httpClient = new HttpClient(httpClientHandler)){
+    if (uri.Query.Contains("search="))
+    {
+        searchQuery = uri.Query.Split("=")[1];
+        Product = await httpClient.GetFromJsonAsync<List<Products>>($"https://localhost:7044/api/products/search/{searchQuery}");
+    }
+    else
+    {
+        Product = await httpClient.GetFromJsonAsync<List<Products>>("https://localhost:7044/api/products/");
+    }
+    }
+    }
+*@
     protected override async Task OnInitializedAsync()
 {
     //var productId = 1; // Replace with the ID of the product you want to display
@@ -32,14 +52,6 @@ private async Task<List<Products>> GetProduct()
         }
     }
 }
-
-
-
-//nav
-@* private void NavigateToDetails(int id)
-    {
-        NavigationManager.NavigateTo($"/details/{id}");
-    } *@
 
 }
 
@@ -114,14 +126,9 @@ private async Task<List<Products>> GetProduct()
                 <h5 class="card-title">@product.ProdName</h5>
                 <p class="card-text">@product.Price.ToString("c")</p>
                 <div class="card-footer d-flex align-items-end pt-3 px-0 pb-0 mt-auto">
-                  @* <a href="#!" class="btn btn-primary shadow-0 me-1">Add to cart</a>
-                  <Button class="btn btn-light border px-2 pt-2 icon-hover"><i class="fas fa-heart fa-lg text-secondary px-1"></i></Button> *@
-   @* <a href="@($"/cart/{product.ProdId}")" class="btn btn-light border px-3 pt-2 icon-hover mx-5" data-toggle="tooltip" data-placement="top" title="Add to cart"><i class="bi bi-cart4  " style="font-size: 2rem;"></i></a> *@
-   @* <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-5" onclick="addToCart(@product.ProdId)" data-toggle="tooltip" data-placement="top" title="Add to cart">
-  <i class="bi bi-cart4" style="font-size: 2rem;"></i>
-</a> *@
 
-                  <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4" title="Add to cart"
+
+<a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4" title="Add to cart"
   data-product-id="@product.ProdId"
   data-product-image="@product.ImageURL"
    data-product-name="@product.ProdName"
@@ -129,6 +136,7 @@ private async Task<List<Products>> GetProduct()
    onclick="addToCart(event)">
   <i class="bi bi-cart4 " style="font-size: 2rem;"></i>
 </a>
+
 
            
                   @* <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-5" data-toggle="tooltip" data-placement="top" title="Add to wishlist"><i class="bi bi-heart text-danger " style="font-size: 2rem;"></i></a> *@
