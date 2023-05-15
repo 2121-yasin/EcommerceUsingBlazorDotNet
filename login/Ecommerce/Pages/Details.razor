@@ -4,10 +4,6 @@
 @inject NavigationManager NavigationManager
 @using System.Text.RegularExpressions;
 @inject IHttpContextAccessor HttpContextAccessor
-@using Razorpay
-@using Razorpay.Api
-@using System.Text.Json
-@inject IJSRuntime JSRuntime
 
 @if (Product != null)
 {
@@ -87,7 +83,8 @@
     </div>
 }
 
-
+@* <a href="@($"/cart/{Product.ProdId}")" class="btn btn-light border px-3 pt-2 icon-hover m-2" data-toggle="tooltip" data-placement="top" title="Add item to cart"><i class="bi bi-cart4" style="font-size: 2rem;"></i></a>
+<a href="@($"/wishlist/{Product.ProdId}")" class="btn btn-light border px-3 pt-2 icon-hover m-5" data-toggle="tooltip" data-placement="top" title="Add to wishlist"><i class="bi bi-heart text-danger " style="font-size: 2rem;"></i></a> *@
  <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-2" title="Add to cart"
   data-product-id="@Product.ProdId"
   data-product-image="@Product.ImageURL"
@@ -97,7 +94,8 @@
   <i class="bi bi-cart4 " style="font-size: 2rem;"></i>
 </a>
 
-    
+           
+                  @* <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-5" data-toggle="tooltip" data-placement="top" title="Add to wishlist"><i class="bi bi-heart text-danger " style="font-size: 2rem;"></i></a> *@
    <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-2" title="Add to wishlist"
   data-product-id="@Product.ProdId"
   data-product-image="@Product.ImageURL"
@@ -106,12 +104,7 @@
    onclick="addToWishlist(event)">
   <i class="bi bi-heart text-danger " style="font-size: 2rem;"></i>
 </a>
-  <button class="btn btn-success col-6" style="max-width: 250px;"
-        onclick="@(() => ProcessPayment(Product.Price))">
-    Proceed for payment &#x20B9;@Product.Price
-</button>
 }
-
 
 
 
@@ -121,47 +114,9 @@
 public string ProdId { get; set; }
     public Products Product { get; set; }
 
-    private RazorpayClient _razorpayClient;
-    private string _orderId;
-
-
-private async Task ProcessPayment(double totalAmount)
-{
-    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
-    
-    if (string.IsNullOrEmpty(token))
-    {
-        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Please login to your account.");
-        if (confirmed)
-        {
-            NavigationManager.NavigateTo($"https://localhost:7085/?ClientId=a0d0b3a2-efa4-47ca-b193-45bdbd950f3a");
-        }
-    }
-    else
-    {
-        _razorpayClient = new RazorpayClient("rzp_test_ey1WcrE0RhwbYJ", "EcjqcEhxYm4cy639PIqMTHkI");
-        
-        var options = new Dictionary<string, object>
-        {
-            { "amount", (int)(totalAmount * 100) }, // Convert to paise
-            { "currency", "INR" }, // Replace with your currency code
-            { "receipt", Guid.NewGuid().ToString() }
-        };
-        
-        var order = _razorpayClient.Order.Create(options);
-        _orderId = order["id"].ToString();
-        
-        var script = await JSRuntime.InvokeAsync<string>("RazorpayCheckout.createPayment", _orderId, "rzp_test_ey1WcrE0RhwbYJ", totalAmount);
-        await JSRuntime.InvokeAsync<string>("eval", script);
-    }
-}
-
-
-
     protected override async Task OnInitializedAsync()
     {
         var id = Convert.ToInt32(Regex.Match(NavigationManager.Uri, @"\d+$").Value);
-        //Console.WriteLine(id);
         Product = await GetProductById(id);
     }
 
@@ -180,6 +135,4 @@ private async Task ProcessPayment(double totalAmount)
             }
         }
     }
-
-    
 }

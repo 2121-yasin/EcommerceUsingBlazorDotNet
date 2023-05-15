@@ -1,35 +1,17 @@
-﻿@inject IJSRuntime JSRuntime
-@inject NavigationManager NavigationManager
-
-<div class="top-row ps-3 navbar navbar-dark">
+﻿<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="" @onclick="HandleNavClick">E - Shop</a>
+        <a class="navbar-brand" href="">Ecommerce</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
     </div>
 </div>
 
-@code{
-private async Task HandleNavClick()
-{
-    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
-    if (string.IsNullOrEmpty(token))
-    {
-        NavigationManager.NavigateTo("");
 
-    }
-    else
-    {
-        NavigationManager.NavigateTo($"/?token={token}");
-    }
-}
-}
-
-<div class="@NavMenuCssClass"  @onclick="ToggleNavMenu" >
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
     <nav class="flex-column">
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All" @onclick="HandleNavClick">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                 <span class="oi oi-home" aria-hidden="true"></span> Home
             </NavLink>
         </div>
@@ -44,12 +26,12 @@ private async Task HandleNavClick()
             </NavLink>
         </div>
          <div class="nav-item px-3">
-            <NavLink class="nav-link" href="https://localhost:3000/">
+            <NavLink class="nav-link" href="http://localhost:3000/">
                 <span class="bi bi-person-circle me-3" aria-hidden="true"></span> Admin
             </NavLink>
         </div>
          <div class="nav-item px-3">
-            <NavLink class="nav-link" href="https://localhost:3002/">
+            <NavLink class="nav-link" href="http://localhost:3002/">
                 <span class="bi bi-person-plus-fill me-3" aria-hidden="true"></span> Vendor
             </NavLink>
         </div>
