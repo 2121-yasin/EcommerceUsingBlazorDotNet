@@ -1,4 +1,7 @@
-using JwtDbApi.Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using JwtDbApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,58 +11,53 @@ namespace JwtDbApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")]
     public class ProductsController : ControllerBase
     {
-        private readonly AppDbContext _context;
-
-        public ProductsController(AppDbContext context)
+        private readonly ApplicationDbContext _context;
+        
+        public ProductsController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // GET: api/Product
+
+
+
+
+        // GET: api/Products
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+        [AllowAnonymous]
+        public async Task<ActionResult<IEnumerable<Products>>> GetProducts()
         {
             return await _context.Products.ToListAsync();
         }
 
-        // GET: api/Product/5
+        // GET: api/Products/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProduct([FromRoute] int id)
+        [AllowAnonymous]
+        public async Task<ActionResult<Products>> GetProducts(int id)
         {
-            var product = await _context.Products.FindAsync(id);
+            var products = await _context.Products.FindAsync(id);
 
-            if (product == null)
+            if (products == null)
             {
                 return NotFound();
             }
 
-             return Ok(product);
+            return products;
         }
 
-        // POST: api/Product
-        [HttpPost]
-        [Authorize(Roles = "Admin,Vendor")]
-        public async Task<ActionResult<Product>> PostProduct(Product product)
-        {
-            _context.Products.Add(product);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetProduct", new { id = product.ProdId }, product);
-        }
-
-        // PUT: api/Product/5
+        // PUT: api/Products/5
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin,Vendor")]
-        public async Task<IActionResult> PutProduct(int id, Product product)
+        public async Task<IActionResult> PutProducts(int id, Products products)
         {
-            if (id != product.ProdId)
+            if (id != products.ProdId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(product).State = EntityState.Modified;
+            _context.Entry(products).State = EntityState.Modified;
 
             try
             {
@@ -67,7 +65,7 @@ namespace JwtDbApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ProductExists(id))
+                if (!ProductsExists(id))
                 {
                     return NotFound();
                 }
@@ -80,26 +78,69 @@ namespace JwtDbApi.Controllers
             return NoContent();
         }
 
-        // DELETE: api/Product/5
-        [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin,Vendor")]
-        public async Task<ActionResult<Product>> DeleteProduct(int id)
+        // POST: api/Products
+        [HttpPost]
+        public async Task<ActionResult<Products>> PostProducts(Products products)
         {
-            var product = await _context.Products.FindAsync(id);
-            if (product == null)
+            _context.Products.Add(products);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetProducts", new { id = products.ProdId }, products);
+        }
+
+        // DELETE: api/Products/5
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<Products>> DeleteProducts(int id)
+        {
+            var products = await _context.Products.FindAsync(id);
+            if (products == null)
             {
                 return NotFound();
             }
 
-            _context.Products.Remove(product);
+            _context.Products.Remove(products);
             await _context.SaveChangesAsync();
 
-            return product;
+            return products;
         }
 
-        private bool ProductExists(int id)
+
+
+        private bool ProductsExists(int id)
         {
             return _context.Products.Any(e => e.ProdId == id);
         }
+
+
+//         //offerCode
+//         [HttpPost]
+// public IActionResult Checkout(string offerCode)
+// {
+//     using (var db = new ApplicationDbContext())
+//     {
+//         var validOfferCode = db.OfferCodes.FirstOrDefault(c => c.Code == offerCode && c.UsedCount < c.MaxUses);
+//         if (validOfferCode != null)
+//         {
+//             // Apply the offer code discount to the order total
+//             var orderTotal = // get the order total from your database or model
+//             var discount = (orderTotal * validOfferCode.DiscountPercentage) / 100;
+//             var discountedTotal = orderTotal - discount;
+//             // Update the order total on the checkout page
+//             ViewBag.OrderTotal = discountedTotal;
+//             // Update the offer code usage count in the database
+//             validOfferCode.UsedCount++;
+//             db.SaveChanges();
+//         }
+//         else
+//         {
+//             // Display an error message to the user
+//             ViewBag.Error = "Invalid offer code";
+//         }
+//     }
+//     return View();
+// }
+
+
+        
     }
 }
