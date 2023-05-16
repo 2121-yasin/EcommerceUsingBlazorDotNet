@@ -8,7 +8,7 @@
 @using SendGrid.Helpers.Mail;
 @using System;
 @using System.Threading.Tasks;
-
+@using System.IdentityModel.Tokens.Jwt;
 
 
 
@@ -226,7 +226,7 @@ async Task ApplyOffer()
 
 private async Task SendOrderConfirmationEmail(string recipientEmail)
 {
-    var apiKey = "Enter Api Key"; //remove this key before uploading on github
+    var apiKey = "SendGrid API KEY"; //remove this key before uploading on github
     var client = new SendGridClient(apiKey);
     var from = new EmailAddress("honnolliyasin@gmail.com", "E shop");
     var subject = "Order Confirmation";
@@ -256,8 +256,11 @@ private async Task ProceedToPayment(decimal totalAmount)
     var script = await JSRuntime.InvokeAsync<string>("RazorpayCheckout.createPayment", _orderId, "rzp_test_ey1WcrE0RhwbYJ", totalAmount);
     await JSRuntime.InvokeAsync<string>("eval", script);
 
+    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+    var handler = new JwtSecurityTokenHandler();
+    var decodedToken = handler.ReadJwtToken(token);
     // After the order is successfully placed and stored in the database
-    var recipientEmail = "yasinhonnolli@gmail.com"; // Replace with the recipient's email address
+    var recipientEmail = decodedToken.Claims.FirstOrDefault(c => c.Type == "Email")?.Value; // Replace with the recipient's email address
     await SendOrderConfirmationEmail(recipientEmail);
 }
 
