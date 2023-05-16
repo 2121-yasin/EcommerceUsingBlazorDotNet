@@ -226,9 +226,9 @@ async Task ApplyOffer()
 
 private async Task SendOrderConfirmationEmail(string recipientEmail)
 {
-    var apiKey = "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";
+    var apiKey = "Enter Api Key"; //remove this key before uploading on github
     var client = new SendGridClient(apiKey);
-    var from = new EmailAddress("yasinhonnolli@gmail.com", "E shop");
+    var from = new EmailAddress("honnolliyasin@gmail.com", "E shop");
     var subject = "Order Confirmation";
     var to = new EmailAddress(recipientEmail);
     var plainTextContent = "Thank you for your order!";
@@ -257,7 +257,7 @@ private async Task ProceedToPayment(decimal totalAmount)
     await JSRuntime.InvokeAsync<string>("eval", script);
 
     // After the order is successfully placed and stored in the database
-    var recipientEmail = "ya4729772@gmail.com"; // Replace with the recipient's email address
+    var recipientEmail = "yasinhonnolli@gmail.com"; // Replace with the recipient's email address
     await SendOrderConfirmationEmail(recipientEmail);
 }
 
