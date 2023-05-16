@@ -27,18 +27,32 @@ namespace JwtDbApi.Controllers
         //     return await _context.Categories.ToListAsync();
         // }
 
+        // [HttpGet]
+        // public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories()
+        // {
+        //     // var categories = await _context.Categories
+        //     //     .Select(c => new Category { CategoryId = c.CategoryId, Name = c.Name, Description = c.Description })
+        //     //     .ToListAsync();
+
+        //     var categories = await _context.Categories
+        //         .Select(c => new CategoryDto { CategoryId = c.CategoryId, Name = c.Name, Description = c.Description })
+        //         .ToListAsync();
+        //     return categories;
+        // }
+
         [HttpGet]
         public async Task<ActionResult> GetCategories()
         {
             var options = new JsonSerializerOptions
             {
-                ReferenceHandler = ReferenceHandler.Preserve
+                ReferenceHandler = ReferenceHandler.Preserve,
+                // ReferenceHandler = ReferenceHandler.IgnoreCycles,
+                // WriteIndented = true
             };
 
             var categories = await _context.Categories
                 .Include(c => c.ParentCategory)
                 .Include(c => c.ChildCategories)
-                .Include(c => c.Products)
                 .ToListAsync();
 
             var json = JsonSerializer.Serialize(categories, options);
@@ -79,6 +93,23 @@ namespace JwtDbApi.Controllers
         //     return Ok(categories);
         // }
 
+        // GET: api/Category/Mobile
+        // [HttpGet("{name}", Name = "GetCategoryByName")]
+        // public ActionResult<CategoryDto> GetCategoryByName(string name)
+        // {
+        //     var category = _context.Categories.FirstOrDefault(c => c.Name == name);
+        //     if (category == null)
+        //     {
+        //         return NotFound();
+        //     }
+
+        //     CategoryDto categoryDto = new CategoryDto();
+        //     categoryDto.Name = category.Name;
+        //     categoryDto.Description = category.Description;
+
+        //     return Ok(categoryDto);
+        // }
+
         // GET: api/Category/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Category>> GetCategory(int id)
@@ -96,12 +127,20 @@ namespace JwtDbApi.Controllers
         // POST: api/Category
         [HttpPost]
         [Authorize(Roles = "Admin,Vendor")]
-        public async Task<ActionResult<Category>> PostCategory(Category category)
+        public async Task<ActionResult<CategoryDto>> PostCategory(CategoryDto categoryDto)
         {
+            Category category = new Category();
+            category.CategoryId = categoryDto.CategoryId;
+            category.Name = categoryDto.Name;
+            category.Description = categoryDto.Description;
+            if (categoryDto.ParentCategoryId > 0)
+            {
+                category.ParentCategoryId = categoryDto.ParentCategoryId;
+            }
             _context.Categories.Add(category);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetCategories", new { id = category.CategoryId }, category);
+            return CreatedAtAction("GetCategory", new { id = categoryDto.CategoryId }, categoryDto);
         }
 
         // PUT: api/Category/5
