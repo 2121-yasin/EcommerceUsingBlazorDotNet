@@ -131,7 +131,8 @@ window.RazorpayCheckout = {
                 
                 //resolve(`alert('Payment successful.\\nPayment ID: ${paymentDetails.paymentId}\\nStatus: ${paymentDetails.status}\\nPayment Method: ${paymentDetails.paymentMethod}\\nCreated At: ${paymentDetails.createdAt}\\nDescription: ${paymentDetails.description}\\nCustomer: ${paymentDetails.customer}\\nEmail: ${paymentDetails.email}\\nContact: ${paymentDetails.contact}\\nStreet: ${paymentDetails.street}\\nCity: ${paymentDetails.city}\\nState: ${paymentDetails.state}\\nPincode: ${paymentDetails.pincode}\\nOrder ID: ${paymentDetails.orderId}\\nNotes: ${paymentDetails.notes}\\nTotal Fee Paid: ${paymentDetails.totalFee}')`);
                 //localStorage.setItem('paymentDetails', JSON.stringify(paymentDetails));
-
+                 // Store paymentDetails in session storage
+                 sessionStorage.setItem('paymentDetails', JSON.stringify(paymentDetails));
                  resolve(`alert('Payment successful.\\nPayment ID: ${paymentDetails.paymentId}\\nCreated At: ${paymentDetails.createdAt}\\nDescription: ${paymentDetails.description}\\nName: ${paymentDetails.customer}\\nEmail: ${paymentDetails.email}\\nContact: ${paymentDetails.contact}\\nStreet: ${paymentDetails.street}\\nCity: ${paymentDetails.city}\\nState: ${paymentDetails.state}\\nPincode: ${paymentDetails.pincode}\\nOrder ID: ${paymentDetails.orderId}\\nNotes: ${paymentDetails.notes}\\nTotal Fee Paid: ${paymentDetails.totalFee}')`);
                 
               },

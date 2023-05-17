@@ -1,0 +1,16 @@
+Thank you for your order! 
+Payment details:
+
+Payment ID: pay_Lqb24VW4b12pRX
+Created At: 17-05-2023 04:21:35
+Description: Payment for your order
+Customer: John
+Email: ya4729772@gmail.com
+Contact: 1234567890
+Street: Assonora
+City: mapusa
+State: goa
+Pincode: 324455
+Total Fee: 10355.00
+Order ID: order_Lqb1uH98res00g
+Notes: {"address":"Razorpay Corporate Office"}
