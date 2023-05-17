@@ -6,8 +6,17 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @using Razorpay
 @using Razorpay.Api
+@inject IJSRuntime JSRuntime
+@using System.Threading.Tasks;
+@using System.IdentityModel.Tokens.Jwt;
+@using SendGrid;
+@using SendGrid.Helpers.Mail;
 @using System.Text.Json
 @inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@using System;
+
+
 
 @if (Product != null)
 {
@@ -140,20 +149,166 @@ private async Task ProcessPayment(double totalAmount)
     else
     {
         _razorpayClient = new RazorpayClient("rzp_test_ey1WcrE0RhwbYJ", "EcjqcEhxYm4cy639PIqMTHkI");
-        
-        var options = new Dictionary<string, object>
-        {
-            { "amount", (int)(totalAmount * 100) }, // Convert to paise
-            { "currency", "INR" }, // Replace with your currency code
-            { "receipt", Guid.NewGuid().ToString() }
-        };
-        
-        var order = _razorpayClient.Order.Create(options);
-        _orderId = order["id"].ToString();
-        
-        var script = await JSRuntime.InvokeAsync<string>("RazorpayCheckout.createPayment", _orderId, "rzp_test_ey1WcrE0RhwbYJ", totalAmount);
-        await JSRuntime.InvokeAsync<string>("eval", script);
+          _razorpayClient = new RazorpayClient("rzp_test_ey1WcrE0RhwbYJ", "EcjqcEhxYm4cy639PIqMTHkI");
+
+    var options = new Dictionary<string, object>
+    {
+        { "amount", (int)(totalAmount * 100) }, // Convert to paise
+        { "currency", "INR" }, // Replace with your currency code
+        { "receipt", Guid.NewGuid().ToString() }
+    };
+
+    var order = _razorpayClient.Order.Create(options);
+    _orderId = order["id"].ToString();
+
+    var script = await JSRuntime.InvokeAsync<string>("RazorpayCheckout.createPayment", _orderId, "rzp_test_ey1WcrE0RhwbYJ", totalAmount);
+    var paymentDetails = await JSRuntime.InvokeAsync<string>("eval", script);
+
+    token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+    var handler = new JwtSecurityTokenHandler();
+    var decodedToken = handler.ReadJwtToken(token);
+    // After the order is successfully placed and stored in the database
+    var recipientEmail = decodedToken.Claims.FirstOrDefault(c => c.Type == "Email")?.Value; // Replace with the recipient's email address
+    await SendOrderConfirmationEmail(recipientEmail);
     }
+    
+}
+
+private class PaymentDetails
+{
+    public string paymentId { get; set; }
+    public DateTime createdAt { get; set; }
+    public string description { get; set; }
+    public string customer { get; set; }
+    public string email { get; set; }
+    public string contact { get; set; }
+    public string street { get; set; }
+    public string city { get; set; }
+    public string state { get; set; }
+    public string pincode { get; set; }
+    public string totalFee { get; set; }
+    public string orderId { get; set; }
+    public string notes { get; set; }
+}
+
+private async Task SendOrderConfirmationEmail(string recipientEmail)
+{
+    var apiKey = "SendGrid API KEY"; // Remove this key before uploading on GitHub
+    var client = new SendGridClient(apiKey);
+    var from = new EmailAddress("honnolliyasin@gmail.com", "E shop");
+    var subject = "Order Confirmation";
+    var to = new EmailAddress(recipientEmail);
+
+    // Retrieve the payment details from session storage
+    var paymentDetailsJson = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "paymentDetails");
+    var paymentDetails = System.Text.Json.JsonSerializer.Deserialize<PaymentDetails>(paymentDetailsJson);
+
+    // Generate the HTML content using Bootstrap classes
+    var htmlContent = @"<!DOCTYPE html>
+                        <html>
+                        <head>
+                            <link rel=""stylesheet"" href=""https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"">
+                            <style>
+                                .paid-watermark {
+                                    position: absolute;
+                                    top: 50%;
+                                    left: 50%;
+                                    transform: translate(-50%, -50%);
+                                    font-size: 64px;
+                                    color: green;
+                                    opacity: 0.5;
+                                    z-index: 1;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class=""container"">
+                                <h1 class=""mb-4"">Thank you for your order!</h1>
+                                <table class=""table table-bordered"">
+                                    <tr>
+                                        <th>Payment ID:</th>
+                                        <td>" + paymentDetails.paymentId + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Created At:</th>
+                                        <td>" + paymentDetails.createdAt.ToString() + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Description:</th>
+                                        <td>" + paymentDetails.description + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Customer:</th>
+                                        <td>" + paymentDetails.customer + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Email:</th>
+                                        <td>" + paymentDetails.email + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Contact:</th>
+                                        <td>" + paymentDetails.contact + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Street:</th>
+                                        <td>" + paymentDetails.street + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>City:</th>
+                                        <td>" + paymentDetails.city + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>State:</th>
+                                        <td>" + paymentDetails.state + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Pincode:</th>
+                                        <td>" + paymentDetails.pincode + @"</td>
+                                    </tr>                               
+                                    <tr>
+                                        <th>Order ID:</th>
+                                        <td>" + paymentDetails.orderId + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Notes:</th>
+                                        <td>" + paymentDetails.notes + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Total Fee:</th>
+                                        <td><span class=""text-success"">" + paymentDetails.totalFee + @"</span></td>
+                                    </tr>
+                                </table>
+                                <div class=""paid-watermark"">Paid</div>
+                                </div>
+                            </body>
+                        </html>";
+
+    // Save the payment details to a text file
+    var filePath = "PaymentDetails.html";
+    await File.WriteAllTextAsync(filePath, htmlContent);
+
+    // Read the payment details from the text file
+    var attachmentBytes = await File.ReadAllBytesAsync(filePath);
+
+    var attachment = new Attachment
+    {
+        Filename = "PaymentDetails.html",
+        Type = "text/html",
+        Content = Convert.ToBase64String(attachmentBytes),
+        ContentId = "PaymentDetails"
+    };
+
+    // Create the email message
+    var msg = new SendGridMessage();
+    msg.From = from;
+    msg.AddTo(to);
+    msg.Subject = subject;
+    msg.HtmlContent = "<strong>Thank you for your order!</strong><br><br>" +
+    "<p>Payment details are attached.</p>";
+    msg.AddAttachment(attachment);
+
+    // Send the email
+    var response = await client.SendEmailAsync(msg);
 }
 
 
