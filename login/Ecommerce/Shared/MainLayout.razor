@@ -91,20 +91,20 @@ private async Task SearchProducts()
             
             @if (!isLoggedIn)
             {
-                <a href="cart" class="btn btn-light border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart"><i class="bi bi-cart4"></i></a>
-            <a href="wishlist" class="btn btn-light border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Wishlist"><i class="bi bi-heart-fill text-danger"></i></a>
+                <a href="cart" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart"><i class="bi bi-cart4"></i></a>
+            <a href="wishlist" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Wishlist"><i class="bi bi-heart-fill"></i></a>
                 <button class="btn btn-outline-danger my-2 my-sm-0 mx-2" @onclick='() => NavigationManager.NavigateTo($"https://localhost:7085/?ClientId={clientId}")'>Login</button>
             }
             else
             {
-            <a href="@($"/cart?token={token}")" class="btn btn-light border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart"><i class="bi bi-cart4"></i></a>
-            <a href="@($"/wishlist?token={token}")" class="btn btn-light border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Wishlist"><i class="bi bi-heart-fill text-danger"></i></a>
+            <a href="@($"/cart?token={token}")" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart"><i class="bi bi-cart4"></i></a>
+            <a href="@($"/wishlist?token={token}")" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Wishlist"><i class="bi bi-heart-fill"></i></a>
+            <a href="@($"/MyOrder?token={token}")" class="btn btn-outline-success border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="My Orders"><i class="bi bi-bag-fill"></i></a>   
                 <a href="@($"/profile?token={token}")">
                     <button  class="btn btn-outline-success " type="button" id="profile-btn"  aria-expanded="false" data-toggle="tooltip" data-placement="top" title="My Profile">
                     <i class="bi bi-person-badge"></i>Welcome, @username!
                 </button>
                 </a>
-                
                  <button class="btn btn-outline-danger my-2 my-sm-0 mx-2" @onclick="Logout">Logout</button>
             }
             

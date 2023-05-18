@@ -15,6 +15,8 @@
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
 @using System;
+@using Microsoft.JSInterop
+
 
 
 
@@ -97,7 +99,7 @@
 }
 
 
- <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-2" title="Add to cart"
+ <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
   data-product-id="@Product.ProdId"
   data-product-image="@Product.ImageURL"
    data-product-name="@Product.ProdName"
@@ -107,7 +109,7 @@
 </a>
 
     
-   <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-2" title="Add to wishlist"
+  <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to wishlist"
   data-product-id="@Product.ProdId"
   data-product-image="@Product.ImageURL"
    data-product-name="@Product.ProdName"
@@ -115,7 +117,7 @@
    onclick="addToWishlist(event)">
   <i class="bi bi-heart text-danger " style="font-size: 2rem;"></i>
 </a>
-  <button class="btn btn-success col-6" style="max-width: 250px;"
+  <button class="btn btn-outline-success col-6" style="max-width: 250px;"
         onclick="@(() => ProcessPayment(Product.Price))">
     Proceed for payment &#x20B9;@Product.Price
 </button>
@@ -193,7 +195,7 @@ private class PaymentDetails
 
 private async Task SendOrderConfirmationEmail(string recipientEmail)
 {
-    var apiKey = "SendGrid API KEY"; // Remove this key before uploading on GitHub
+    var apiKey = "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"; // Remove this key before uploading on GitHub
     var client = new SendGridClient(apiKey);
     var from = new EmailAddress("honnolliyasin@gmail.com", "E shop");
     var subject = "Order Confirmation";
@@ -309,6 +311,9 @@ private async Task SendOrderConfirmationEmail(string recipientEmail)
 
     // Send the email
     var response = await client.SendEmailAsync(msg);
+    // Save the product details in local storage
+    await JSRuntime.InvokeVoidAsync("saveToLocalStorage", Product.ProdId, Product.ImageURL, Product.ProdName, Product.Price);
+
 }
 
 

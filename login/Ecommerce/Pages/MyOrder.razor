@@ -1,0 +1,71 @@
+@page "/myorder"
+@inject IJSRuntime JSRuntime
+@using Newtonsoft.Json;
+
+@if (ProductItems != null && ProductItems.Count > 0)
+{
+    <h4>My Order</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Image</th>
+                <th>Product Name</th>
+                <th>Price</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var productItem in ProductItems)
+            {
+                <tr>
+                    <td><img src="@productItem.ImageURL" alt="Product Image" style="width: 100px;" /></td>
+                    <td>@productItem.ProdName</td>
+                    <td>@productItem.Price</td>
+                    <td><button class="btn btn-outline-success" @onclick="() => TrackOrder(productItem.Id)">Track</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No products found in My Order.</p>
+}
+
+@code {
+    List<ProductItem> ProductItems { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await RetrieveProductItemsFromLocalStorage();
+            StateHasChanged();
+        }
+    }
+
+    private async Task RetrieveProductItemsFromLocalStorage()
+    {
+        var productsJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "products");
+        if (!string.IsNullOrEmpty(productsJson))
+        {
+            ProductItems = JsonConvert.DeserializeObject<List<ProductItem>>(productsJson);
+        }
+    }
+
+    private void TrackOrder(string productId)
+    {
+        // Handle the tracking of the order for the given productId
+        // You can implement your tracking logic here
+        // For example, you can navigate to a new page to show the order details
+        // or display a toast/notification message
+    }
+
+    public class ProductItem
+    {
+        public string Id { get; set; }
+        public string ImageURL { get; set; }
+        public string ProdName { get; set; }
+        public decimal Price { get; set; }
+    }
+}

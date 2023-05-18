@@ -5,7 +5,11 @@
     color: #fff;
 }
 
-
+.btn-hover-highlight:hover {
+    background-color: lightgray;
+    /* Add any other styles you want for the hover effect */
+  }
+  
 
 
 html, body {

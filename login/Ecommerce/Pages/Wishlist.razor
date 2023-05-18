@@ -28,8 +28,8 @@ else
               <h5 class="card-title">@item.name</h5>
               <p class="card-text">Price: @item.price</p>
               <div class="card-footer d-flex align-items-end pt-3 px-0 pb-0 mt-auto">
-                  <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4" data-toggle="tooltip" data-placement="top" title="Remove from wishlist" onclick="@(() => RemoveFromWishlist(item.id))"><i class="bi bi-x-circle" style="font-size: 2rem;"></i></a>
-                               <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4" title="Add to cart"
+                  <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" data-toggle="tooltip" data-placement="top" title="Remove from wishlist" onclick="@(() => RemoveFromWishlist(item.id))"><i class="bi bi-x-circle" style="font-size: 2rem;"></i></a>
+                               <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
   data-product-id="@item.id"
   data-product-image="@item.image"
    data-product-name="@item.name"
