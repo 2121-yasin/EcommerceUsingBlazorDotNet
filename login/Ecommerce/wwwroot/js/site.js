@@ -1,4 +1,25 @@
-
+  // function saveToLocalStorage(imageURL, prodName, price) {
+  //       var product = {
+  //           imageURL: imageURL,
+  //           prodName: prodName,
+  //           price: price
+  //       };
+  //       var productJson = JSON.stringify(product);
+  //       localStorage.setItem('product', productJson);
+  //   }
+  function saveToLocalStorage(productId, imageURL, prodName, price) {
+    var product = {
+      id: productId,
+      imageURL: imageURL,
+      prodName: prodName,
+      price: price
+    };
+    var productsJson = localStorage.getItem('products');
+    var products = productsJson ? JSON.parse(productsJson) : [];
+    products.push(product);
+    localStorage.setItem('products', JSON.stringify(products));
+  }
+  
 
 // $(document).ready(function () {
 //   var clicked = localStorage.getItem('clicked') === 'true' || false;

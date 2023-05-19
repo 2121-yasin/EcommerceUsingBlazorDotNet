@@ -128,26 +128,24 @@ private async Task<List<Products>> GetProduct()
                 <div class="card-footer d-flex align-items-end pt-3 px-0 pb-0 mt-auto">
 
 
-<a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4" title="Add to cart"
-  data-product-id="@product.ProdId"
-  data-product-image="@product.ImageURL"
+<a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
+   data-product-id="@product.ProdId"
+   data-product-image="@product.ImageURL"
    data-product-name="@product.ProdName"
    data-product-price="@product.Price"
    onclick="addToCart(event)">
-  <i class="bi bi-cart4 " style="font-size: 2rem;"></i>
+   <i class="bi bi-cart4" style="font-size: 2rem;"></i>
 </a>
 
-
-           
-                  @* <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-5" data-toggle="tooltip" data-placement="top" title="Add to wishlist"><i class="bi bi-heart text-danger " style="font-size: 2rem;"></i></a> *@
-   <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4" title="Add to wishlist"
-  data-product-id="@product.ProdId"
-  data-product-image="@product.ImageURL"
+<a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to wishlist"
+   data-product-id="@product.ProdId"
+   data-product-image="@product.ImageURL"
    data-product-name="@product.ProdName"
    data-product-price="@product.Price"
    onclick="addToWishlist(event)">
-  <i class="bi bi-heart text-danger " style="font-size: 2rem;"></i>
+   <i class="bi bi-heart text-danger" style="font-size: 2rem;"></i>
 </a>
+
                 </div>
               </div>
             </div>

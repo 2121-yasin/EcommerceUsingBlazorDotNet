@@ -27,8 +27,8 @@ else
                     <p class="card-text">Quantity: @item.quantity</p>
                     <p class="card-text">Total Price: @item.totalPrice</p>
                     <div class="card-footer d-flex align-items-end pt-3 px-0 pb-0 mt-auto">
-                        <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4" data-toggle="tooltip" data-placement="top" title="Remove item from cart" onclick="@(() => RemoveFromCart(item.id))"><i class="bi bi-cart-x" style="font-size: 2rem;"></i></a>
-                        <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4" title="Add to wishlist"
+                        <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" data-toggle="tooltip" data-placement="top" title="Remove item from cart" onclick="@(() => RemoveFromCart(item.id))"><i class="bi bi-cart-x" style="font-size: 2rem;"></i></a>
+                        <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to wishlist"
                             data-product-id="@item.id"
                             data-product-image="@item.image"
                             data-product-name="@item.name"
