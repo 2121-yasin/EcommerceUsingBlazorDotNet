@@ -19,10 +19,28 @@ namespace JwtDbApi.Controllers
 
         // GET: api/Product
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+        public async Task<ActionResult<IEnumerable<Product>>> GetProducts(int page = 1, int pageSize = 10)
         {
-            return await _context.Products.ToListAsync();
+            var totalProducts = await _context.Products.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalProducts / pageSize);
+
+            var products = await _context.Products
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return Ok(new
+            {
+                TotalProducts = totalProducts,
+                TotalPages = totalPages,
+                CurrentPage = page,
+                PageSize = pageSize,
+                Products = products
+            });
         }
+
+
+
 
         // GET: api/Product/5
         [HttpGet("{id}")]
@@ -35,7 +53,7 @@ namespace JwtDbApi.Controllers
                 return NotFound();
             }
 
-             return Ok(product);
+            return Ok(product);
         }
 
         // POST: api/Product
