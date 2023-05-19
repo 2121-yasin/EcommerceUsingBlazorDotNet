@@ -12,6 +12,7 @@
                 <th>Product Name</th>
                 <th>Price</th>
                 <th>Action</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody>
@@ -22,6 +23,7 @@
                     <td>@productItem.ProdName</td>
                     <td>@productItem.Price</td>
                     <td><button class="btn btn-outline-success" @onclick="() => TrackOrder(productItem.Id)">Track</button></td>
+                    <td>Pending..</td>
                 </tr>
             }
         </tbody>
