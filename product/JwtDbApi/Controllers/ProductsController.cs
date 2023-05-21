@@ -17,6 +17,14 @@ namespace JwtDbApi.Controllers
             _context = context;
         }
 
+        //GET: api/Product/all
+        [HttpGet("all")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+        {
+            return await _context.Products.ToListAsync();
+        }
+
+
         // GET: api/Product
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts(int page = 1, int pageSize = 10)
