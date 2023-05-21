@@ -26,7 +26,7 @@ namespace JwtDbApi.Controllers
 
 
         // GET: api/Product
-        [HttpGet]
+        [HttpGet("byPages")]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts(int page = 1, int pageSize = 10)
         {
             var totalProducts = await _context.Products.CountAsync();
