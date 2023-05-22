@@ -9,6 +9,7 @@ namespace AuthJwtDbApi.DTOs
     public string City { get; set; }
     public string State { get; set; }
     public string Pincode { get; set; }
+    public string Role { get; set; } = "User";
     public string Phone { get; set; }
     }
 }
