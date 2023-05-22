@@ -39,7 +39,7 @@ protected override async Task OnInitializedAsync()
 
 private async Task<List<Products>> GetProduct()
 {
-    var baseUrl = "https://localhost:7044/api/products/";
+    var baseUrl = "https://localhost:7044/api/products/all";
     using (var httpClientHandler = new HttpClientHandler())
     {
         // httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; }; // Below used as not all implementations support this callback, and some throw PlatformNotSupportedException.
