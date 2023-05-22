@@ -1,12 +1,16 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
+@using Ecommerce.Models
 @inject IJSRuntime JSRuntime
+@using Newtonsoft.Json;
 @inject HttpClient httpClient
 @inject IConfiguration Configuration
 @using System.IdentityModel.Tokens.Jwt;
 <PageTitle>Ecommerce</PageTitle>
 
 @code {
+    public List<Products> Product { get; set; }
+    private string searchQuery;
     private bool isLoggedIn = false;
 
     private string token;
@@ -60,13 +64,44 @@ foreach (var claim in decodedToken.Claims)
         NavigationManager.NavigateTo("/");
     }
 
-    @* //serach product
-    private string searchQuery;
+protected override async Task OnInitializedAsync()
+    {
+        var uri = new Uri(NavigationManager.Uri);
+        if (uri.Query.Contains("search="))
+        {
+            searchQuery = uri.Query.Split("=")[1];
+        }
 
-private async Task SearchProducts()
-{
-    NavigationManager.NavigateTo($"/?search={searchQuery}");
-} *@
+        Product = await GetProduct();
+    }
+
+    private async Task<List<Products>> GetProduct()
+    {
+        var baseUrl = "https://localhost:7044/api/products/all";
+        using (var httpClientHandler = new HttpClientHandler())
+        {
+            httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+            using (var httpClient = new HttpClient(httpClientHandler))
+            {
+                var jsonStr = await httpClient.GetStringAsync(baseUrl);
+                var products = JsonConvert.DeserializeObject<List<Products>>(jsonStr);
+
+                if (!string.IsNullOrEmpty(searchQuery))
+                {
+                    // Filter products based on the search query
+                    products = products.Where(p => p.ProdName.ToLower().Contains(searchQuery.ToLower())).ToList();
+                }
+
+                return products;
+            }
+        }
+    }
+
+     private async Task SearchProducts()
+    {
+        // Redirect to the search results page with the search query as a parameter
+        await JSRuntime.InvokeVoidAsync("open", $"/?search={Uri.EscapeDataString(searchQuery)}", "_self");
+    }
 
 }
 
@@ -83,10 +118,10 @@ private async Task SearchProducts()
     <button class="btn btn-outline-success" type="submit">Search</button>
 </form> *@
 
-          <form class="d-flex" role="search">
-                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-                <button class="btn btn-outline-success" type="submit">Search</button>
-            </form>
+          <form class="d-flex" role="search" @onsubmit="SearchProducts">
+        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" @bind-value="@searchQuery">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+    </form>
 
             
             @if (!isLoggedIn)
