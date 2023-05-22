@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AuthJwtDbApi.Data;
 using AuthJwtDbApi.DTOs;
 using AuthJwtDbApi.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -15,9 +16,9 @@ namespace AuthJwtDbApi.Controllers
     [Authorize]
     public class UserInfoController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly AppDbContext _context;
 
-        public UserInfoController(ApplicationDbContext context)
+        public UserInfoController(AppDbContext context)
         {
             _context = context;
         }
@@ -78,7 +79,7 @@ namespace AuthJwtDbApi.Controllers
         // POST: api/UserInfo
         [HttpPost]
         [AllowAnonymous]
-        public async Task<ActionResult<UserInfoDto>> PostUserInfo(UserInfoDto userModel)
+        public async Task<ActionResult<UserRegistrationDto>> PostUserInfo(UserRegistrationDto userModel)
         {
             var existingUser = await _context.UserInfo.FirstOrDefaultAsync(u => u.Email == userModel.Email);
 

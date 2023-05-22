@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using JwtDbApi.Data;
 using JwtDbApi.DTOs;
 using JwtDbApi.Models;
@@ -32,7 +34,8 @@ namespace JwtDbApi.Controllers
             return vendor;
         }
 
-        // [HttpPost("{id}")]
+        // POST
+        // api/vendors/id
         [Authorize(Roles = "Vendor")]
         [HttpPost("{id}")]
         public async Task<IActionResult> CreateVendor(int id, [FromBody] VendorDto vendorDto)
@@ -52,6 +55,64 @@ namespace JwtDbApi.Controllers
             // Return the newly created vendor with the generated Id
             return CreatedAtAction(nameof(GetVendorInfo), new { id = vendor.Id }, vendor);
         }
+
+        // GET products by vendor
+
+        // [HttpGet("{id}/products")]
+        // public async Task<ActionResult<IEnumerable<Product>>> GetProductsByVendor(int id)
+        // {
+        //     var options = new JsonSerializerOptions
+        //     {
+        //         ReferenceHandler = ReferenceHandler.Preserve,
+        //         // MaxDepth = 32,
+        //         WriteIndented = true
+        //     };
+
+        //     var vendor = await _context.Vendors
+        //         .Include(v => v.ProductVendors)
+        //         .ThenInclude(pv => pv.Product)
+        //         .FirstOrDefaultAsync(v => v.Id == id);
+
+        //     if (vendor == null)
+        //     {
+        //         return NotFound();
+        //     }
+
+        //     var products = vendor.ProductVendors.Select(pv => pv.Product).ToList();
+        //     var jsonString = JsonSerializer.Serialize(products, options);
+        //     return Ok(jsonString);
+        // }
+
+
+        [HttpGet("{Id}/products")]
+        public ActionResult<List<Product>> GetProductsByVendor(int Id)
+        {
+            var options = new JsonSerializerOptions
+            {
+                ReferenceHandler = ReferenceHandler.Preserve,
+                // MaxDepth = 32,
+                WriteIndented = true
+            };
+            // Retrieve the vendor from the database including the associated products
+            Vendor vendor = _context.Vendors
+                .Include(v => v.ProductVendors)
+                .ThenInclude(pv => pv.Product)
+                .FirstOrDefault(v => v.Id == Id);
+
+            if (vendor == null)
+            {
+                return NotFound(); // Return 404 if vendor is not found
+            }
+
+            // Extract the list of products from the vendor's product vendors
+            List<Product> products = vendor.ProductVendors
+                .Select(pv => pv.Product!)
+                .ToList();
+            var jsonString = JsonSerializer.Serialize(products, options);
+            return Ok(jsonString);
+        }
+
+
 
         // PUT
         [Authorize(Roles = "Vendor")]

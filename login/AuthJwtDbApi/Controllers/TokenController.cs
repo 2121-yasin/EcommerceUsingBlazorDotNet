@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using AuthJwtDbApi.Data;
 using AuthJwtDbApi.DTOs;
 using AuthJwtDbApi.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -18,16 +19,16 @@ namespace AuthJwtDbApi.Controllers
     public class TokenController : ControllerBase
     {
         public IConfiguration _configuration;
-        public readonly ApplicationDbContext _context;
+        public readonly AppDbContext _context;
 
-        public TokenController(IConfiguration configuration, ApplicationDbContext context)
+        public TokenController(IConfiguration configuration, AppDbContext context)
         {
             _configuration = configuration;
             _context = context;
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post(UserModel userModel)
+        public async Task<IActionResult> Post(UserLoginDto userModel)
         {
             if (userModel != null && userModel.Email != null && userModel.Password != null)
             {
