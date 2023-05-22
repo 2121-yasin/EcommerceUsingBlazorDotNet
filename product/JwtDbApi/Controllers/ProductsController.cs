@@ -25,7 +25,7 @@ namespace JwtDbApi.Controllers
         }
 
 
-        // GET: api/Product
+        // GET: api/Product/byPages
         [HttpGet("byPages")]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts(int page = 1, int pageSize = 10)
         {
