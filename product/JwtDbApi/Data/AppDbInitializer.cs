@@ -68,7 +68,7 @@ namespace JwtDbApi.Data
                             ProdName="Charger",
                             Description="Charger for Samsung",
                             Price=450,
-                            ImageURL="https://m.media-amazon.com/images/W/IMAGERENDERING_521856-T1/images/I/51G529B1p1L._SL1200_.jpg",
+                            ImageURL="https://m.media-amazon.com/images/I/61v+gQmIbvL._SL1024_.jpg",
                             CategoryId=chargerCategory.CategoryId
                         },
                         new Product()
@@ -76,7 +76,7 @@ namespace JwtDbApi.Data
                             ProdName="Samsung",
                             Description="Samsung",
                             Price=10000,
-                            ImageURL="https://images.pexels.com/photos/47261/pexels-photo-47261.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+                            ImageURL="https://freepngimg.com/thumb/samsung_mobile_phone/5-2-samsung-mobile-phone-png-hd.png",
                             CategoryId=mobileCategory.CategoryId
                         },
                         new Product()
@@ -84,7 +84,7 @@ namespace JwtDbApi.Data
                             ProdName="Apple",
                             Description="Apple",
                             Price=20000,
-                            ImageURL="https://thumbs.dreamstime.com/b/iphone-most-recent-isolated-white-background-46056944.jpg",
+                            ImageURL="https://m.media-amazon.com/images/I/51zCJOv9AFL._SL1500_.jpg",
                             CategoryId=mobileCategory.CategoryId
                         },
                         new Product()
@@ -92,7 +92,7 @@ namespace JwtDbApi.Data
                             ProdName="Xiaomi",
                             Description="Xiaomi",
                             Price=15000,
-                            ImageURL="https://st4.depositphotos.com/11698096/22999/i/600/depositphotos_229999768-stock-photo-kyiv-ukraine-july-2018-xiaomi.jpg",
+                            ImageURL="https://5.imimg.com/data5/SELLER/Default/2021/6/VM/TI/EU/21445559/redmi-mobile-phones-redmi-8-xiaomi-mobiles-500x500.jpeg",
                             CategoryId=mobileCategory.CategoryId
                         },
 
