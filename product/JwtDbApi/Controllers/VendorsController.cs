@@ -58,59 +58,76 @@ namespace JwtDbApi.Controllers
 
         // GET products by vendor
 
-        // [HttpGet("{id}/products")]
-        // public async Task<ActionResult<IEnumerable<Product>>> GetProductsByVendor(int id)
+        // [HttpGet("{Id}/products")]
+        // public async Task<ActionResult<List<Product>>> GetProductsByVendor(int Id)
         // {
-        //     var options = new JsonSerializerOptions
-        //     {
-        //         ReferenceHandler = ReferenceHandler.Preserve,
-        //         // MaxDepth = 32,
-        //         WriteIndented = true
-        //     };
+        //     var products = await (from pv in _context.ProductVendors
+        //                           join p in _context.Products on pv.ProductId equals p.ProdId
+        //                           where pv.VendorId == Id
+        //                           select new Product
+        //                           {
+        //                               ProdId = p.ProdId,
+        //                               ProdName = p.ProdName,
+        //                               // Add other properties you want to include
+        //                           }).ToListAsync();
 
-        //     var vendor = await _context.Vendors
-        //         .Include(v => v.ProductVendors)
-        //         .ThenInclude(pv => pv.Product)
-        //         .FirstOrDefaultAsync(v => v.Id == id);
-
-        //     if (vendor == null)
-        //     {
-        //         return NotFound();
-        //     }
-
-        //     var products = vendor.ProductVendors.Select(pv => pv.Product).ToList();
-        //     var jsonString = JsonSerializer.Serialize(products, options);
-        //     return Ok(jsonString);
+        //     return products;
         // }
 
 
+        // [HttpGet("{Id}/products")]
+        // public async Task<ActionResult<List<Product>>> GetProductsByVendor(int Id)
+        // {
+        //     var productIds = await _context.ProductVendors
+        //                                    .Where(v => v.VendorId == Id)
+        //                                    .Select(v => v.ProductId)
+        //                                    .ToListAsync();
+
+        //     var products = await _context.Products
+        //                                 .Where(p => productIds.Contains(p.ProdId))
+        //                                 .Select(p => new Product
+        //                                 {
+        //                                     ProdId = p.ProdId,
+        //                                     ProdName = p.ProdName,
+        //                                     // Add other properties you want to include
+        //                                 })
+        //                                 .ToListAsync();
+
+        //     return products;
+        // }
+
+
+
+        // GET products by vendor
+
         [HttpGet("{Id}/products")]
-        public ActionResult<List<Product>> GetProductsByVendor(int Id)
+        public async Task<ActionResult<IEnumerable<Product>>> GetProductsByVendor(int Id, int page = 1, int pageSize = 10)
         {
-            var options = new JsonSerializerOptions
-            {
-                ReferenceHandler = ReferenceHandler.Preserve,
-                // MaxDepth = 32,
-                WriteIndented = true
-            };
-            // Retrieve the vendor from the database including the associated products
-            Vendor vendor = _context.Vendors
-                .Include(v => v.ProductVendors)
-                .ThenInclude(pv => pv.Product)
-                .FirstOrDefault(v => v.Id == Id);
+            var totalProducts = await _context.Vendors
+                .Where(v => v.Id == Id)
+                .SelectMany(v => v.ProductVendors.Select(pv => pv.Product))
+                .CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalProducts / pageSize);
 
-            if (vendor == null)
-            {
-                return NotFound(); // Return 404 if vendor is not found
-            }
+            var products = await _context.Vendors
+                .Where(v => v.Id == Id)
+                .SelectMany(v => v.ProductVendors.Select(pv => pv.Product))
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
-            // Extract the list of products from the vendor's product vendors
-            List<Product> products = vendor.ProductVendors
-                .Select(pv => pv.Product!)
-                .ToList();
-            var jsonString = JsonSerializer.Serialize(products, options);
-            return Ok(jsonString);
+            return Ok(new
+            {
+                TotalProducts = totalProducts,
+                TotalPages = totalPages,
+                CurrentPage = page,
+                PageSize = pageSize,
+                Products = products
+            });
         }
+
+
+
 
 
 
