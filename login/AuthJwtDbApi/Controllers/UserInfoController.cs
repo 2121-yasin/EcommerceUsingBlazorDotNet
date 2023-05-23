@@ -79,32 +79,38 @@ namespace AuthJwtDbApi.Controllers
         // POST: api/UserInfo
         [HttpPost]
         [AllowAnonymous]
-        public async Task<ActionResult<UserRegistrationDto>> PostUserInfo(UserRegistrationDto userModel)
+        public async Task<ActionResult<UserRegistrationDto>> PostUserInfo(UserRegistrationDto userRegistrationDto)
         {
-            var existingUser = await _context.UserInfo.FirstOrDefaultAsync(u => u.Email == userModel.Email);
+            var existingUser = await _context.UserInfo.FirstOrDefaultAsync(u => u.Email == userRegistrationDto.Email);
 
             if (existingUser != null)
             {
                 return BadRequest("User already exists");
             }
 
-            string passwordHash = BCrypt.Net.BCrypt.HashPassword(userModel.Password);
+            string passwordHash = BCrypt.Net.BCrypt.HashPassword(userRegistrationDto.Password);
 
+            if (userRegistrationDto.Role != "User" && userRegistrationDto.Role != "Vendor")
+            {
+                return BadRequest();
+            }
+            
             AddressInfo address = new AddressInfo
             {
-                Street = userModel.Street,
-                City = userModel.City,
-                State = userModel.State,
-                Pincode = userModel.Pincode
+                Street = userRegistrationDto.Street,
+                City = userRegistrationDto.City,
+                State = userRegistrationDto.State,
+                Pincode = userRegistrationDto.Pincode
             };
 
             UserInfo userInfo = new UserInfo
             {
-                Email = userModel.Email,
+                Email = userRegistrationDto.Email,
                 Password = passwordHash,
-                UserName = userModel.UserName,
-                Phone = userModel.Phone,
-                Address = address
+                UserName = userRegistrationDto.UserName,
+                Phone = userRegistrationDto.Phone,
+                Address = address,
+                Role = userRegistrationDto.Role
             };
 
             _context.UserInfo.Add(userInfo);

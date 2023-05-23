@@ -44,50 +44,65 @@ public class HomeController : Controller
                 using (var response = await httpClient.PostAsync("https://localhost:7240/api/UserInfo", stringContent))
                 // JsonContent jsonContent = JsonContent.Create(user);
                 // using (var response = await httpClient.PostAsync("https://localhost:7040/api/userinfo", jsonContent))
-
                 {
                     var userExists = await response.Content.ReadAsStringAsync();
 
                     if (userExists == "User already exists")
-
                     {
-
                         ModelState.AddModelError("Email", "Email address is already registered");
                         TempData["Error"] = "This email address is already in use";
 
                         return View("Register", user);
                     }
-                    return Redirect("~/Home/Login");
+
+                    string? clientId = null;
+                    if (user.Role == "Vendor")
+                    {
+                        clientId = "ff84a00f-99ab-4f81-9f52-26df485a9dcf";
+                        // clientId = "b6782e13-5669-4156-82a8-1850883214e4";
+                    }
+                    else if (user.Role == "User")
+                    {
+                        clientId = "a0d0b3a2-efa4-47ca-b193-45bdbd950f3a";
+                    }
+
+                    if (clientId == null) {
+                        TempData["Error"] = "Select a valid Role.";
+
+                        return View("Register", user);
+                    }
+
+                    return Redirect($"~/Home/Login/RedirectUrl?clientId={clientId}");
                 }
             }
         }
     }
 
 
-/*
-public async Task<IActionResult> Login(string clientId)
-    {
-        //ViewBag.redirect = redirect;  //
-        ViewBag.clientId = HttpUtility.UrlEncode(clientId);
-        //StringContent stringContent = new StringContent(JsonConvert.SerializeObject(), Encoding.UTF8, "application/json"); // System.Security.Permissions NuGet package required for this to work. Commented method below works without NuGet package.
+    /*
+    public async Task<IActionResult> Login(string clientId)
+        {
+            //ViewBag.redirect = redirect;  //
+            ViewBag.clientId = HttpUtility.UrlEncode(clientId);
+            //StringContent stringContent = new StringContent(JsonConvert.SerializeObject(), Encoding.UTF8, "application/json"); // System.Security.Permissions NuGet package required for this to work. Commented method below works without NuGet package.
 
-        //using (var response = await HttpClient.GetAsync("https://localhost:7240/api/UserInfo/RedirectUrl?clientId=" + clientId))
-         using (var httpClientHandler = new HttpClientHandler())
-        {
-        httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator; // (NOT SECURE) connect to a server with a certificate that shouldn't be validated
-        var response = string.Empty;
-        using (var client = new HttpClient(httpClientHandler))
-        {
-            HttpResponseMessage result = await client.GetAsync("https://localhost:7240/api/UserInfo/RedirectUrl?clientId=" + clientId);
-            if (result.IsSuccessStatusCode)
+            //using (var response = await HttpClient.GetAsync("https://localhost:7240/api/UserInfo/RedirectUrl?clientId=" + clientId))
+             using (var httpClientHandler = new HttpClientHandler())
             {
-                ViewBag.redirect = await result.Content.ReadAsStringAsync();
+            httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator; // (NOT SECURE) connect to a server with a certificate that shouldn't be validated
+            var response = string.Empty;
+            using (var client = new HttpClient(httpClientHandler))
+            {
+                HttpResponseMessage result = await client.GetAsync("https://localhost:7240/api/UserInfo/RedirectUrl?clientId=" + clientId);
+                if (result.IsSuccessStatusCode)
+                {
+                    ViewBag.redirect = await result.Content.ReadAsStringAsync();
+                }
             }
+            }
+            return View();
         }
-        }
-        return View();
-    }
-*/
+    */
 
 
     // public IActionResult Login(string redirect)
@@ -97,26 +112,26 @@ public async Task<IActionResult> Login(string clientId)
     //     return View();
     // }
 
-[AllowAnonymous]
-public async Task<IActionResult> Login(string clientId)
-{
-    ViewBag.clientId = HttpUtility.UrlEncode(clientId);
-
-    using (var httpClientHandler = new HttpClientHandler())
+    [AllowAnonymous]
+    public async Task<IActionResult> Login(string clientId)
     {
-        httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
-        using (var client = new HttpClient(httpClientHandler))
+        ViewBag.clientId = HttpUtility.UrlEncode(clientId);
+
+        using (var httpClientHandler = new HttpClientHandler())
         {
-            var result = await client.GetAsync($"https://localhost:7240/api/UserInfo/RedirectUrl?clientId={clientId}");
-            if (result.IsSuccessStatusCode)
+            httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+            using (var client = new HttpClient(httpClientHandler))
             {
-                ViewBag.redirect = await result.Content.ReadAsStringAsync();
+                var result = await client.GetAsync($"https://localhost:7240/api/UserInfo/RedirectUrl?clientId={clientId}");
+                if (result.IsSuccessStatusCode)
+                {
+                    ViewBag.redirect = await result.Content.ReadAsStringAsync();
+                }
             }
         }
+
+        return View();
     }
-    
-    return View();
-}
 
 
     public async Task<IActionResult> LoginUser(UserDto user, string redirect)
@@ -140,9 +155,9 @@ public async Task<IActionResult> Login(string clientId)
                         ViewBag.Message = "Incorrect UserId or Password!";
                         return Redirect("~/Home/Login");
                     }
-                     HttpContext.Session.SetString("JWToken", token);
+                    HttpContext.Session.SetString("JWToken", token);
 
-                     HttpContext.Session.SetString("Email", user.Email);
+                    HttpContext.Session.SetString("Email", user.Email);
 
                     // Setting role in HttpContext.Session to use for conditionally rendering HTML elements.
 
