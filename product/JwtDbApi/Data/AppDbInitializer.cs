@@ -66,7 +66,7 @@ namespace JwtDbApi.Data
                         new Product()
                         {
                             ProdName="Charger",
-                            Description="Charger for Samsung",
+                            Description="Samsung Galaxy A01 Mobile Charger 2 Amp With Cable",
                             Price=450,
                             ImageURL="https://m.media-amazon.com/images/I/61v+gQmIbvL._SL1024_.jpg",
                             CategoryId=chargerCategory.CategoryId
@@ -74,7 +74,7 @@ namespace JwtDbApi.Data
                         new Product()
                         {
                             ProdName="Samsung",
-                            Description="Samsung",
+                            Description="Samsung Galaxy S7 Edge G935F 32GB 64GB 128GB",
                             Price=10000,
                             ImageURL="https://freepngimg.com/thumb/samsung_mobile_phone/5-2-samsung-mobile-phone-png-hd.png",
                             CategoryId=mobileCategory.CategoryId
@@ -82,7 +82,7 @@ namespace JwtDbApi.Data
                         new Product()
                         {
                             ProdName="Apple",
-                            Description="Apple",
+                            Description="iPhone X 64GB/256GB Apple Mobile Smartphone Factory Unlocked | Product ... Apple iPhone 5 32GB Smartphone - T-Mobile - Black",
                             Price=20000,
                             ImageURL="https://m.media-amazon.com/images/I/51zCJOv9AFL._SL1500_.jpg",
                             CategoryId=mobileCategory.CategoryId
@@ -90,7 +90,7 @@ namespace JwtDbApi.Data
                         new Product()
                         {
                             ProdName="Xiaomi",
-                            Description="Xiaomi",
+                            Description="Xiaomi Redmi 9 Mobile Phone With 64GB 4GB RAM",
                             Price=15000,
                             ImageURL="https://5.imimg.com/data5/SELLER/Default/2021/6/VM/TI/EU/21445559/redmi-mobile-phones-redmi-8-xiaomi-mobiles-500x500.jpeg",
                             CategoryId=mobileCategory.CategoryId

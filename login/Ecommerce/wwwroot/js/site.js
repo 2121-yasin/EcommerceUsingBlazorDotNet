@@ -126,7 +126,7 @@ window.RazorpayCheckout = {
               "currency": "INR",
               "name": "E Shop",
               "description": "Payment for your order",
-              "image": "../../../Assets/eshop.jpg",
+              "image": "../../../Assets/eshop.png",
               "order_id": orderId,
               "handler": function(response) {
                 // Call RazorpayPaymentSuccessHandler method on payment success
