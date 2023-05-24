@@ -92,13 +92,17 @@ protected override async Task OnInitializedAsync()
               @if (item.ProdId == 1)
             {
                 <div class="carousel-item active" data-bs-interval="2000">
+                     <a href="@($"/details/{item.ProdId}")">
                     <img src="@item.ImageURL" class="d-block w-100" style="max-width:800px; height: 400px;" />
+                    </a>
                 </div>
             }
             else if (item.ProdId == 2 || item.ProdId == 3)
             {
                 <div class="carousel-item" data-bs-interval="2000">
+                    <a href="@($"/details/{item.ProdId}")">
                     <img src="@item.ImageURL" class="d-block w-100" style="max-width:800px; height: 400px;" />
+                    </a>
                 </div>
             }
             }
