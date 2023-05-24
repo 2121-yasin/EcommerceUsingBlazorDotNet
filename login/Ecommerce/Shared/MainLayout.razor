@@ -144,13 +144,19 @@ protected override async Task OnInitializedAsync()
             
             @if (!isLoggedIn)
             {
-                <a href="cart" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart"><i class="bi bi-cart4"></i></a>
+                <a href="cart" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart"><i class="bi bi-cart4">
+                                    @if (cartCounter > 0)
+            {
+                <span class="cart-counter">@cartCounter</span>
+            }
+                </i></a>
             <a href="wishlist" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Wishlist"><i class="bi bi-heart-fill"></i></a>
                 <button class="btn btn-outline-danger my-2 my-sm-0 mx-2" @onclick='() => NavigationManager.NavigateTo($"https://localhost:7085/?ClientId={clientId}")'>Login</button>
             }
             else
             {
-            <a href="@($"/cart?token={token}")" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart"><i class="bi bi-cart4">   @if (cartCounter > 0)
+            <a href="@($"/cart?token={token}")" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart"><i class="bi bi-cart4">   
+                @if (cartCounter > 0)
             {
                 <span class="cart-counter">@cartCounter</span>
             }
