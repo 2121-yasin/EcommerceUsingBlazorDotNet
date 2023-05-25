@@ -23,7 +23,9 @@
                     <td>@productItem.ProdName</td>
                     <td>@productItem.Price</td>
                     <td><button class="btn btn-outline-success" @onclick="() => TrackOrder(productItem.Id)">Track</button></td>
-                    <td>Pending..</td>
+                    <td>
+                        <span class="@GetOrderStatusClass(productItem.Status)">@GetOrderStatusText(productItem.Status)</span>
+                    </td>
                 </tr>
             }
         </tbody>
@@ -37,6 +39,77 @@ else
 @code {
     List<ProductItem> ProductItems { get; set; }
 
+    private string GetOrderStatusClass(OrderStatus status)
+    {
+        switch (status)
+        {
+            case OrderStatus.Pending:
+                return "status-pending";
+            case OrderStatus.ItemPacked:
+                return "status-item-packed";
+            case OrderStatus.DeliveredToNearestHub:
+                return "status-delivered-hub";
+            case OrderStatus.OutForDelivery:
+                return "status-out-delivery";
+            case OrderStatus.Delivered:
+                return "status-delivered";
+            default:
+                return string.Empty;
+        }
+    }
+
+    private string GetOrderStatusText(OrderStatus status)
+    {
+        switch (status)
+        {
+            case OrderStatus.Pending:
+                return "Pending";
+            case OrderStatus.ItemPacked:
+                return "Item Packed";
+            case OrderStatus.DeliveredToNearestHub:
+                return "Delivered to Nearest Hub";
+            case OrderStatus.OutForDelivery:
+                return "Out for Delivery";
+            case OrderStatus.Delivered:
+                return "Delivered";
+            default:
+                return string.Empty;
+        }
+    }
+
+    private void TrackOrder(string productId)
+    {
+        // Find the corresponding product item
+        var productItem = ProductItems.FirstOrDefault(item => item.Id == productId);
+        if (productItem != null)
+        {
+            // Update the order status
+            switch (productItem.Status)
+            {
+                case OrderStatus.Pending:
+                    productItem.Status = OrderStatus.ItemPacked;
+                    break;
+                case OrderStatus.ItemPacked:
+                    productItem.Status = OrderStatus.DeliveredToNearestHub;
+                    break;
+                case OrderStatus.DeliveredToNearestHub:
+                    productItem.Status = OrderStatus.OutForDelivery;
+                    break;
+                case OrderStatus.OutForDelivery:
+                    productItem.Status = OrderStatus.Delivered;
+                    break;
+                case OrderStatus.Delivered:
+                    // If the order is already delivered, do nothing
+                    break;
+            }
+
+            // Update the product item in the list
+            StateHasChanged();
+
+            // Save the updated product items to local storage
+            SaveProductItemsToLocalStorage();
+        }
+    }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -45,29 +118,37 @@ else
             StateHasChanged();
         }
     }
-
-    private async Task RetrieveProductItemsFromLocalStorage()
+private async Task RetrieveProductItemsFromLocalStorage()
+{
+    var productsJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "products");
+    if (!string.IsNullOrEmpty(productsJson))
     {
-        var productsJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "products");
-        if (!string.IsNullOrEmpty(productsJson))
-        {
-            ProductItems = JsonConvert.DeserializeObject<List<ProductItem>>(productsJson);
-        }
+        ProductItems = JsonConvert.DeserializeObject<List<ProductItem>>(productsJson);
     }
+}
 
-    private void TrackOrder(string productId)
-    {
-        // Handle the tracking of the order for the given productId
-        // You can implement your tracking logic here
-        // For example, you can navigate to a new page to show the order details
-        // or display a toast/notification message
-    }
+private async Task SaveProductItemsToLocalStorage()
+{
+    var productsJson = JsonConvert.SerializeObject(ProductItems);
+    await JSRuntime.InvokeVoidAsync("localStorage.setItem", "products", productsJson);
+}
 
-    public class ProductItem
-    {
-        public string Id { get; set; }
-        public string ImageURL { get; set; }
-        public string ProdName { get; set; }
-        public decimal Price { get; set; }
-    }
+public class ProductItem
+{
+    public string Id { get; set; }
+    public string ImageURL { get; set; }
+    public string ProdName { get; set; }
+    public decimal Price { get; set; }
+    public OrderStatus Status { get; set; }
+}
+
+public enum OrderStatus
+{
+    Pending,
+    ItemPacked,
+    DeliveredToNearestHub,
+    OutForDelivery,
+    Delivered
+}
+
 }
