@@ -8,30 +8,9 @@
 
 
 @code{
-    @* private string searchQuery; *@
     public List<Products> Product { get; set; }
     private string searchQuery;
 
-@*
-protected override async Task OnInitializedAsync()
-{
-    var uri = new Uri(NavigationManager.Uri);
-    using (var httpClientHandler = new HttpClientHandler())
-    {
-       httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator; // (NOT SECURE) connect to a server with a certificate that shouldn't be validated
-    using (var httpClient = new HttpClient(httpClientHandler)){
-    if (uri.Query.Contains("search="))
-    {
-        searchQuery = uri.Query.Split("=")[1];
-        Product = await httpClient.GetFromJsonAsync<List<Products>>($"https://localhost:7044/api/products/search/{searchQuery}");
-    }
-    else
-    {
-        Product = await httpClient.GetFromJsonAsync<List<Products>>("https://localhost:7044/api/products/");
-    }
-    }
-    }
-*@
 protected override async Task OnInitializedAsync()
     {
         var uri = new Uri(NavigationManager.Uri);
@@ -132,10 +111,6 @@ protected override async Task OnInitializedAsync()
     <header class="mb-4">
       <h3>New products</h3>
       <div class="d-flex justify-content-center m-5 p-5">
-    @* <form class="d-flex" role="search" @onsubmit="SearchProducts">
-        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" @bind-value="@searchQuery">
-        <button class="btn btn-outline-success" type="submit">Search</button>
-    </form> *@
 </div>
 
     </header>

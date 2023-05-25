@@ -1,33 +1,41 @@
-﻿@model Auth.DTOs.UserDto
+﻿@model Auth.DTOs.UserLoginDto
 
 @{
-    ViewData["Title"] = "Home Page";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+  ViewData["Title"] = "Home Page";
+  Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+@if (TempData["Error"] != null)
+{
+  <div class="row justify-content-end">
+    <div class="col-md-6 alert alert-danger">
+      <span><b>Sorry!</b> - @TempData["Error"] </span>
+    </div>
+  </div>
+}
 
-
-<section class="vh-100">
+<section>
   <div class="container-fluid h-custom">
     <div class="row d-flex justify-content-center align-items-center h-100">
-      <div class="col-md-9 col-lg-6 col-xl-5">
-        <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp"
-          class="img-fluid" alt="Sample image">
+      <div class=" col-lg-6 col-xl-5">
+        <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp" class="img-fluid"
+          alt="Sample image">
       </div>
       <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
         <form asp-action="LoginUser" asp-controller="Home">
 
-          <input type="hidden" name="redirect" value="@ViewBag.Redirect" />
-          
+          <input type="hidden" name="redirect" value="@ViewBag.redirect" />
+          <input type="hidden" name="clientId" value="@ViewBag.clientId" />
+
           <div asp-validation-summary="ModelOnly" class="text-danger"></div>
           <div class="d-flex flex-row align-items-center justify-content-center justify-content-lg-start">
             <p class="lead fw-normal mb-0 me-3">Sign in with</p>
-            <button type="button" class="btn btn-primary btn-floating mx-1" >
+            <button type="button" class="btn btn-primary btn-floating mx-1">
               <i class="bi bi-facebook"></i>
             </button>
 
             <button type="button" class="btn btn-primary btn-floating mx-1">
-             <i class="bi bi-google"></i>
+              <i class="bi bi-google"></i>
             </button>
 
           </div>
@@ -36,19 +44,19 @@
             <p class="text-center fw-bold mx-3 mb-0">Or</p>
           </div>
 
-            @* <!-- UserName input -->
+          @* <!-- UserName input -->
           <div class="form-outline mb-4">
-            <input type="UserName" asp-for="Email" id="form3Example3" class="form-control form-control-lg"
-              placeholder="Enter UserName" />
-            <label class="form-label" ></label>
-            <span asp-validation-for="UserName" class="text-danger"></span>
+          <input type="UserName" asp-for="Email" id="form3Example3" class="form-control form-control-lg"
+          placeholder="Enter UserName" />
+          <label class="form-label" ></label>
+          <span asp-validation-for="UserName" class="text-danger"></span>
           </div> *@
 
           <!-- Email input -->
           <div class="form-outline mb-4">
             <input type="Email" asp-for="Email" id="form3Example3" class="form-control form-control-lg"
               placeholder="Enter a valid Email Address" />
-            <label class="form-label" ></label>
+            <label class="form-label"></label>
             <span asp-validation-for="Email" class="text-danger"></span>
           </div>
 
@@ -56,21 +64,22 @@
           <div class="form-outline mb-3">
             <input type="Password" asp-for="Password" id="form3Example4" class="form-control form-control-lg"
               placeholder="Enter password" />
-            <label class="form-label" ></label>
+            <label class="form-label"></label>
             <span asp-validation-for="Password" class="text-danger"></span>
           </div>
 
           <div class="d-flex justify-content-between align-items-center">
-          
+
             <a href="#!" class="text-body">Forgot password?</a>
           </div>
 
           <div class="text-center text-lg-start mt-4 pt-2">
-            <button type="submit" class="btn btn-primary btn-lg"
-              style="padding-left: 2.5rem; padding-right: 2.5rem;" value="Log in">Login</button>
-            <p class="small fw-bold mt-2 pt-1 mb-0">Don't have an account? <a asp-controller="Home" asp-action="Register">Register</a></p>
+            <button type="submit" class="btn btn-primary btn-lg" style="padding-left: 2.5rem; padding-right: 2.5rem;"
+              value="Log in">Login</button>
+            <p class="small fw-bold mt-2 pt-1 mb-0">Don't have an account? <a asp-controller="Home"
+              asp-action="Register">Register</a></p>
           </div>
-           <label>@Html.Raw(@ViewBag.Message)</label>
+          <label>@Html.Raw(@ViewBag.Message)</label>
         </form>
       </div>
     </div>
@@ -79,5 +88,7 @@
 </section>
 
 @section Scripts {
-  @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+  @{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+  }
 }

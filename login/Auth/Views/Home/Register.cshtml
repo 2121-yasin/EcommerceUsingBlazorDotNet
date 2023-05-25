@@ -1,4 +1,5 @@
 ﻿@model Auth.DTOs.UserDto
+
 @{
   ViewData["Title"] = "Registration Page";
   Layout = "~/Views/Shared/_Layout.cshtml";
@@ -116,8 +117,9 @@
           <div class="text-center text-lg-start my-4 pt-2">
             <button type="submit" class="btn btn-primary btn-lg" style="padding-left: 2.5rem; padding-right: 2.5rem;"
               value="Log in">Sign Up</button>
-            <p class="small fw-bold mt-2 pt-1 mb-0">Already have an account? <a asp-controller="Home"
-                asp-action="Login">Login</a></p>
+            <p class="small fw-bold mt-2 pt-1 mb-0">
+              Already have an account? <a asp-controller="Home" asp-action="Login">Login</a>
+            </p>
           </div>
         </form>
       </div>

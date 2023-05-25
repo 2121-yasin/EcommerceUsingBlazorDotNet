@@ -22,6 +22,7 @@
     protected override void OnInitialized()
     {
         clientId = Configuration.GetValue<string>("AppSettings:ClientId");
+        GetUsernameFromToken();
     }
 
 
@@ -51,27 +52,39 @@
                 await JSRuntime.InvokeVoidAsync("localStorage.setItem", "token", token);
                 isLoggedIn = true;
                
-
-        //string token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
-
-            var handler = new JwtSecurityTokenHandler();
-            var decodedToken = handler.ReadJwtToken(token);
-// loop through claims and find email claim
-foreach (var claim in decodedToken.Claims)
-{
-    if (claim.Type == "UserName")
-    {
-        // display email
-        username = claim.Value;
-    }
-}
-
- StateHasChanged();
+                GetUsernameFromToken();
+                StateHasChanged();
             }
 
 
         }
     }
+
+
+private async Task<string> GetTokenFromLocalStorage()
+{
+    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+    return token;
+}
+
+private async Task GetUsernameFromToken()
+{
+    var token = await GetTokenFromLocalStorage();
+    if (!string.IsNullOrEmpty(token))
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var decodedToken = handler.ReadJwtToken(token);
+        foreach (var claim in decodedToken.Claims)
+        {
+            if (claim.Type == "UserName")
+            {
+                username = claim.Value;
+                isLoggedIn = true;
+                break;
+            }
+        }
+    }
+}
 
     private async Task Logout()
     {
@@ -131,24 +144,19 @@ protected override async Task OnInitializedAsync()
     <main>
       
         <div class="top-row px-4">
-         @* <form class="d-flex" role="search" onsubmit="@SearchProducts">
-    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" @bind-value="@searchQuery">
-    <button class="btn btn-outline-success" type="submit">Search</button>
-</form> *@
-
-          <form class="d-flex" role="search" @onsubmit="SearchProducts">
-        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" @bind-value="@searchQuery">
-        <button class="btn btn-outline-success" type="submit">Search</button>
-    </form>
+            <form class="d-flex" role="search" @onsubmit="SearchProducts">
+                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" @bind-value="@searchQuery">
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
 
             
             @if (!isLoggedIn)
             {
                 <a href="cart" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart"><i class="bi bi-cart4">
-                                    @if (cartCounter > 0)
-            {
-                <span class="cart-counter">@cartCounter</span>
-            }
+                @if (cartCounter > 0)
+                {
+                    <span class="cart-counter">@cartCounter</span>
+                }
                 </i></a>
             <a href="wishlist" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Wishlist"><i class="bi bi-heart-fill"></i></a>
                 <button class="btn btn-outline-danger my-2 my-sm-0 mx-2" @onclick='() => NavigationManager.NavigateTo($"https://localhost:7085/?ClientId={clientId}")'>Login</button>
@@ -166,8 +174,8 @@ protected override async Task OnInitializedAsync()
             <a href="@($"/MyOrder?token={token}")" class="btn btn-outline-success border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="My Orders"><i class="bi bi-bag-fill"></i></a>   
                 <a href="@($"/profile?token={token}")">
                     <button  class="btn btn-outline-success " type="button" id="profile-btn"  aria-expanded="false" data-toggle="tooltip" data-placement="top" title="My Profile">
-                    <i class="bi bi-person-badge"></i>Welcome, @username!
-                </button>
+                        <i class="bi bi-person-badge"></i>Welcome, @username!
+                    </button>
                 </a>
                  <button class="btn btn-outline-danger my-2 my-sm-0 mx-2" @onclick="Logout">Logout</button>
             }
@@ -177,9 +185,9 @@ protected override async Task OnInitializedAsync()
            </div> *@
     
         </div>
- <article class="content px-4">
+        <article class="content px-4">
             @Body
-    </article>
+        </article>
         
     </main>
 </div>
