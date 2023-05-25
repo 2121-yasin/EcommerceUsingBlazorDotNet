@@ -6,9 +6,11 @@
 @inject HttpClient httpClient
 @inject IConfiguration Configuration
 @using System.IdentityModel.Tokens.Jwt;
-<PageTitle>Ecommerce</PageTitle>
+<PageTitle>EShop</PageTitle>
 
 @code {
+    private int cartCounter;
+    private bool isLoaded = false;
     public List<Products> Product { get; set; }
     private string searchQuery;
     private bool isLoggedIn = false;
@@ -20,13 +22,29 @@
     protected override void OnInitialized()
     {
         clientId = Configuration.GetValue<string>("AppSettings:ClientId");
+        GetUsernameFromToken();
     }
 
 
      protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (firstRender && !isLoaded)
         {
+    // Set the flag to prevent repeated execution
+        isLoaded = true;
+
+        // Retrieve the cart counter value from local storage
+        var cartCounterString = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "cartCounter");
+        if (int.TryParse(cartCounterString, out var parsedCartCounter))
+        {
+            cartCounter = parsedCartCounter;
+        }
+        else
+        {
+            cartCounter = 0;
+        }
+
+
             var uri = new Uri(NavigationManager.Uri);
             if (uri.Query.Contains("token="))
             {
@@ -34,27 +52,39 @@
                 await JSRuntime.InvokeVoidAsync("localStorage.setItem", "token", token);
                 isLoggedIn = true;
                
-
-        //string token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
-
-            var handler = new JwtSecurityTokenHandler();
-            var decodedToken = handler.ReadJwtToken(token);
-// loop through claims and find email claim
-foreach (var claim in decodedToken.Claims)
-{
-    if (claim.Type == "UserName")
-    {
-        // display email
-        username = claim.Value;
-    }
-}
-
- StateHasChanged();
+                GetUsernameFromToken();
+                StateHasChanged();
             }
 
 
         }
     }
+
+
+private async Task<string> GetTokenFromLocalStorage()
+{
+    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+    return token;
+}
+
+private async Task GetUsernameFromToken()
+{
+    var token = await GetTokenFromLocalStorage();
+    if (!string.IsNullOrEmpty(token))
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var decodedToken = handler.ReadJwtToken(token);
+        foreach (var claim in decodedToken.Claims)
+        {
+            if (claim.Type == "UserName")
+            {
+                username = claim.Value;
+                isLoggedIn = true;
+                break;
+            }
+        }
+    }
+}
 
     private async Task Logout()
     {
@@ -73,6 +103,7 @@ protected override async Task OnInitializedAsync()
         }
 
         Product = await GetProduct();
+
     }
 
     private async Task<List<Products>> GetProduct()
@@ -113,32 +144,38 @@ protected override async Task OnInitializedAsync()
     <main>
       
         <div class="top-row px-4">
-         @* <form class="d-flex" role="search" onsubmit="@SearchProducts">
-    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" @bind-value="@searchQuery">
-    <button class="btn btn-outline-success" type="submit">Search</button>
-</form> *@
-
-          <form class="d-flex" role="search" @onsubmit="SearchProducts">
-        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" @bind-value="@searchQuery">
-        <button class="btn btn-outline-success" type="submit">Search</button>
-    </form>
+            <form class="d-flex" role="search" @onsubmit="SearchProducts">
+                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" @bind-value="@searchQuery">
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
 
             
             @if (!isLoggedIn)
             {
-                <a href="cart" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart"><i class="bi bi-cart4"></i></a>
+                <a href="cart" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart"><i class="bi bi-cart4">
+                @if (cartCounter > 0)
+                {
+                    <span class="cart-counter">@cartCounter</span>
+                }
+                </i></a>
             <a href="wishlist" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Wishlist"><i class="bi bi-heart-fill"></i></a>
                 <button class="btn btn-outline-danger my-2 my-sm-0 mx-2" @onclick='() => NavigationManager.NavigateTo($"https://localhost:7085/?ClientId={clientId}")'>Login</button>
             }
             else
             {
-            <a href="@($"/cart?token={token}")" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart"><i class="bi bi-cart4"></i></a>
+            <a href="@($"/cart?token={token}")" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart"><i class="bi bi-cart4">   
+                @if (cartCounter > 0)
+            {
+                <span class="cart-counter">@cartCounter</span>
+            }
+            </i>
+            </a>
             <a href="@($"/wishlist?token={token}")" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Wishlist"><i class="bi bi-heart-fill"></i></a>
             <a href="@($"/MyOrder?token={token}")" class="btn btn-outline-success border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="My Orders"><i class="bi bi-bag-fill"></i></a>   
                 <a href="@($"/profile?token={token}")">
                     <button  class="btn btn-outline-success " type="button" id="profile-btn"  aria-expanded="false" data-toggle="tooltip" data-placement="top" title="My Profile">
-                    <i class="bi bi-person-badge"></i>Welcome, @username!
-                </button>
+                        <i class="bi bi-person-badge"></i>Welcome, @username!
+                    </button>
                 </a>
                  <button class="btn btn-outline-danger my-2 my-sm-0 mx-2" @onclick="Logout">Logout</button>
             }
@@ -148,9 +185,9 @@ protected override async Task OnInitializedAsync()
            </div> *@
     
         </div>
- <article class="content px-4">
+        <article class="content px-4">
             @Body
-    </article>
+        </article>
         
     </main>
 </div>

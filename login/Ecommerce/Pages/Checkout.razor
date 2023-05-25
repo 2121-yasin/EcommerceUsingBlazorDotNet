@@ -54,7 +54,7 @@
                 2% off coupon code: 2OFF
             </div>
         }
-    @if (totalAmount >= 10000)
+        @if (totalAmount >= 10000)
         {
             <div class="alert alert-success" role="alert">
                 5% off coupon code: 5OFF
@@ -120,30 +120,16 @@
 <form method="post">
     <div class="form-group">
         <label for="offerCode">Offer Code:</label>
-        @* <input type="text" class="form-control" id="offerCode" name="offerCode" style="max-width: 250px; margin-right: 10px;" @oninput="ApplyOffer"> *@
-                <input type="text" class="form-control" id="offerCode" name="offerCode" style="max-width: 250px; margin-right: 10px;">
-         <button type="button" class="btn btn-primary" @onclick="ApplyOffer">Apply Offer</button>
+        <input type="text" class="form-control" id="offerCode" name="offerCode" style="max-width: 250px; margin-right: 10px;">
+        <button type="button" class="btn btn-primary" @onclick="ApplyOffer">Apply Offer</button>
     </div>
 </form>
 
 
-
-@* <div class="row align-items-center">
-  <h5 class="card-title mb-0 col-6">Amount to Pay: </h5>
-  <h5 class="card-title mb-0 col-6">@(totalAmount - discountAmount)</h5>
- <button class="btn btn-success col-6" style="max-width: 250px;" @onclick="(() => ProceedToPayment(totalAmount - discountAmount))">Proceed for payment &#x20B9;@(totalAmount - discountAmount)</button>
-</div> *@
-
 <div class="row align-items-center">
   <h5 class="card-title mb-0 col-6">Amount to Pay: @(totalAmount - discountAmount)</h5>
   <button class="btn btn-outline-success col-6" style="max-width: 250px;" @onclick="(() => ProceedToPayment(totalAmount - discountAmount))">Proceed for payment &#x20B9;@(totalAmount - discountAmount)</button>
-
 </div>
-
-
-
-
-
 
 }
 else
@@ -160,8 +146,7 @@ else
     private string _orderId;
     private decimal discountAmount = 0;
     private decimal totalAmount = 0;
-    
-private bool offerApplied = false; // add a boolean flag to keep track of whether an offer code has already been applied
+    private bool offerApplied = false; // add a boolean flag to keep track of whether an offer code has already been applied
 
 async Task ApplyOffer()
 {

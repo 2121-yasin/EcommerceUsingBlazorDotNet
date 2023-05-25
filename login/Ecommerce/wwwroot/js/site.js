@@ -45,7 +45,6 @@
 //   });
 // });
 
-
 function addToCart(event) {
   event.preventDefault();
   const productId = event.target.dataset.productId;
@@ -73,7 +72,15 @@ function addToCart(event) {
     // Product doesn't exist in cart, add as new item with initial total price
     cartItem = { id: productId, name: productName, price: productPrice, image: productImage, quantity: 1, totalPrice: productPrice };
     cartItems.push(cartItem);
+    // Increment the counter and store it in local storage
+let cartCounter = parseInt(localStorage.getItem("cartCounter")) || 0;
+cartCounter += 1;
+localStorage.setItem("cartCounter", cartCounter.toString());
   }
+  
+
+
+
   localStorage.setItem("cartItems", JSON.stringify(cartItems));
   // Display alert box
   window.alert("Item added to cart");
@@ -111,6 +118,7 @@ function addToWishlist(event) {
 }
 
 
+
 function DecodeJwtToken(token) {
   var base64Url = token.split('.')[1];
   var base64 = base64Url.replace('-', '+').replace('_', '/');
@@ -126,7 +134,7 @@ window.RazorpayCheckout = {
               "currency": "INR",
               "name": "E Shop",
               "description": "Payment for your order",
-              "image": "../../../Assets/eshop.jpg",
+              "image": "../../../Assets/eshop.png",
               "order_id": orderId,
               "handler": function(response) {
                 // Call RazorpayPaymentSuccessHandler method on payment success
