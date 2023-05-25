@@ -101,7 +101,7 @@ namespace JwtDbApi.Controllers
         // GET products by vendor
 
         [HttpGet("{Id}/products")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProductsByVendor(int Id, int page = 1, int pageSize = 10)
+        public async Task<ActionResult<IEnumerable<object>>> GetProductsByVendor(int Id, int page = 1, int pageSize = 10)
         {
             var totalProducts = await _context.Vendors
                 .Where(v => v.Id == Id)
@@ -111,7 +111,12 @@ namespace JwtDbApi.Controllers
 
             var products = await _context.Vendors
                 .Where(v => v.Id == Id)
-                .SelectMany(v => v.ProductVendors.Select(pv => pv.Product))
+                .SelectMany(v => v.ProductVendors.Select(pv => new
+                {
+                    Product = pv.Product,
+                    Price = pv.Price,
+                    Quantity = pv.Quantity
+                }))
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
