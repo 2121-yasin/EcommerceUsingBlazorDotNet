@@ -28,57 +28,55 @@ namespace AuthJwtDbApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post(UserLoginDto userModel)
+        public async Task<IActionResult> Post(UserLoginDto userLoginDto)
         {
-            if (userModel != null && userModel.Email != null && userModel.Password != null)
+            if (userLoginDto != null && userLoginDto.Email != null && userLoginDto.Password != null)
             {
-                var user = await GetUser(userModel.Email);
+                var user = await GetUser(userLoginDto.Email);
 
-                if (user != null)
+                if (user == null)
                 {
-                    if (!BCrypt.Net.BCrypt.Verify(userModel.Password, user.Password))
-                    {
-                        return BadRequest("Wrong password.");
-                    }
-
-
-                    var claims = new[]
-                    {
-                new Claim(JwtRegisteredClaimNames.Sub, _configuration["Jwt:Subject"]),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
-                new Claim("id", user.UserId.ToString()),
-                new Claim("Email", user.Email),
-                new Claim("UserName", user.UserName),
-                new Claim("Phone", user.Phone),
-                new Claim("AddressId", user.AddressId.ToString()),
-                new Claim("Street", user.Address.Street),
-                new Claim("City", user.Address.City),
-                new Claim("State", user.Address.State),
-                new Claim("Pincode", user.Address.Pincode),
-                //new Claim("Password", user.Password), //ency
-                new Claim(ClaimTypes.Role, user.Role)
-            };
-
-                    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-                    var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-                    var token = new JwtSecurityToken(
-                        _configuration["Jwt:Issuer"],
-                        _configuration["Jwt:Audience"],
-                        claims,
-                        expires: DateTime.Now.AddMinutes(20),
-                        signingCredentials: signIn);
-
-                    return Ok(new JwtSecurityTokenHandler().WriteToken(token));
+                    return NotFound(new { message = "Email not found" });
                 }
-                else
+
+                if (!BCrypt.Net.BCrypt.Verify(userLoginDto.Password, user.Password))
                 {
-                    return BadRequest("Invalid credentials");
+                    return BadRequest(new { message = "Incorrect password" });
                 }
+
+                var claims = new[]
+                {
+                    new Claim(JwtRegisteredClaimNames.Sub, _configuration["Jwt:Subject"]),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
+                    new Claim("id", user.UserId.ToString()),
+                    new Claim("Email", user.Email),
+                    new Claim("UserName", user.UserName),
+                    new Claim("Phone", user.Phone),
+                    new Claim("AddressId", user.AddressId.ToString()),
+                    new Claim("Street", user.Address.Street),
+                    new Claim("City", user.Address.City),
+                    new Claim("State", user.Address.State),
+                    new Claim("Pincode", user.Address.Pincode),
+                    //new Claim("Password", user.Password), //ency
+                    new Claim(ClaimTypes.Role, user.Role)
+                };
+
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+                var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+                var token = new JwtSecurityToken(
+                    _configuration["Jwt:Issuer"],
+                    _configuration["Jwt:Audience"],
+                    claims,
+                    expires: DateTime.Now.AddMinutes(20),
+                    signingCredentials: signIn);
+
+                // return Ok(new JwtSecurityTokenHandler().WriteToken(token));
+                return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
             }
             else
             {
-                return BadRequest();
+                return BadRequest(new { message = "Missing email or password" });
             }
         }
 
