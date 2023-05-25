@@ -12,7 +12,7 @@
                 <th>Product Name</th>
                 <th>Price</th>
                 <th>Action</th>
-                <th>Status</th>
+                <th>Order Status</th>
             </tr>
         </thead>
         <tbody>
@@ -22,7 +22,7 @@
                     <td><img src="@productItem.ImageURL" alt="Product Image" style="width: 100px;" /></td>
                     <td>@productItem.ProdName</td>
                     <td>@productItem.Price</td>
-                    <td><button class="btn btn-outline-success" @onclick="() => TrackOrder(productItem.Id)">Track</button></td>
+                    <td><button class="btn btn-outline-success" @onclick="() => TrackOrder(productItem.Id)">Track Order</button></td>
                     <td>
                         <span class="@GetOrderStatusClass(productItem.Status)">@GetOrderStatusText(productItem.Status)</span>
                     </td>
