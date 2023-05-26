@@ -228,7 +228,7 @@ private class PaymentDetails
 
 private async Task SendOrderConfirmationEmail(string recipientEmail)
 {
-    var apiKey = "ENTER API KEY"; // Remove this key before uploading on GitHub
+    var apiKey = "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"; // Remove this key before uploading on GitHub
     var client = new SendGridClient(apiKey);
     var from = new EmailAddress("aarondesousa1@gmail.com", "E shop");
     var subject = "Order Confirmation";
@@ -373,8 +373,16 @@ private async Task ProceedToPayment(decimal totalAmount)
     // After the order is successfully placed and stored in the database
     var recipientEmail = decodedToken.Claims.FirstOrDefault(c => c.Type == "Email")?.Value; // Replace with the recipient's email address
     await SendOrderConfirmationEmail(recipientEmail);
+      // Clear the cart items from local storage
+    await ClearCartItems();
 }
 
+private async Task ClearCartItems()
+{
+    await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "cartItems");
+    cartItems = new CartItem[0]; // Reset the cart items array in the component
+    StateHasChanged(); // Trigger a re-render to reflect the changes
+}
 
 protected override async Task OnAfterRenderAsync(bool firstRender)
 {
