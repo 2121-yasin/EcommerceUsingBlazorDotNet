@@ -228,9 +228,9 @@ private class PaymentDetails
 
 private async Task SendOrderConfirmationEmail(string recipientEmail)
 {
-    var apiKey = "Enter API Key"; // Remove this key before uploading on GitHub
+    var apiKey = "Enter API KEY"; // Remove this key before uploading on GitHub
     var client = new SendGridClient(apiKey);
-    var from = new EmailAddress("aarondesousa1@gmail.com", "E shop");
+    var from = new EmailAddress("honnolliyasin@gmail.com", "E shop");
     var subject = "Order Confirmation";
     var to = new EmailAddress(recipientEmail);
 
