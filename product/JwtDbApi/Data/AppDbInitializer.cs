@@ -377,7 +377,7 @@ namespace JwtDbApi.Data
                                 Description = "Women's handbag",
                                 Price = 3000,
                                 ImageURL =
-                                    "https://th.bing.com/th/id/OIP.C4yUv3pNgK6iXIF32CedhAHaHa?pid=ImgDet&rs=1",
+                                    "https://th.bing.com/th/id/OIP.eKSJ5pPT7KZ44H3ROT9pigHaG6?pid=ImgDet&rs=1",
                                 CategoryId = womensHandBag.CategoryId
                             }
                         }
