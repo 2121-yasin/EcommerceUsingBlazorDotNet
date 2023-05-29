@@ -14,12 +14,36 @@ namespace JwtDbApi.Models
         public string ImageURL { get; set; }
         public DateTime? StartDate { get; set; } = DateTime.Now;
         public int CategoryId { get; set; }
+
         [ForeignKey("CategoryId")]
         public Category Category { get; set; }
-        public int StockQty { get; set; }
+
+        // public int StockQty { get; set; }
 
         //Relationships
-        public List<ProductVendor> ProductVendors { get; set; }
+        public List<ProductVendor> ProductVendors { get; set; } = new List<ProductVendor>(); // Initialization required for the  GetOverallQuantity to work
 
+        // Calculated property for overall quantity of visible listings
+        public int StockQty
+        {
+            get { return GetOverallQuantity(); }
+            set { }
+        }
+
+        // Method to calculate overall quantity of visible listings
+        public int GetOverallQuantity()
+        {
+            int overallQuantity = 0;
+
+            foreach (var productVendor in ProductVendors)
+            {
+                if (productVendor.Visible == 1)
+                {
+                    overallQuantity += productVendor.Quantity;
+                }
+            }
+
+            return overallQuantity;
+        }
     }
 }

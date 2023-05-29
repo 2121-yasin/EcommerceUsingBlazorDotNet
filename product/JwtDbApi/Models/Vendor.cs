@@ -9,6 +9,7 @@ namespace JwtDbApi.Models
         public string? GSTIN { get; set; }
         public int DeliveryPinCode { get; set; }
         public int UserId { get; set; }
+
         //Relationships
         public List<ProductVendor>? ProductVendors { get; set; }
     }
