@@ -248,7 +248,7 @@ namespace JwtDbApi.Data
                                 Description = "Cuisine art Pressure cooker - upto 40% off",
                                 Price = 11000,
                                 ImageURL =
-                                    "https://th.bing.com/th/id/R.d7e5597926f7eb0c4319124ef38a75b1?rik=UabnOSY1mu2cbA&riu=http%3a%2f%2fimage.sportsmansguide.com%2fadimgs%2fl%2f2%2f205663_ts.jpg&ehk=MJr85STVKMajybhEQH58fBCp%2fHvqcr6NnVTLh8VLjew%3d&risl=&pid=ImgRaw&r=0",
+                                    "https://st4.depositphotos.com/1005891/25467/i/600/depositphotos_254677412-stock-photo-instant-pot-on-white.jpg",
                                 CategoryId = cookware.CategoryId
                             },
                             new Product()
@@ -314,7 +314,7 @@ namespace JwtDbApi.Data
                                     "VEPOSE Women's Low Heels Closed Toe Pumps Kitten Bridal, Black",
                                 Price = 5999,
                                 ImageURL =
-                                    "https://ae01.alicdn.com/kf/HTB1IH0gfrZnBKNjSZFhq6A.oXXak/2018-New-Women-Platform-Pumps-Sandals-Black-Mesh-Lace-High-Heels-Peep-Toe-Shoes-Coarse-Heels.jpg",
+                                    "https://m.media-amazon.com/images/I/715pmABJm4L._UL1500_.jpg",
                                 CategoryId = womensFootwear.CategoryId
                             },
                             new Product()
