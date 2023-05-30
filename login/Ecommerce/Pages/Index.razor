@@ -100,7 +100,23 @@ protected override async Task OnInitializedAsync()
                     <h5 class="card-title">@product.ProdName</h5>
                     <p class="card-text">@product.Price.ToString("c")</p>
                     <div class="card-footer d-flex align-items-end pt-3 px-0 pb-0 mt-auto">
-                      <!-- Add to cart and Add to wishlist buttons -->
+                      <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
+                      data-product-id="@product.ProdId"
+                      data-product-image="@product.ImageURL"
+                      data-product-name="@product.ProdName"
+                      data-product-price="@product.Price"
+                      onclick="addToCart(event)">
+                        <i class="bi bi-cart4" style="font-size: 2rem;"></i>
+                      </a>
+
+                      <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to wishlist"
+                      data-product-id="@product.ProdId"
+                      data-product-image="@product.ImageURL"
+                      data-product-name="@product.ProdName"
+                      data-product-price="@product.Price"
+                      onclick="addToWishlist(event)">
+                        <i class="bi bi-heart text-danger" style="font-size: 2rem;"></i>
+                      </a>
                     </div>
                   </div>
                 </div>
