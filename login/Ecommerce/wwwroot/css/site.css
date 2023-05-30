@@ -1,5 +1,26 @@
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
+.carousel-container {
+    background-color: lightpink;
+    width: 90%;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    height: 265px; /* Set the desired height */
+}
+
+
+.carousel-caption {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.3);
+    font-weight: bold;
+    color: black; /* Added color property */
+}
+
 .cart-counter {
     top: -8px;
     right: -8px;
@@ -9,6 +30,7 @@
     padding: 2px 4px;
     border-radius: 50%;
 }
+
 
 
 .dark-mode {
