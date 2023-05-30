@@ -266,8 +266,7 @@ namespace JwtDbApi.Data
                                 Description =
                                     "Shoes Nike Sneakers at - Up to 40% off Top Brands - Wide range of Shoes",
                                 Price = 4999,
-                                ImageURL =
-                                    "https://th.bing.com/th/id/OIP.WqX8OlmM6bsHUdpWIxa9mgHaHe?w=200&h=202&c=7&r=0&o=5&dpr=1.5&pid=1.7",
+                                ImageURL ="https://th.bing.com/th/id/OIP.IfLChAOeW96wX3L1af0FqwHaFK?pid=ImgDet&w=660&h=460&rs=1",
                                 CategoryId = mensFootwear.CategoryId
                             },
                             new Product()
