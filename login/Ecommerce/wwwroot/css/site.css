@@ -1,5 +1,15 @@
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
+.carousel-control-prev {
+    background-color: rgb(244, 166, 178); /* Add desired color */
+    width: 30px;
+}
+
+.carousel-control-next {
+    background-color: rgb(244, 166, 178); /* Add desired color */
+    width: 30px;
+}
+
 .carousel-container {
     background-color: lightpink;
     width: 90%;
@@ -9,6 +19,12 @@
     height: 265px; /* Set the desired height */
 }
 
+.carousel-image-container {
+    position: relative;
+    top: 50%;
+    left: 19%;
+    transform: translate(-50%, -50%);
+}
 
 .carousel-caption {
     position: absolute;
@@ -18,8 +34,12 @@
     padding: 10px;
     background-color: rgba(255, 255, 255, 0.3);
     font-weight: bold;
-    color: black; /* Added color property */
+    color: black;
+    width: 100%;
 }
+/* .app-icon{
+    width: 40px;
+} */
 
 .cart-counter {
     top: -8px;
