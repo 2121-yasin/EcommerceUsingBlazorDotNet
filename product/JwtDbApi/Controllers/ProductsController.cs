@@ -77,16 +77,31 @@ namespace JwtDbApi.Controllers
 
         // GET: api/Product/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProduct([FromRoute] int id)
+        public async Task<ActionResult<object>> GetProduct([FromRoute] int id)
         {
-            var product = await _context.Products.FindAsync(id);
+            var product = await _context.Products
+                .Include(p => p.ProductVendors)
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(p => p.ProdId == id);
 
             if (product == null)
             {
                 return NotFound();
             }
 
-            return Ok(product);
+            var product1 = new
+            {
+                product.ProdId,
+                product.ProdName,
+                StockQty = product.GetOverallQuantity(),
+                product.Price,
+                product.ImageURL,
+                product.StartDate,
+                product.Description,
+                Category = product.Category?.Name
+            };
+
+            return Ok(product1);
         }
 
         // POST: api/Product
