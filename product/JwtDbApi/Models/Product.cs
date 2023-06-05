@@ -24,6 +24,7 @@ namespace JwtDbApi.Models
         public List<ProductVendor> ProductVendors { get; set; } = new List<ProductVendor>(); // Initialization required for the  GetOverallQuantity to work
 
         // Calculated property for overall quantity of visible listings
+        [NotMapped]
         public int StockQty
         {
             get { return GetOverallQuantity(); }
@@ -34,7 +35,6 @@ namespace JwtDbApi.Models
         public int GetOverallQuantity()
         {
             int overallQuantity = 0;
-
             foreach (var productVendor in ProductVendors)
             {
                 if (productVendor.Visible == 1)

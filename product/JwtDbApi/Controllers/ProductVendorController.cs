@@ -37,7 +37,6 @@ namespace JwtDbApi.Controllers
             [FromBody] ProductVendorDto productVendorDto
         )
         {
-            Console.WriteLine("Name" + productVendorDto.Product.ProdName);
             var productVendor = _context.ProductVendors.FirstOrDefault(
                 pv => pv.ProductId == prodId && pv.VendorId == vendorId
             );

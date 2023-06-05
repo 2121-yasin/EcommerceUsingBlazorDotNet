@@ -176,9 +176,6 @@ public class HomeController : Controller
                         var responseObj = JsonConvert.DeserializeObject<dynamic>(responseData);
 
                         token = responseObj.token.ToString();
-                        Console.WriteLine("token: " + token);
-                        Console.WriteLine("redirect: " + redirect);
-                        Console.WriteLine("clientId: " + clientId);
 
                         // token = await response.Content.ReadAsStringAsync();  // ClaimType.Role = http://schemas.microsoft.com/ws/2008/06/identity/claims/role
                         // if (token == "Invalid credentials")

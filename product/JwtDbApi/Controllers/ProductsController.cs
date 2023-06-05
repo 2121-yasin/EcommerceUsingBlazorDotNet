@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using JwtDbApi.Data;
 using JwtDbApi.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -19,15 +21,39 @@ namespace JwtDbApi.Controllers
 
         //GET: api/Product/all
         [HttpGet("all")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+        public async Task<ActionResult<IEnumerable<object>>> GetProducts()
         {
-            return await _context.Products.ToListAsync();
-        }
+            var products = await _context.Products
+                .Include(p => p.ProductVendors)
+                .Include(p => p.Category)
+                .ToListAsync();
 
+            var products1 = products
+                .Select(
+                    p =>
+                        new
+                        {
+                            p.ProdId,
+                            p.ProdName,
+                            StockQty = p.GetOverallQuantity(),
+                            p.Price,
+                            p.ImageURL,
+                            p.StartDate,
+                            p.Description,
+                            Category = p.Category?.Name
+                        }
+                )
+                .ToList();
+
+            return products1;
+        }
 
         // GET: api/Product/byPages
         [HttpGet("byPages")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts(int page = 1, int pageSize = 10)
+        public async Task<ActionResult<IEnumerable<Product>>> GetProducts(
+            int page = 1,
+            int pageSize = 10
+        )
         {
             var totalProducts = await _context.Products.CountAsync();
             var totalPages = (int)Math.Ceiling((double)totalProducts / pageSize);
@@ -37,18 +63,17 @@ namespace JwtDbApi.Controllers
                 .Take(pageSize)
                 .ToListAsync();
 
-            return Ok(new
-            {
-                TotalProducts = totalProducts,
-                TotalPages = totalPages,
-                CurrentPage = page,
-                PageSize = pageSize,
-                Products = products
-            });
+            return Ok(
+                new
+                {
+                    TotalProducts = totalProducts,
+                    TotalPages = totalPages,
+                    CurrentPage = page,
+                    PageSize = pageSize,
+                    Products = products
+                }
+            );
         }
-
-
-
 
         // GET: api/Product/5
         [HttpGet("{id}")]
