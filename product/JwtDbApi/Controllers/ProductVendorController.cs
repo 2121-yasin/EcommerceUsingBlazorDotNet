@@ -88,5 +88,27 @@ namespace JwtDbApi.Controllers
                 return NotFound();
             }
         }
+
+        // GET: api/ProductVendor/low-stock/{vendorId}
+        // GET: api/ProductVendor/low-stock/{vendorId}
+        [HttpGet("low-stock/{vendorId}")]
+        public IActionResult GetLowStockProducts(int vendorId)
+        {
+            var lowStockProducts = _context.ProductVendors
+                .Where(pv => pv.VendorId == vendorId && pv.Quantity < 10)
+                .Select(
+                    pv =>
+                        new
+                        {
+                            pv.ProductId,
+                            pv.Product.ProdName,
+                            pv.Product.ImageURL,
+                            pv.Quantity
+                        }
+                )
+                .ToList();
+
+            return Ok(lowStockProducts);
+        }
     }
 }

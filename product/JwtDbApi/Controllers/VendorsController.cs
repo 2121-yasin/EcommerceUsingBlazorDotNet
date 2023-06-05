@@ -1,4 +1,3 @@
-
 using JwtDbApi.Data;
 using JwtDbApi.DTOs;
 using JwtDbApi.Models;
@@ -40,11 +39,7 @@ namespace JwtDbApi.Controllers
         public async Task<IActionResult> CreateVendor(int id, [FromBody] VendorDto vendorDto)
         {
             // Create a new Vendor instance with the provided data
-            var vendor = new Vendor
-            {
-                GSTIN = vendorDto.GSTIN,
-                UserId = id
-            };
+            var vendor = new Vendor { GSTIN = vendorDto.GSTIN, UserId = id };
 
             // Add the vendor to the database context and save changes
             _context.Vendors.Add(vendor);
@@ -99,7 +94,11 @@ namespace JwtDbApi.Controllers
         // GET products by vendor
 
         [HttpGet("{id}/products")]
-        public async Task<ActionResult<IEnumerable<object>>> GetProductsByVendor(int id, int page = 1, int pageSize = 10)
+        public async Task<ActionResult<IEnumerable<object>>> GetProductsByVendor(
+            int id,
+            int page = 1,
+            int pageSize = 10
+        )
         {
             var totalProducts = await _context.Vendors
                 .Where(v => v.Id == id)
@@ -109,27 +108,44 @@ namespace JwtDbApi.Controllers
 
             var products = await _context.Vendors
                 .Where(v => v.Id == id)
-                .SelectMany(v => v.ProductVendors.Select(pv => new
-                {
-                    Product = pv.Product,
-                    Price = pv.Price,
-                    Quantity = pv.Quantity,
-                    Visibility = pv.Visible
-                }))
+                .SelectMany(
+                    v =>
+                        v.ProductVendors.Select(
+                            pv =>
+                                new
+                                {
+                                    Product = pv.Product,
+                                    Price = pv.Price,
+                                    Quantity = pv.Quantity,
+                                    Visibility = pv.Visible
+                                }
+                        )
+                )
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-            return Ok(new
-            {
-                TotalProducts = totalProducts,
-                TotalPages = totalPages,
-                CurrentPage = page,
-                PageSize = pageSize,
-                Products = products
-            });
-        }
+            var listedProductCount = _context.ProductVendors.Count(
+                pv => pv.VendorId == id && pv.Visible == 1
+            );
 
+            var notListedProductCount = _context.ProductVendors.Count(
+                pv => pv.VendorId == id && pv.Visible == 0
+            );
+
+            return Ok(
+                new
+                {
+                    TotalProducts = totalProducts,
+                    TotalPages = totalPages,
+                    CurrentPage = page,
+                    PageSize = pageSize,
+                    Products = products,
+                    ActiveListings = listedProductCount,
+                    InactiveListings = notListedProductCount
+                }
+            );
+        }
 
         // PUT
         [Authorize(Roles = "Vendor")]
@@ -156,10 +172,12 @@ namespace JwtDbApi.Controllers
             catch (DbUpdateException)
             {
                 // Handle any exception that occurs during database update
-                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while updating the vendor.");
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    "An error occurred while updating the vendor."
+                );
             }
         }
-
 
         private bool VendorExists(int id)
         {
