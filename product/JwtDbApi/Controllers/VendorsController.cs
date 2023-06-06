@@ -114,7 +114,16 @@ namespace JwtDbApi.Controllers
                             pv =>
                                 new
                                 {
-                                    Product = pv.Product,
+                                    Product = new
+                                    {
+                                        pv.Product.ProdId,
+                                        pv.Product.ProdName,
+                                        pv.Product.Description,
+                                        pv.Product.ImageURL,
+                                        pv.Product.StartDate,
+                                        pv.Product.Price,
+                                        Category = pv.Product.Category.Name // Include the category name inside the Product object
+                                    },
                                     Price = pv.Price,
                                     Quantity = pv.Quantity,
                                     Visibility = pv.Visible

@@ -104,6 +104,27 @@ namespace JwtDbApi.Controllers
             return Ok(product1);
         }
 
+        // GET: api/Product/search
+        [HttpGet("search")]
+        public IActionResult SearchProductsByName([FromQuery] string name)
+        {
+            var searchResults = _context.Products
+                .Where(p => p.ProdName.Contains(name))
+                .Select(
+                    p =>
+                        new
+                        {
+                            p.ProdId,
+                            p.ProdName,
+                            Category = p.Category.Name,
+                            p.ImageURL
+                        }
+                )
+                .ToList();
+
+            return Ok(searchResults);
+        }
+
         // POST: api/Product
         [HttpPost]
         [Authorize(Roles = "Admin,Vendor")]

@@ -8,6 +8,11 @@ namespace JwtDbApi.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ProdId { get; set; }
+
+        // public int ListedBy { get; set; }
+
+        // [ForeignKey("ListedBy")]
+        // public Vendor Vendor { get; set; }
         public string ProdName { get; set; }
         public string Description { get; set; }
         public double Price { get; set; }
