@@ -175,11 +175,11 @@ private async Task ProcessPayment(double totalAmount)
 
     // After the order is successfully placed and stored in the database
     // After the order is successfully placed and stored in the database
-Product.StockQty -= 1;
+@* Product.StockQty -= 1;
 
 // Update the stock quantity in local storage
 await JSRuntime.InvokeVoidAsync("localStorage.setItem", $"stockQty_{Product.ProdId}", Product.StockQty.ToString());
-
+ *@
 
 
     // After the order is successfully placed and stored in the database

@@ -1,12 +1,12 @@
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
 .carousel-control-prev {
-    background-color: rgb(244, 166, 178); /* Add desired color */
+    background-color: rgb(142, 140, 140); /* Add desired color */
     width: 30px;
 }
 
 .carousel-control-next {
-    background-color: rgb(244, 166, 178); /* Add desired color */
+    background-color: rgb(142, 140, 140);/* Add desired color */
     width: 30px;
 }
 
@@ -19,7 +19,8 @@
 }
 
 .carousel-container {
-    background-color: lightpink;
+    /* background-color: rgb(164, 164, 164); */
+    background-color: rgb(142, 140, 140);
     width: 90%;
     position: relative;
     overflow: hidden;

@@ -56,25 +56,193 @@ protected override async Task OnInitializedAsync()
             <img src="../../../Assets/female.png" alt="Image" style="width: 300px;height: 262px;" />
         </div>
 <div id="carouselExampleAutoplaying" class="carousel slide rounded-end" data-bs-ride="carousel" data-bs-interval="2000">
+    
     <div class="carousel-inner">
         @if (Product != null)
         {
-            @foreach (var item in Product)
+            @foreach (var (item, index) in Product.Take(19).Select((item, index) => (item, index)))
             {
                 <div class="carousel-item @(item.ProdId == 1 ? "active" : "")">
                     <a href="@($"/details/{item.ProdId}")">
                         <img src="@item.ImageURL" class="d-block w-100" style="object-fit: contain; max-height: 180px;" />
                         <div class="carousel-caption">
-                            <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
-                            <p style="font-size:15px;color: blue;width: 200px;text-align: center;margin-left: 105px;">End of Season Sales</p>
-                            <p style="font-size: 14px; color: black;margin-left: -10px;">
-                                31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
-                                June 2023
-                            </p>
+                                    @if (item.ProdId == 1)
+                                    {
+                                        <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
+                                        <p style="font-size:15px;color: blue;width: 450px;text-align: center;margin-left: -5px;">End of Season Sales - Upto 80% Off on Mobile Accesories</p>
+                                        <p style="font-size: 14px; color: black;margin-left: -10px;">
+                                            31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
+                                            June 2023
+                                        </p>
+                                    }
+                                    else if (item.ProdId == 2)
+                                    {
+                                        <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
+                                        <p style="font-size:15px;color: blue;width: 450px;text-align: center;margin-left: -5px;">End of Season Sales - Upto 30% Off on Samsung</p>
+                                        <p style="font-size: 14px; color: black;margin-left: -10px;">
+                                            31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
+                                            June 2023
+                                        </p>
+                                    }
+                                       else if (item.ProdId == 3)
+                                    {
+                                        <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
+                                        <p style="font-size:15px;color: blue;width: 450px;text-align: center;margin-left: -5px;">End of Season Sales - Upto 10% Off on Apple</p>
+                                        <p style="font-size: 14px; color: black;margin-left: -10px;">
+                                            31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
+                                            June 2023
+                                        </p>
+                                    }
+                                       else if (item.ProdId == 4)
+                                    {
+                                        <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
+                                        <p style="font-size:15px;color: blue;width: 450px;text-align: center;margin-left: -5px;">End of Season Sales - Upto 30% Off on Xiaomi</p>
+                                        <p style="font-size: 14px; color: black;margin-left: -10px;">
+                                            31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
+                                            June 2023
+                                        </p>
+                                    }
+                                       else if (item.ProdId == 5)
+                                    {
+                                        <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
+                                        <p style="font-size:15px;color: blue;width: 450px;text-align: center;margin-left: -5px;">End of Season Sales - Upto 60% Off on Cooker</p>
+                                        <p style="font-size: 14px; color: black;margin-left: -10px;">
+                                            31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
+                                            June 2023
+                                        </p>
+                                    }
+                                       else if (item.ProdId == 6)
+                                    {
+                                        <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
+                                        <p style="font-size:15px;color: blue;width: 450px;text-align: center;margin-left: -5px;">End of Season Sales - Upto 70% Off on T-Shirts</p>
+                                        <p style="font-size: 14px; color: black;margin-left: -10px;">
+                                            31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
+                                            June 2023
+                                        </p>
+                                    }
+                                       else if (item.ProdId == 7)
+                                    {
+                                        <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
+                                        <p style="font-size:15px;color: blue;width: 450px;text-align: center;margin-left: -5px;">End of Season Sales - Upto 20% Off on Shoes</p>
+                                        <p style="font-size: 14px; color: black;margin-left: -10px;">
+                                            31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
+                                            June 2023
+                                        </p>
+                                    }
+                                       else if (item.ProdId == 8)
+                                    {
+                                        <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
+                                        <p style="font-size:15px;color: blue;width: 450px;text-align: center;margin-left: -5px;">End of Season Sales - Upto 30% Off on Womens T-Shirts</p>
+                                        <p style="font-size: 14px; color: black;margin-left: -10px;">
+                                            31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
+                                            June 2023
+                                        </p>
+                                    }
+                                       else if (item.ProdId == 9)
+                                    {
+                                        <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
+                                        <p style="font-size:15px;color: blue;width: 450px;text-align: center;margin-left: -5px;">End of Season Sales - Upto 50% Off on kids Footwear</p>
+                                        <p style="font-size: 14px; color: black;margin-left: -10px;">
+                                            31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
+                                            June 2023
+                                        </p>
+                                    }
+                                       else if (item.ProdId == 10)
+                                    {
+                                        <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
+                                        <p style="font-size:15px;color: blue;width: 450px;text-align: center;margin-left: -5px;">End of Season Sales - Upto 50% Off on bags</p>
+                                        <p style="font-size: 14px; color: black;margin-left: -10px;">
+                                            31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
+                                            June 2023
+                                        </p>
+                                    }
+                                       else if (item.ProdId == 11)
+                                    {
+                                        <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
+                                        <p style="font-size:15px;color: blue;width: 450px;text-align: center;margin-left: -5px;">End of Season Sales - Upto 30% Off on FirstCry</p>
+                                        <p style="font-size: 14px; color: black;margin-left: -10px;">
+                                            31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
+                                            June 2023
+                                        </p>
+                                    }
+                                       else if (item.ProdId == 12)
+                                    {
+                                        <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
+                                        <p style="font-size:15px;color: blue;width: 450px;text-align: center;margin-left: -5px;">End of Season Sales - Upto 65% Off on heels</p>
+                                        <p style="font-size: 14px; color: black;margin-left: -10px;">
+                                            31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
+                                            June 2023
+                                        </p>
+                                    }
+                                       else if (item.ProdId == 13)
+                                    {
+                                        <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
+                                        <p style="font-size:15px;color: blue;width: 450px;text-align: center;margin-left: -5px;">End of Season Sales - Upto 30% Off on Microwave owen</p>
+                                        <p style="font-size: 14px; color: black;margin-left: -10px;">
+                                            31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
+                                            June 2023
+                                        </p>
+                                    }
+                                       else if (item.ProdId == 14)
+                                    {
+                                        <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
+                                        <p style="font-size:15px;color: blue;width: 450px;text-align: center;margin-left: -5px;">End of Season Sales - Upto 70% Off on LED TV</p>
+                                        <p style="font-size: 14px; color: black;margin-left: -10px;">
+                                            31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
+                                            June 2023
+                                        </p>
+                                    }
+                                       else if (item.ProdId == 15)
+                                    {
+                                        <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
+                                        <p style="font-size:15px;color: blue;width: 450px;text-align: center;margin-left: -5px;">End of Season Sales - Upto 60% Off on Laptops</p>
+                                        <p style="font-size: 14px; color: black;margin-left: -10px;">
+                                            31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
+                                            June 2023
+                                        </p>
+                                    }
+                                       else if (item.ProdId == 16)
+                                    {
+                                        <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
+                                        <p style="font-size:15px;color: blue;width: 450px;text-align: center;margin-left: -5px;">End of Season Sales - Upto 30% Off on HeadPhones</p>
+                                        <p style="font-size: 14px; color: black;margin-left: -10px;">
+                                            31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
+                                            June 2023
+                                        </p>
+                                    }
+                                       else if (item.ProdId == 17)
+                                    {
+                                        <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
+                                        <p style="font-size:15px;color: blue;width: 450px;text-align: center;margin-left: -5px;">End of Season Sales - Upto 30% Off on Camera</p>
+                                        <p style="font-size: 14px; color: black;margin-left: -10px;">
+                                            31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
+                                            June 2023
+                                        </p>
+                                    }
+                                       else if (item.ProdId == 18)
+                                    {
+                                        <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
+                                        <p style="font-size:15px;color: blue;width: 450px;text-align: center;margin-left: -5px;">End of Season Sales - Upto 450% Off on SparX</p>
+                                        <p style="font-size: 14px; color: black;margin-left: -10px;">
+                                            31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
+                                            June 2023
+                                        </p>
+                                    }
+                                    else if (item.ProdId == 19)
+                                    {
+                                        <h4 style="font-size: 30px; font-weight: bold; color: red;width: 450px;text-align: center;margin-left: -20px;">Great Indian Deals</h4>
+                                        <p style="font-size:15px;color: blue;width: 450px;text-align: center;margin-left: -5px;">End of Season Sales - Upto 450% Off on HandBag</p>
+                                        <p style="font-size: 14px; color: black;margin-left: -10px;">
+                                            31<span style="display: inline-block; vertical-align: super; font-size: 12px; font-weight: bold;">st</span>
+                                            June 2023
+                                        </p>
+                                    }
+
                         </div>
                     </a>
                 </div>
             }
+            
         }
     </div>
 </div>
