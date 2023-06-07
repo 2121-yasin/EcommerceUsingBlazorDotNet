@@ -18,14 +18,17 @@
   }
   
 
-.top-row {
-    height: 3.5rem;
-    background-color: rgba(0,0,0,0.4);
+  .top-row {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 4rem;
+    background-color: white;
+    width: 100%; /* Optional: Set the width to span the entire viewport */
 }
 
-.navbar-brand {
-    font-size: 1.1rem;
-}
+
+
 
 .oi {
     width: 2rem;
@@ -60,11 +63,7 @@
     background-color: rgba(255,255,255,0.25);
     color: white;
 }
-  .app-icon {
-        width: 50px; /* Adjust the width as needed */
-        height: auto;
-        margin-right: 5px; /* Adjust the spacing as needed */
-    }
+
 
     .app-name {
         font-size: 18px; /* Adjust the font size as needed */
