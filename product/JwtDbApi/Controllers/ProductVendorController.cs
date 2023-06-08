@@ -64,11 +64,6 @@ namespace JwtDbApi.Controllers
             return NotFound();
         }
 
-        // make a controller to post into productvendors tables a new entry,
-        // the controller will accept a productvendor object and a vendor id and a product id
-        // if the productvendor object is not null, then add it to the database
-        // if a entry with the same vendor id and product id already exists, then return a bad request with a message
-
         // POST: api/ProductVendor/{vendorId}
         [HttpPost("{vendorId}")]
         public async Task<IActionResult> PostProductVendor(
