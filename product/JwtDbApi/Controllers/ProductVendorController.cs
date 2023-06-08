@@ -64,6 +64,48 @@ namespace JwtDbApi.Controllers
             return NotFound();
         }
 
+        // make a controller to post into productvendors tables a new entry,
+        // the controller will accept a productvendor object and a vendor id and a product id
+        // if the productvendor object is not null, then add it to the database
+        // if a entry with the same vendor id and product id already exists, then return a bad request with a message
+
+        // POST: api/ProductVendor/{vendorId}
+        [HttpPost("{vendorId}")]
+        public async Task<IActionResult> PostProductVendor(
+            int vendorId,
+            [FromBody] ProductVendorDto productVendorDto
+        )
+        {
+            var productVendor = _context.ProductVendors.FirstOrDefault(
+                pv => pv.ProductId == productVendorDto.ProductId && pv.VendorId == vendorId
+            );
+            if (productVendor == null)
+            {
+                // Create a new ProductVendor instance with the provided data
+                var newProductVendor = new ProductVendor
+                {
+                    ProductId = productVendorDto.ProductId,
+                    VendorId = vendorId,
+                    Price = productVendorDto.Price,
+                    Quantity = productVendorDto.Quantity,
+                    Visible = 1
+                };
+
+                // Add the new ProductVendor instance to the database
+                _context.ProductVendors.Add(newProductVendor);
+                await _context.SaveChangesAsync();
+
+                return Ok();
+            }
+            else
+            {
+                // find the productvendor with the same vendor id and product id
+                // if it exists, then return the productvendor object along with a message
+
+                return Ok(productVendor);
+            }
+        }
+
         // PUT
         // update visibilty of the product
         [HttpPut("visibility/{vendorId}")]
