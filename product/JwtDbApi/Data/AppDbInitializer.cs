@@ -182,7 +182,7 @@ namespace JwtDbApi.Data
                     womensClothing.Name = "Women's Clothing";
                     womensClothing.Description = "Category for Women's Clothing";
                     womensClothing.ParentCategory = womensFashion;
-                    womensClothing.CategoryImageUrl = "https://images.asos-media.com/products/asos-design-leather-look-suit-blazer-in-green/200896864-1-green?$n_1280w$&wid=1125&fit=constrain";
+                    womensClothing.CategoryImageUrl = "https://5.imimg.com/data5/CU/AQ/MY-43701257/ladies-designer-top-500x500.jpg";
                     context.Categories.Add(womensClothing);
 
                     // Create child category - Women's Handbags
