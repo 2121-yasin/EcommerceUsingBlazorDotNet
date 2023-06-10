@@ -1,14 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using JwtDbApi.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using JwtDbApi.DTOs;
 using JwtDbApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace JwtDbApi.Controllers
 {
@@ -64,7 +59,79 @@ namespace JwtDbApi.Controllers
             return NotFound();
         }
 
+        // GET: api/ProductVendor/{vendorId}
+        // Returns product vendor information if it exists
+        [HttpGet("{vendorId}")]
+        public async Task<IActionResult> GetProductVendor(int vendorId, int productId)
+        {
+            var productVendor = _context.ProductVendors.FirstOrDefault(
+                pv => pv.ProductId == productId && pv.VendorId == vendorId
+            );
+
+            var product = await _context.Products
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(p => p.ProdId == productId);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            if (productVendor == null)
+            {
+                return Ok(
+                    new
+                    {
+                        productVendor = new
+                        {
+                            Price = 0,
+                            Quantity = 0,
+                            Visible = 1,
+                            Product = new
+                            {
+                                product.ProdId,
+                                product.ProdName,
+                                product.Description,
+                                product.ImageURL,
+                                product.StartDate,
+                                Category = product.Category.Name
+                            }
+                        }
+                    }
+                );
+            }
+
+            if (productVendor != null)
+            {
+                // Find the productVendor with the same vendor ID and product ID
+                return Ok(
+                    new
+                    {
+                        message = "Product is already listed by you",
+                        productVendor = new
+                        {
+                            productVendor.Price,
+                            productVendor.Quantity,
+                            productVendor.Visible,
+                            Product = new
+                            {
+                                product.ProdId,
+                                product.ProdName,
+                                product.Description,
+                                product.ImageURL,
+                                product.StartDate,
+                                Category = product.Category.Name
+                            }
+                        }
+                    }
+                );
+            }
+
+            return NotFound();
+        }
+
         // POST: api/ProductVendor/{vendorId}
+        // To add a new product to the listing of a vendor from the available products
         [HttpPost("{vendorId}")]
         public async Task<IActionResult> PostProductVendor(
             int vendorId,
@@ -74,6 +141,7 @@ namespace JwtDbApi.Controllers
             var productVendor = _context.ProductVendors.FirstOrDefault(
                 pv => pv.ProductId == productVendorDto.ProductId && pv.VendorId == vendorId
             );
+
             if (productVendor == null)
             {
                 // Create a new ProductVendor instance with the provided data
@@ -83,7 +151,7 @@ namespace JwtDbApi.Controllers
                     VendorId = vendorId,
                     Price = productVendorDto.Price,
                     Quantity = productVendorDto.Quantity,
-                    Visible = 1
+                    Visible = 1,
                 };
 
                 // Add the new ProductVendor instance to the database
@@ -92,13 +160,7 @@ namespace JwtDbApi.Controllers
 
                 return Ok();
             }
-            else
-            {
-                // find the productvendor with the same vendor id and product id
-                // if it exists, then return the productvendor object along with a message
-
-                return Ok(productVendor);
-            }
+            return NotFound();
         }
 
         // PUT
@@ -126,7 +188,6 @@ namespace JwtDbApi.Controllers
             }
         }
 
-        // GET: api/ProductVendor/low-stock/{vendorId}
         // GET: api/ProductVendor/low-stock/{vendorId}
         [HttpGet("low-stock/{vendorId}")]
         public IActionResult GetLowStockProducts(int vendorId)
