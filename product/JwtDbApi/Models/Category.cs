@@ -15,8 +15,11 @@ namespace JwtDbApi.Models
         [MaxLength(250)]
         public string Description { get; set; }
 
+        public string? BasicDetails { get; set; }
+
+        public string? OptionalDetails { get; set; }
     
-        public string CategoryImageUrl { get; set; } // New image URL field
+        public string? CategoryImageUrl { get; set; }
 
         [Display(Name = "Parent Category")]
         public int? ParentCategoryId { get; set; }

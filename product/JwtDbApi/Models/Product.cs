@@ -15,6 +15,7 @@ namespace JwtDbApi.Models
         // public Vendor Vendor { get; set; }
         public string ProdName { get; set; }
         public string Description { get; set; }
+        public string? DetailedDescription { get; set; }
         public double Price { get; set; }
         public string ImageURL { get; set; }
         public DateTime? StartDate { get; set; } = DateTime.Now;
