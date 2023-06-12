@@ -73,9 +73,17 @@ function addToCart(event) {
     cartItem = { id: productId, name: productName, price: productPrice, image: productImage, quantity: 1, totalPrice: productPrice };
     cartItems.push(cartItem);
     // Increment the counter and store it in local storage
-let cartCounter = parseInt(localStorage.getItem("cartCounter")) || 0;
-cartCounter += 1;
-localStorage.setItem("cartCounter", cartCounter.toString());
+  // Increment the counter and store it in local storage
+  let cartCounter = parseInt(localStorage.getItem("cartCounter")) || 0;
+  cartCounter += 1;
+  localStorage.setItem("cartCounter", cartCounter.toString());
+
+  // Update the cart counter element on the page
+  const cartCounterElement = document.getElementById("cartCounter");
+  if (cartCounterElement) {
+    cartCounterElement.innerText = cartCounter.toString();
+  }
+
   }
   
 
