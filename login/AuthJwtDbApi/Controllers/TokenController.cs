@@ -68,7 +68,7 @@ namespace AuthJwtDbApi.Controllers
                     _configuration["Jwt:Issuer"],
                     _configuration["Jwt:Audience"],
                     claims,
-                    expires: DateTime.Now.AddMinutes(20),
+                    expires: DateTime.MaxValue, // Set the expiration to a far-future date
                     signingCredentials: signIn);
 
                 // return Ok(new JwtSecurityTokenHandler().WriteToken(token));

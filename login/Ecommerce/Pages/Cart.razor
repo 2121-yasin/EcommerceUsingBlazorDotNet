@@ -83,7 +83,7 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
 
 
 
-    private async Task RemoveFromCart(string id)
+private async Task RemoveFromCart(string id)
 {
     var cartItemsList = cartItems.ToList();
     var itemToRemove = cartItemsList.FirstOrDefault(x => x.id == id);
@@ -94,7 +94,11 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
         var storage = await JSRuntime.InvokeAsync<IJSObjectReference>("eval", "localStorage");
         await storage.InvokeVoidAsync("setItem", "cartItems", JsonSerializer.Serialize(cartItems));
     }
+
+    // Call the JavaScript function to decrease the cart counter
+    await JSRuntime.InvokeVoidAsync("RemoveFromCart", id);
 }
+
 
 //checkout page opens only when the user is logged in else it will navigate the user to login registration page
 private async Task HandleCheckoutClick()

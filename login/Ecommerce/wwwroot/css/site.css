@@ -3,11 +3,13 @@
 .carousel-control-prev {
     background-color:rgb(211, 211, 211); /* Add desired color */
     width: 30px;
+    margin-left: -750px;
 }
 
 .carousel-control-next {
     background-color:rgb(211, 211, 211);/* Add desired color */
     width: 30px;
+    margin-right: -120px;
 }
 
 .app-icon{
