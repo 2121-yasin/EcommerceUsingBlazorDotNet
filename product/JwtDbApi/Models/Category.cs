@@ -15,10 +15,6 @@ namespace JwtDbApi.Models
         [MaxLength(250)]
         public string Description { get; set; }
 
-        public string? BasicDetails { get; set; }
-
-        public string? OptionalDetails { get; set; }
-    
         public string? CategoryImageUrl { get; set; }
 
         [Display(Name = "Parent Category")]
@@ -33,5 +29,12 @@ namespace JwtDbApi.Models
 
         [NotMapped]
         public int ProductCount => Products?.Count() ?? 0;
+        
+        public bool HasProducts { get; set; } = false;
+
+        public string? BasicDetails { get; set; }
+
+        public string? OptionalDetails { get; set; }
+
     }
 }

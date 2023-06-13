@@ -129,19 +129,45 @@ namespace JwtDbApi.Controllers
         [Authorize(Roles = "Admin,Vendor")]
         public async Task<ActionResult<CategoryDto>> PostCategory(CategoryDto categoryDto)
         {
+            Category parentCategory;
             Category category = new Category();
+
+            if (categoryDto.ParentCategoryId != null && categoryDto.ParentCategoryId != 0)
+            {
+                parentCategory = await _context.Categories.FindAsync(categoryDto.ParentCategoryId);
+
+                if (parentCategory != null && parentCategory.HasProducts)
+                {
+                    return BadRequest(new { Field = "ParentCategoryId", Message = "Parent category already has products. Cannot add a new category." });
+                }
+                else if (parentCategory == null)
+                {
+                    return BadRequest(new { Field = "ParentCategoryId", Message = "Parent category not found. Cannot add a new category." });
+                }
+
+                category.ParentCategoryId = categoryDto.ParentCategoryId;
+            }
+
             category.CategoryId = categoryDto.CategoryId;
             category.Name = categoryDto.Name;
             category.Description = categoryDto.Description;
-            if (categoryDto.ParentCategoryId > 0)
+
+            if (categoryDto.HasProducts)
             {
-                category.ParentCategoryId = categoryDto.ParentCategoryId;
+                category.HasProducts = categoryDto.HasProducts;
+                category.BasicDetails = categoryDto.BasicDetails;
+                category.OptionalDetails = categoryDto.OptionalDetails;
             }
+
             _context.Categories.Add(category);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetCategory", new { id = categoryDto.CategoryId }, categoryDto);
         }
+
+
+
+
 
         // PUT: api/Category/5
         [HttpPut("{id}")]
