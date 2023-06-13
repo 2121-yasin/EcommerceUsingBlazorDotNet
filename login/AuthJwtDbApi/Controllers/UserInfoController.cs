@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AuthJwtDbApi.Data;
 using AuthJwtDbApi.DTOs;
 using AuthJwtDbApi.Models;
@@ -45,6 +41,108 @@ namespace AuthJwtDbApi.Controllers
             return userInfo;
         }
 
+        // GET Users by pages with sorting
+        [HttpGet("paginated-users")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<IEnumerable<UserInfo>>> GetUserInfo(int page = 1, int pageSize = 10, string sortBy = "UserName", bool sortDesc = false)
+        {
+            // Get count of total users
+            int totalItems = await _context.UserInfo.CountAsync();
+
+            // Calculate total pages and ensure page is within range
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            page = Math.Max(1, Math.Min(page, totalPages));
+
+            // Calculate skip count for pagination
+            int skipCount = (page - 1) * pageSize;
+
+            // Apply sorting dynamically
+            IQueryable<UserInfo> query = _context.UserInfo.AsQueryable();
+            query = ApplySorting(query, sortBy, sortDesc);
+
+            // Retrieve paginated users
+            List<UserInfo> users = await query.Skip(skipCount).Take(pageSize).ToListAsync();
+
+            // Create response object
+            var response = new
+            {
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                TotalPages = totalPages,
+                Data = users
+            };
+
+            return Ok(response);
+        }
+
+        // Apply sorting to users
+        private IQueryable<UserInfo> ApplySorting(IQueryable<UserInfo> query, string sortBy, bool sortDesc)
+        {
+            switch (sortBy)
+            {
+                case "UserId":
+                    query = sortDesc ? query.OrderByDescending(u => u.UserId) : query.OrderBy(u => u.UserId);
+                    break;
+                case "UserName":
+                    query = sortDesc ? query.OrderByDescending(u => u.UserName) : query.OrderBy(u => u.UserName);
+                    break;
+                case "Email":
+                    query = sortDesc ? query.OrderByDescending(u => u.Email) : query.OrderBy(u => u.Email);
+                    break;
+                case "Role":
+                    query = sortDesc ? query.OrderByDescending(u => u.Role) : query.OrderBy(u => u.Role);
+                    break;
+                default:
+                    break;
+            }
+
+            return query;
+        }
+
+        // POST: api/UserInfo
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<ActionResult<UserRegistrationDto>> PostUserInfo(UserRegistrationDto userRegistrationDto)
+        {
+            var existingUser = await _context.UserInfo.FirstOrDefaultAsync(u => u.Email == userRegistrationDto.Email);
+
+            if (existingUser != null)
+            {
+                return BadRequest("User already exists");
+            }
+
+            string passwordHash = BCrypt.Net.BCrypt.HashPassword(userRegistrationDto.Password);
+
+            if (userRegistrationDto.Role != "User" && userRegistrationDto.Role != "Vendor")
+            {
+                return BadRequest();
+            }
+
+            AddressInfo address = new AddressInfo
+            {
+                Street = userRegistrationDto.Street,
+                City = userRegistrationDto.City,
+                State = userRegistrationDto.State,
+                Pincode = userRegistrationDto.Pincode
+            };
+
+            UserInfo userInfo = new UserInfo
+            {
+                Email = userRegistrationDto.Email,
+                Password = passwordHash,
+                UserName = userRegistrationDto.UserName,
+                Phone = userRegistrationDto.Phone,
+                Address = address,
+                Role = userRegistrationDto.Role
+            };
+
+            _context.UserInfo.Add(userInfo);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetUserInfo", new { id = userInfo.UserId }, userInfo);
+        }
+
         // PUT: api/UserInfo/5
         [HttpPut("{id}")]
         [Authorize(Roles = "User,Vendor")]
@@ -74,49 +172,6 @@ namespace AuthJwtDbApi.Controllers
             }
 
             return NoContent();
-        }
-
-        // POST: api/UserInfo
-        [HttpPost]
-        [AllowAnonymous]
-        public async Task<ActionResult<UserRegistrationDto>> PostUserInfo(UserRegistrationDto userRegistrationDto)
-        {
-            var existingUser = await _context.UserInfo.FirstOrDefaultAsync(u => u.Email == userRegistrationDto.Email);
-
-            if (existingUser != null)
-            {
-                return BadRequest("User already exists");
-            }
-
-            string passwordHash = BCrypt.Net.BCrypt.HashPassword(userRegistrationDto.Password);
-
-            if (userRegistrationDto.Role != "User" && userRegistrationDto.Role != "Vendor")
-            {
-                return BadRequest();
-            }
-            
-            AddressInfo address = new AddressInfo
-            {
-                Street = userRegistrationDto.Street,
-                City = userRegistrationDto.City,
-                State = userRegistrationDto.State,
-                Pincode = userRegistrationDto.Pincode
-            };
-
-            UserInfo userInfo = new UserInfo
-            {
-                Email = userRegistrationDto.Email,
-                Password = passwordHash,
-                UserName = userRegistrationDto.UserName,
-                Phone = userRegistrationDto.Phone,
-                Address = address,
-                Role = userRegistrationDto.Role
-            };
-
-            _context.UserInfo.Add(userInfo);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetUserInfo", new { id = userInfo.UserId }, userInfo);
         }
 
         // DELETE: api/UserInfo/5
