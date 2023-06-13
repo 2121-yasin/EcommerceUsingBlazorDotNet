@@ -45,6 +45,27 @@
 //   });
 // });
 
+async function RemoveFromCart(itemId) {
+  // ...
+
+  // Decrease the cart counter by 1
+  let cartCounter = parseInt(localStorage.getItem("cartCounter")) || 0;
+  if (cartCounter > 0) {
+    cartCounter -= 1;
+    localStorage.setItem("cartCounter", cartCounter.toString());
+  }
+
+  // Update the cart counter element on the page
+  const cartCounterElement = document.getElementById("cartCounter");
+  if (cartCounterElement) {
+    cartCounterElement.innerText = cartCounter.toString();
+  }
+
+  // ...
+}
+
+
+
 function addToCart(event) {
   event.preventDefault();
   const productId = event.target.dataset.productId;
