@@ -10,12 +10,16 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 // builder.Services.AddControllers();
-builder.Services.AddControllers().AddJsonOptions(options => 
-{
-    options.JsonSerializerOptions.PropertyNamingPolicy = null;
-});
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+    });
 
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<AppDbContext>(
+    options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -23,41 +27,46 @@ builder.Services.AddEndpointsApiExplorer();
 // builder.Services.AddSwaggerGen();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "My Web API", Version = "v1"} );
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        // Description = "JWT Authorization",
-        // Name = "Authorization",
-        // BearerFormat = "JWT",
-        // In = ParameterLocation.Header,
-        // Type = SecuritySchemeType.ApiKey,
-        // Scheme = "Bearer"
-
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http, // if 'Type = SecuritySchemeType.ApiKey' like in commented code above then swagger ui requires 'Bearer' keyword to be entered
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "JWT Authorization header using the Bearer scheme."
-    });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Ecommerce main", Version = "v1" });
+    c.AddSecurityDefinition(
+        "Bearer",
+        new OpenApiSecurityScheme
         {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] {}
+            // Description = "JWT Authorization",
+            // Name = "Authorization",
+            // BearerFormat = "JWT",
+            // In = ParameterLocation.Header,
+            // Type = SecuritySchemeType.ApiKey,
+            // Scheme = "Bearer"
+
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http, // if 'Type = SecuritySchemeType.ApiKey' like in commented code above then swagger ui requires 'Bearer' keyword to be entered
+            Scheme = "Bearer",
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Description = "JWT Authorization header using the Bearer scheme."
         }
-        
-    });
+    );
+    c.AddSecurityRequirement(
+        new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                new string[] { }
+            }
+        }
+    );
 });
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -68,7 +77,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])
+            )
         };
     });
 
@@ -97,9 +108,10 @@ AppDbInitializer.Seed(app);
 // for CORS
 app.UseCors(builder =>
 {
-    builder.WithOrigins("http://localhost:3000", "http://localhost:3002")
-           .AllowAnyHeader()
-           .AllowAnyMethod();
+    builder
+        .WithOrigins("http://localhost:3000", "http://localhost:3002")
+        .AllowAnyHeader()
+        .AllowAnyMethod();
 });
 
 app.MapControllers();

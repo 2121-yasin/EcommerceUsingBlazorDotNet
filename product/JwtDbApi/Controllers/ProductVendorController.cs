@@ -175,6 +175,7 @@ namespace JwtDbApi.Controllers
             var productVendor = _context.ProductVendors.FirstOrDefault(
                 pv => pv.ProductId == prodId && pv.VendorId == vendorId
             );
+
             if (productVendor != null)
             {
                 productVendor.Visible = visibility;

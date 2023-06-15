@@ -97,48 +97,114 @@ namespace JwtDbApi.Controllers
         public async Task<ActionResult<IEnumerable<object>>> GetProductsByVendor(
             int id,
             int page = 1,
-            int pageSize = 10
+            int pageSize = 10,
+            string? sortBy = null,
+            string? sortOrder = null
         )
         {
-            var totalProducts = await _context.Vendors
+            var query = _context.Vendors
                 .Where(v => v.Id == id)
-                .SelectMany(v => v.ProductVendors.Select(pv => pv.Product))
-                .CountAsync();
-            var totalPages = (int)Math.Ceiling((double)totalProducts / pageSize);
-
-            var products = await _context.Vendors
-                .Where(v => v.Id == id)
+                .Include(v => v.ProductVendors)
+                .ThenInclude(pv => pv.Product)
                 .SelectMany(
                     v =>
                         v.ProductVendors.Select(
                             pv =>
                                 new
                                 {
-                                    Product = new
-                                    {
-                                        pv.Product.ProdId,
-                                        pv.Product.ProdName,
-                                        pv.Product.Description,
-                                        pv.Product.ImageURL,
-                                        pv.Product.StartDate,
-                                        pv.Product.Price,
-                                        Category = pv.Product.Category.Name // Include the category name inside the Product object
-                                    },
+                                    Vendor = v,
+                                    Product = pv.Product,
                                     Price = pv.Price,
                                     Quantity = pv.Quantity,
                                     Visibility = pv.Visible
                                 }
                         )
+                );
+
+            // Apply sorting if sortBy and sortOrder are provided
+            if (sortBy != null && sortOrder != null)
+            {
+                switch (sortBy.Trim().ToLower())
+                {
+                    case "name":
+
+                        if (sortOrder == "asc")
+                        {
+                            query = query.OrderBy(vp => vp.Product.ProdName);
+                        }
+                        else if (sortOrder.ToLower() == "desc")
+                        {
+                            query = query.OrderByDescending(vp => vp.Product.ProdName);
+                        }
+                        break;
+                    case "visibility":
+                        if (sortOrder.ToLower() == "asc")
+                        {
+                            query = query.OrderByDescending(vp => vp.Visibility);
+                        }
+                        else if (sortOrder.ToLower() == "desc")
+                        {
+                            query = query.OrderBy(vp => vp.Visibility);
+                        }
+                        break;
+                    case "price":
+                        if (sortOrder.ToLower() == "asc")
+                        {
+                            query = query.OrderBy(vp => vp.Price);
+                        }
+                        else if (sortOrder.ToLower() == "desc")
+                        {
+                            query = query.OrderByDescending(vp => vp.Price);
+                        }
+                        break;
+                    case "quantity":
+                        if (sortOrder.ToLower() == "asc")
+                        {
+                            query = query.OrderBy(vp => vp.Quantity);
+                        }
+                        else if (sortOrder.ToLower() == "desc")
+                        {
+                            query = query.OrderByDescending(vp => vp.Quantity);
+                        }
+                        break;
+                    default:
+                        // Handle other sorting criteria if needed
+                        break;
+                }
+            }
+
+            var totalProducts = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalProducts / pageSize);
+
+            var products = await query
+                .Select(
+                    vp =>
+                        new
+                        {
+                            Product = new
+                            {
+                                vp.Product.ProdId,
+                                vp.Product.ProdName,
+                                vp.Product.Description,
+                                vp.Product.ImageURL,
+                                vp.Product.StartDate,
+                                vp.Product.Price,
+                                Category = vp.Product.Category.Name
+                            },
+                            Price = vp.Price,
+                            Quantity = vp.Quantity,
+                            Visibility = vp.Visibility
+                        }
                 )
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-            var listedProductCount = _context.ProductVendors.Count(
+            var listedProductCount = await _context.ProductVendors.CountAsync(
                 pv => pv.VendorId == id && pv.Visible == 1
             );
 
-            var notListedProductCount = _context.ProductVendors.Count(
+            var notListedProductCount = await _context.ProductVendors.CountAsync(
                 pv => pv.VendorId == id && pv.Visible == 0
             );
 
