@@ -109,32 +109,33 @@ protected override async Task OnInitializedAsync()
     }
 
     private async Task<List<Products>> GetProduct()
+{
+    var baseUrl = "https://localhost:7044/api/products/all";
+    
+    if (!string.IsNullOrEmpty(searchQuery))
     {
-        var baseUrl = "https://localhost:7044/api/products/all";
-        using (var httpClientHandler = new HttpClientHandler())
+        baseUrl = $"https://localhost:7044/api/products/search?name={Uri.EscapeDataString(searchQuery)}";
+    }
+
+    using (var httpClientHandler = new HttpClientHandler())
+    {
+        httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+        using (var httpClient = new HttpClient(httpClientHandler))
         {
-            httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
-            using (var httpClient = new HttpClient(httpClientHandler))
-            {
-                var jsonStr = await httpClient.GetStringAsync(baseUrl);
-                var products = JsonConvert.DeserializeObject<List<Products>>(jsonStr);
-
-                if (!string.IsNullOrEmpty(searchQuery))
-                {
-                    // Filter products based on the search query
-                    products = products.Where(p => p.ProdName.ToLower().Contains(searchQuery.ToLower())).ToList();
-                }
-
-                return products;
-            }
+            var jsonStr = await httpClient.GetStringAsync(baseUrl);
+            var products = JsonConvert.DeserializeObject<List<Products>>(jsonStr);
+            return products;
         }
     }
+}
 
-     private async Task SearchProducts()
-    {
-        // Redirect to the search results page with the search query as a parameter
-        await JSRuntime.InvokeVoidAsync("open", $"/?search={Uri.EscapeDataString(searchQuery)}", "_self");
-    }
+
+private async Task SearchProducts()
+{
+    // Redirect to the search results page with the search query as a parameter
+    await JSRuntime.InvokeVoidAsync("open", $"/?search={Uri.EscapeDataString(searchQuery)}", "_self");
+}
+
 
 }
 

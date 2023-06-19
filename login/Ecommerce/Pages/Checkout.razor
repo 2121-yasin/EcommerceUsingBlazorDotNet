@@ -380,9 +380,11 @@ private async Task ProceedToPayment(decimal totalAmount)
 private async Task ClearCartItems()
 {
     await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "cartItems");
+    await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "cartCounter");
     cartItems = new CartItem[0]; // Reset the cart items array in the component
     StateHasChanged(); // Trigger a re-render to reflect the changes
 }
+
 
 protected override async Task OnAfterRenderAsync(bool firstRender)
 {
