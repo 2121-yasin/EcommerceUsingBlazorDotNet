@@ -106,6 +106,7 @@ namespace JwtDbApi.Controllers
                 .Where(v => v.Id == id)
                 .Include(v => v.ProductVendors)
                 .ThenInclude(pv => pv.Product)
+                .ThenInclude(p => p.Category)
                 .SelectMany(
                     v =>
                         v.ProductVendors.Select(
