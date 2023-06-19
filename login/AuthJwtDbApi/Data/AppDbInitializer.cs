@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AuthJwtDbApi.Models;
 
 namespace AuthJwtDbApi.Data
@@ -22,16 +18,6 @@ namespace AuthJwtDbApi.Data
                     {
                         new AddressInfo()
                         {
-
-                            Street="abc",
-                            City="panaji",
-                            State="Goa",
-                            Pincode="403005"
-
-                        },
-                        new AddressInfo()
-                        {
-
                             Street="abc",
                             City="panaji",
                             State="Goa",
@@ -39,13 +25,18 @@ namespace AuthJwtDbApi.Data
                         },
                         new AddressInfo()
                         {
-
                             Street="abc",
                             City="panaji",
                             State="Goa",
                             Pincode="403005"
-                        }
-
+                        },
+                        new AddressInfo()
+                        {
+                            Street="abc",
+                            City="panaji",
+                            State="Goa",
+                            Pincode="403005"
+                        },
                     });
                     context.SaveChanges();
                 }
@@ -55,7 +46,6 @@ namespace AuthJwtDbApi.Data
                     {
                         new UserInfo()
                         {
-
                             UserName="Aaron",
                             Email="aaron@gmail.com",
                             Phone="123",
@@ -65,47 +55,52 @@ namespace AuthJwtDbApi.Data
                         },
                         new UserInfo()
                         {
-
                             UserName="Suraj",
                             Email="suraj@gmail.com",
                             Phone="123",
                             Password= BCrypt.Net.BCrypt.HashPassword("Suraj@123"),
                             Role="Vendor",
                             AddressId=2
-
                         },
                         new UserInfo()
                         {
-
                             UserName="Suraj2",
                             Email="suraj2@gmail.com",
                             Phone="123",
                             Password= BCrypt.Net.BCrypt.HashPassword("Suraj2@123"),
                             Role="Vendor",
                             AddressId=2
-
                         },
                         new UserInfo()
                         {
-
                             UserName="Yasin",
                             Email="yasin@gmail.com",
                             Phone="123",
                             Password= BCrypt.Net.BCrypt.HashPassword("Yasin@123"),
                             Role="User",
                             AddressId=3
-
+                        },
+                        new UserInfo()
+                        {
+                            UserName="Customer",
+                            Email="customer@gmail.com",
+                            Phone="123",
+                            Password= BCrypt.Net.BCrypt.HashPassword("Customer@123"),
+                            Role="User",
+                            AddressId=3
+                        },
+                        new UserInfo()
+                        {
+                            UserName="Customer2",
+                            Email="customer2@gmail.com",
+                            Phone="123",
+                            Password= BCrypt.Net.BCrypt.HashPassword("Customer2@123"),
+                            Role="User",
+                            AddressId=3
                         }
                     });
                     context.SaveChanges();
                 }
-
-
-
-
-
-
-
 
                 //ClientProfile
                 if (!context.ClientProfile.Any())
