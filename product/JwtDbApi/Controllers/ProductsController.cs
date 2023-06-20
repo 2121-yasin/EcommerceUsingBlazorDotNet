@@ -108,19 +108,7 @@ namespace JwtDbApi.Controllers
         [HttpGet("search")]
         public IActionResult SearchProductsByName([FromQuery] string name)
         {
-            var searchResults = _context.Products
-                .Where(p => p.ProdName.Contains(name))
-                .Select(
-                    p =>
-                        new
-                        {
-                            p.ProdId,
-                            p.ProdName,
-                            Category = p.Category.Name,
-                            p.ImageURL
-                        }
-                )
-                .ToList();
+            var searchResults = _context.Products.Where(p => p.ProdName.Contains(name)).ToList();
 
             return Ok(searchResults);
         }

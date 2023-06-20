@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace JwtDbApi.Models
@@ -14,7 +15,7 @@ namespace JwtDbApi.Models
         [ForeignKey("VendorId")]
         public Vendor Vendor { get; set; }
         public DateTime ListedOn { get; set; } = DateTime.Now;
-        public double Price { get; set; }
+        public int Price { get; set; }
         public int Quantity { get; set; }
         public int Visible { get; set; }
     }
