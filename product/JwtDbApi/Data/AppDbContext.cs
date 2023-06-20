@@ -30,7 +30,7 @@ namespace JwtDbApi.Data
                 .WithOne(p => p.ParentCategory)
                 .HasForeignKey(f => f.ParentCategoryId);
 
-            modelBuilder.Entity<ProductVendor>().HasKey(pv => new { pv.ProductId, pv.VendorId });
+            // modelBuilder.Entity<ProductVendor>().HasKey(pv => new { pv.ProductId, pv.VendorId });
 
             modelBuilder
                 .Entity<ProductVendor>()
@@ -44,6 +44,28 @@ namespace JwtDbApi.Data
                 .WithMany(v => v.ProductVendors)
                 .HasForeignKey(pv => pv.VendorId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            // CartItem
+            modelBuilder
+                .Entity<CartItem>()
+                .HasOne(ci => ci.Cart)
+                .WithMany(c => c.CartItems)
+                .HasForeignKey(ci => ci.CartId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder
+                .Entity<CartItem>()
+                .HasOne(ci => ci.Product)
+                .WithMany(p => p.CartItems)
+                .HasForeignKey(ci => ci.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder
+                .Entity<CartItem>()
+                .HasOne(ci => ci.ProductVendor)
+                .WithMany(pv => pv.CartItems)
+                .HasForeignKey(ci => ci.ProductVendorId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
         public DbSet<Category> Categories { get; set; }
@@ -51,6 +73,8 @@ namespace JwtDbApi.Data
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductVendor> ProductVendors { get; set; }
         public DbSet<Admin> Admins { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<Cart> Carts { get; set; }
 
         //public DbSet<CartItem> CartItems { get; set; }
     }

@@ -27,6 +27,7 @@ namespace JwtDbApi.Models
         // public int StockQty { get; set; }
 
         //Relationships
+        public List<CartItem> CartItems { get; set; }
         public List<ProductVendor> ProductVendors { get; set; } = new List<ProductVendor>(); // Initialization required for the  GetOverallQuantity to work
 
         // Calculated property for overall quantity of visible listings

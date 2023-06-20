@@ -5,6 +5,8 @@ namespace JwtDbApi.Models
 {
     public class ProductVendor
     {
+        [Key]
+        public int Id { get; set; }
         public int ProductId { get; set; }
 
         [ForeignKey("ProductId")]
@@ -18,5 +20,6 @@ namespace JwtDbApi.Models
         public int Price { get; set; }
         public int Quantity { get; set; }
         public int Visible { get; set; }
+        public List<CartItem> CartItems { get; set; }
     }
 }
