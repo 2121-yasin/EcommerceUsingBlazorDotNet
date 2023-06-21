@@ -431,13 +431,37 @@ namespace JwtDbApi.Data
                 }
 
                 // ProductVendors
+                // if (!context.ProductVendors.Any())
+                // {
+                //     Random random = new Random();
+
+                //     for (int i = 1; i <= 19; i++)
+                //     {
+                //         int randomVendorId = random.Next(1, 3);
+                //         int randomPrice = random.Next(100, 10000);
+                //         int randomQuantity = random.Next(1, 100);
+
+                //         context.ProductVendors.Add(
+                //             new ProductVendor()
+                //             {
+                //                 ProductId = i,
+                //                 VendorId = randomVendorId,
+                //                 Price = randomPrice,
+                //                 Quantity = randomQuantity
+                //             }
+                //         );
+                //     }
+
+                //     context.SaveChanges();
+                // }
+
+                // ProductVendors
                 if (!context.ProductVendors.Any())
                 {
                     Random random = new Random();
 
-                    for (int i = 1; i <= 19; i++)
+                    for (int i = 1; i <= 10; i++)
                     {
-                        int randomVendorId = random.Next(1, 3);
                         int randomPrice = random.Next(100, 10000);
                         int randomQuantity = random.Next(1, 100);
 
@@ -445,9 +469,53 @@ namespace JwtDbApi.Data
                             new ProductVendor()
                             {
                                 ProductId = i,
-                                VendorId = randomVendorId,
+                                VendorId = 1,
                                 Price = randomPrice,
                                 Quantity = randomQuantity
+                            }
+                        );
+                    }
+
+                    for (int i = 11; i <= 15; i++)
+                    {
+                        int randomPrice = random.Next(100, 10000);
+                        int randomQuantity = random.Next(1, 100);
+
+                        context.ProductVendors.Add(
+                            new ProductVendor()
+                            {
+                                ProductId = i,
+                                VendorId = 2,
+                                Price = randomPrice,
+                                Quantity = randomQuantity
+                            }
+                        );
+                    }
+
+                    for (int i = 16; i <= 19; i++)
+                    {
+                        int randomPrice = random.Next(100, 10000);
+                        int randomQuantity = random.Next(1, 100);
+                        int randomPrice2 = random.Next(100, 10000);
+                        int randomQuantity2 = random.Next(1, 100);
+
+                        context.ProductVendors.Add(
+                            new ProductVendor()
+                            {
+                                ProductId = i,
+                                VendorId = 1,
+                                Price = randomPrice,
+                                Quantity = randomQuantity
+                            }
+                        );
+
+                        context.ProductVendors.Add(
+                            new ProductVendor()
+                            {
+                                ProductId = i,
+                                VendorId = 2,
+                                Price = randomPrice2,
+                                Quantity = randomQuantity2
                             }
                         );
                     }

@@ -9,7 +9,7 @@ namespace JwtDbApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Vendor")]
+    [Authorize(Roles = "Admin,Vendor")]
     public class ProductVendorController : ControllerBase
     {
         private readonly ILogger<ProductVendorController> _logger;
@@ -128,6 +128,78 @@ namespace JwtDbApi.Controllers
             }
 
             return NotFound();
+        }
+
+        // GET: api/productvendor/category/{categoryId}
+        [HttpGet("category/{categoryId}")]
+        public async Task<IActionResult> GetProductVendor(int categoryId, int page = 1, int pageSize = 10, string sortBy = "ProductName", bool sortDesc = false)
+        {
+            try
+            {
+                var query = _context.Products
+                    .Where(product => product.CategoryId == categoryId)
+                    .Include(product => product.ProductVendors)
+                    .ThenInclude(productVendor => productVendor.Vendor)
+                    .SelectMany(product => product.ProductVendors, (product, productVendor) => new
+                    {
+                        UniqueId = Guid.NewGuid(), // Generate a unique identifier since ProductId is duplicated cause of flattened data.
+                        ProductId = product.ProdId,
+                        ProductName = product.ProdName,
+                        ProductBasePrice = product.Price,
+                        ProductImageUrl = product.ImageURL,
+                        ProductVendorId = productVendor.Id,
+                        ProductVendorListedOn = productVendor.ListedOn,
+                        ProductVendorPrice = productVendor.Price,
+                        ProductVendorQuantity = productVendor.Quantity,
+                        ProductVendorVisible = productVendor.Visible,
+                        VendorId = productVendor.Vendor.Id,
+                        VendorUserId = productVendor.Vendor.UserId
+                    });
+
+                // Apply sorting
+                switch (sortBy.ToLower())
+                {
+                    case "productname":
+                        query = sortDesc ? query.OrderByDescending(p => p.ProductName) : query.OrderBy(p => p.ProductName);
+                        break;
+                    case "productbaseprice":
+                        query = sortDesc ? query.OrderByDescending(p => p.ProductBasePrice) : query.OrderBy(p => p.ProductBasePrice);
+                        break;
+                    default:
+                        break;
+                }
+
+                // Total count before pagination
+                var totalItems = await query.CountAsync();
+
+                // Calculate total pages and ensure page is within range
+                int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+                page = Math.Max(1, Math.Min(page, totalPages));
+
+                // Query with pagination
+                var products = await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                // Create the response object
+                var response = new
+                {
+                    TotalItems = totalItems,
+                    TotalPages = totalPages,
+                    Page = page,
+                    PageSize = pageSize,
+                    SortBy = sortBy,
+                    SortDesc = sortDesc,
+                    Data = products
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         // POST: api/ProductVendor/{vendorId}
