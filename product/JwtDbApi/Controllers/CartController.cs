@@ -57,23 +57,63 @@ namespace JwtDbApi.Controllers
 
         // Create new cart if cart for a user is not created
         // POST: api/cart/{userId}
-        [HttpPost("{userId}")]
-        public async Task<ActionResult> AddToCart(int userId)
-        {
-            var cart = await _context.Carts.FirstOrDefaultAsync(c => c.UserId == userId);
-            if (cart == null)
-            {
-                var newCart = new Cart
-                {
-                    UserId = userId
-                };
-                _context.Carts.Add(newCart);
-                await _context.SaveChangesAsync(); // Save changes to the database
-                return Ok(newCart.Id);
-            }
+        // [HttpPost("{userId}")]
+        // public async Task<ActionResult> AddToCart(int userId)
+        // {
+        //     var cart = await _context.Carts.FirstOrDefaultAsync(c => c.UserId == userId);
+        //     if (cart == null)
+        //     {
+        //         var newCart = new Cart
+        //         {
+        //             UserId = userId
+        //         };
+        //         _context.Carts.Add(newCart);
+        //         await _context.SaveChangesAsync(); // Save changes to the database
+        //         return Ok(newCart.Id);
+        //     }
 
-            return BadRequest("Cart already exists");
-        }
+        //     return BadRequest("Cart already exists");
+        // }
+
+
+//     userId, productId, and productVendorId. The userId parameter is used to find the cart associated with the user, or create a new cart if it doesn't exist.
+
+// Once the cart is retrieved or created, a new CartItem entity is created with the provided productId and productVendorId, and the CartId is set to the ID of the cart. The CartItem is then added to the context and saved to the database.
+
+// POST: api/cart/{userId}
+[HttpPost("{userId}")]
+public async Task<ActionResult> AddToCart(int userId, int productId, int productVendorId)
+{
+    var cart = await _context.Carts
+        .Include(c => c.CartItems)
+        .FirstOrDefaultAsync(c => c.UserId == userId);
+
+    if (cart == null)
+    {
+        var newCart = new Cart
+        {
+            UserId = userId
+        };
+        _context.Carts.Add(newCart);
+        await _context.SaveChangesAsync();
+
+        cart = newCart; // Assign the newly created cart to the 'cart' variable
+    }
+
+    var cartItem = new CartItem
+    {
+        CartId = cart.Id,
+        ProductId = productId,
+        ProductVendorId = productVendorId
+    };
+
+    _context.CartItems.Add(cartItem);
+    await _context.SaveChangesAsync();
+
+    return Ok(cartItem);
+}
+
+
 
     }
 }

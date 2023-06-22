@@ -3,6 +3,11 @@
 @using Newtonsoft.Json;
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
+@using BlazorStrap
+@using System.IdentityModel.Tokens.Jwt;
+@using System.Net.Http.Headers;
+@inject HttpClient HttpClient
+@using System.Text
 <PageTitle>EShop</PageTitle>
 
 
@@ -44,6 +49,47 @@ private async Task<List<Products>> GetProduct()
     }
 }
 
+@*
+private async Task AddToCart(Products product)
+{
+    // var userId = 1; // Replace with the actual user ID 
+    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+    HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+    var handler = new JwtSecurityTokenHandler();
+    var decodedToken = handler.ReadJwtToken(token);
+    var userId = decodedToken.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+    var addToCartUrl = $"https://localhost:7044/api/cart/{userId}";
+
+    using (var httpClientHandler = new HttpClientHandler())
+    {
+        httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+        using (var httpClient = new HttpClient(httpClientHandler))
+        {
+            var content = new StringContent(JsonConvert.SerializeObject(product), Encoding.UTF8, "application/json");
+            var response = await httpClient.PostAsync(addToCartUrl, content);
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                if (responseContent == "ItemAlreadyExists")
+                {
+                    // Item already exists in the cart
+                    await JSRuntime.InvokeVoidAsync("MessageBox.show", "Error", "Item is already present in the cart.");
+                }
+                else
+                {
+                    // Cart item added successfully
+                    await JSRuntime.InvokeVoidAsync("MessageBox.show", "Success", "Item added to cart successfully.");
+                }
+            }
+            else
+            {
+                // Failed to add item to the cart
+                await JSRuntime.InvokeVoidAsync("MessageBox.show", "Error", "Failed to add item to the cart.");
+            }
+        }
+    }
+}*@
 
 
 }
@@ -197,6 +243,12 @@ private async Task<List<Products>> GetProduct()
                       onclick="addToCart(event)">
                         <i class="bi bi-cart4" style="font-size: 2rem;"></i>
                       </a>
+                      
+                      @* <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
+   @onclick="() => AddToCart(product)">
+    <i class="bi bi-cart4" style="font-size: 2rem;"></i>
+</a> *@
+
 
                       <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to wishlist"
                       data-product-id="@product.ProdId"
