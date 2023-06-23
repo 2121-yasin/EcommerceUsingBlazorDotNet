@@ -15,6 +15,8 @@ namespace JwtDbApi.Models
         // public Vendor Vendor { get; set; }
         public string ProdName { get; set; }
         public string Description { get; set; }
+
+        [Column(TypeName = "nvarchar(max)")]
         public string? DetailedDescription { get; set; }
         public int Price { get; set; }
         public string ImageURL { get; set; }

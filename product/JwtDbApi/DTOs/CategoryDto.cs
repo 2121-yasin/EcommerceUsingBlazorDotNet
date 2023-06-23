@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace JwtDbApi.DTOs
 {
     public class CategoryDto
@@ -7,7 +9,11 @@ namespace JwtDbApi.DTOs
         public string? Description { get; set; }
         public int? ParentCategoryId { get; set; }
         public bool HasProducts { get; set; } = false;
+
+        [Column(TypeName = "nvarchar(max)")]
         public string? BasicDetails { get; set; }
+
+        [Column(TypeName = "nvarchar(max)")]
         public string? OptionalDetails { get; set; }
 
         // public List<CategoryDto>? ChildCategories { get; set; }
