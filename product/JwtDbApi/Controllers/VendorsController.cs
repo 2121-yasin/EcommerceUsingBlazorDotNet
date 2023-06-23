@@ -35,18 +35,43 @@ namespace JwtDbApi.Controllers
         // POST
         // api/vendors/id
         [Authorize(Roles = "Vendor")]
-        [HttpPost("{id}")]
-        public async Task<IActionResult> CreateVendor(int id, [FromBody] VendorDto vendorDto)
+        [HttpPost("{userId}")]
+        public async Task<IActionResult> CreateVendor(int userId, [FromBody] VendorDto vendorDto)
         {
-            // Create a new Vendor instance with the provided data
-            var vendor = new Vendor { GSTIN = vendorDto.GSTIN, UserId = id };
+            try
+            {
+                // Check if the user already has a vendor account
+                var existingVendor = await _context.Vendors.FirstOrDefaultAsync(
+                    v => v.UserId == userId
+                );
+                if (existingVendor != null)
+                {
+                    return BadRequest("Vendor account already exists");
+                }
 
-            // Add the vendor to the database context and save changes
-            _context.Vendors.Add(vendor);
-            await _context.SaveChangesAsync();
+                // Create a new Vendor instance with the provuserIded data
+                var vendor = new Vendor
+                {
+                    Name = vendorDto.Name,
+                    GSTIN = vendorDto.GSTIN,
+                    UserId = userId
+                };
 
-            // Return the newly created vendor with the generated Id
-            return CreatedAtAction(nameof(GetVendorInfo), new { id = vendor.Id }, vendor);
+                // Add the vendor to the database context
+                _context.Vendors.Add(vendor);
+                await _context.SaveChangesAsync();
+
+                // Return the newly created vendor with the generated Id
+                return CreatedAtAction(nameof(GetVendorInfo), new { id = vendor.Id }, vendor);
+            }
+            catch (Exception ex)
+            {
+                // Throw an error indicating the problem with updating the database
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    "Error updating the database: " + ex.Message
+                );
+            }
         }
 
         // GET products by vendor
