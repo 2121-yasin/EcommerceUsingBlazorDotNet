@@ -76,48 +76,6 @@ namespace JwtDbApi.Controllers
 
         // GET products by vendor
 
-        // [HttpGet("{Id}/products")]
-        // public async Task<ActionResult<List<Product>>> GetProductsByVendor(int Id)
-        // {
-        //     var products = await (from pv in _context.ProductVendors
-        //                           join p in _context.Products on pv.ProductId equals p.ProdId
-        //                           where pv.VendorId == Id
-        //                           select new Product
-        //                           {
-        //                               ProdId = p.ProdId,
-        //                               ProdName = p.ProdName,
-        //                               // Add other properties you want to include
-        //                           }).ToListAsync();
-
-        //     return products;
-        // }
-
-
-        // [HttpGet("{Id}/products")]
-        // public async Task<ActionResult<List<Product>>> GetProductsByVendor(int Id)
-        // {
-        //     var productIds = await _context.ProductVendors
-        //                                    .Where(v => v.VendorId == Id)
-        //                                    .Select(v => v.ProductId)
-        //                                    .ToListAsync();
-
-        //     var products = await _context.Products
-        //                                 .Where(p => productIds.Contains(p.ProdId))
-        //                                 .Select(p => new Product
-        //                                 {
-        //                                     ProdId = p.ProdId,
-        //                                     ProdName = p.ProdName,
-        //                                     // Add other properties you want to include
-        //                                 })
-        //                                 .ToListAsync();
-
-        //     return products;
-        // }
-
-
-
-        // GET products by vendor
-
         [HttpGet("{id}/products")]
         public async Task<ActionResult<IEnumerable<object>>> GetProductsByVendor(
             int id,

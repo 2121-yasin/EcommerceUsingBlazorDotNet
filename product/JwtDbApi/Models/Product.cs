@@ -16,8 +16,8 @@ namespace JwtDbApi.Models
         public string ProdName { get; set; }
         public string Description { get; set; }
 
-        [Column(TypeName = "nvarchar(max)")]
-        public string? DetailedDescription { get; set; }
+        public string? BasicDetails { get; set; }
+        public string? OptionalDetails { get; set; }
         public int Price { get; set; }
         public string ImageURL { get; set; }
         public DateTime? StartDate { get; set; } = DateTime.Now;
