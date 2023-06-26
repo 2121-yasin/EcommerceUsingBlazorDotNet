@@ -18,9 +18,10 @@ namespace JwtDbApi.Data
                     context.Vendors.AddRange(
                         new List<Vendor>()
                         {
-                            new Vendor() { UserId = 2, },
+                            new Vendor() { UserId = 2, Name = "Suraj" },
                             new Vendor()
                             {
+                                Name = "Suraj 1",
                                 GSTIN = "30AAAAA0000A1Z5",
                                 DeliveryPinCode = 403002,
                                 UserId = 3,

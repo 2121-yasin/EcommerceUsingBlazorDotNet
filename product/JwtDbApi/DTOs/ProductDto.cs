@@ -8,7 +8,9 @@ namespace JwtDbApi.DTOs
         public string? Description { get; set; }
         public int Price { get; set; }
         public string? ImageURL { get; set; }
-        public DateTime? StartDate { get; set; }
+        public object? BasicDetails { get; set; }
+        public object? OptionalDetails { get; set; }
         public int CategoryId { get; set; }
+        public ProductVendorDto? productVendor { get; set; }
     }
 }

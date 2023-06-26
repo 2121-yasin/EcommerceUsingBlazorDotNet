@@ -32,10 +32,8 @@ namespace JwtDbApi.Models
 
         public bool HasProducts { get; set; } = false;
 
-        [Column(TypeName = "nvarchar(max)")]
         public string? BasicDetails { get; set; }
 
-        [Column(TypeName = "nvarchar(max)")]
         public string? OptionalDetails { get; set; }
     }
 }
