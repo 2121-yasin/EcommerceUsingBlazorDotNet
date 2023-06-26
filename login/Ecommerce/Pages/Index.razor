@@ -88,14 +88,17 @@ private async Task AddToCart(Products product)
         using (var httpClient = new HttpClient(httpClientHandler))
         {
             var response = await httpClient.PostAsync(url, null);
+            var statusCode = response.StatusCode; // Add this line to get the status code
+
             if (response.IsSuccessStatusCode)
             {
-                await JSRuntime.InvokeVoidAsync("alert", "Failed to add item to the cart. Please try again.");
+                await JSRuntime.InvokeVoidAsync("alert", $"Failed to add item to the cart. Status code: {statusCode}");
             }
             else
             {
                 await JSRuntime.InvokeVoidAsync("alert", "Item added to the cart successfully.");
             }
+
         }
     }
 }
@@ -107,6 +110,26 @@ private async Task SetProductVendorId(int vendorId, Products product)
     productVendorId = vendorId;
     await AddToCart(product);
 }
+
+public bool IsTokenPresent { get; set; }
+
+protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (firstRender)
+    {
+        IsTokenPresent = await IsTokenPresentAsync();
+        StateHasChanged();
+    }
+}
+
+private async Task<bool> IsTokenPresentAsync()
+{
+    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+    return !string.IsNullOrEmpty(token);
+}
+
+
+
 
 
 
@@ -264,9 +287,23 @@ private async Task SetProductVendorId(int vendorId, Products product)
                       </a> *@
                       
 <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
-   @onclick="() => SetProductVendorId(product.ProductVendorId, product)">
+   @onclick="() => SetProductVendorId(product.ProductVendorId, product)"
+   style="@(IsTokenPresent ? "" : "display: none;")">
     <i class="bi bi-cart4" style="font-size: 2rem;"></i>
 </a>
+
+<a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
+   data-product-id="@product.ProdId"
+   data-product-image="@product.ImageURL"
+   data-product-name="@product.ProdName"
+   data-product-price="@product.Price"
+   onclick="addToCart(event)"
+   style="@(IsTokenPresent ? "display: none;" : "")">
+    <i class="bi bi-cart4" style="font-size: 2rem;"></i>
+</a>
+
+
+
 
 
 
