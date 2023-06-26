@@ -41,6 +41,66 @@ namespace AuthJwtDbApi.Controllers
             return userInfo;
         }
 
+        // GET: api/UserInfo/vendors
+        // [HttpGet("vendors")]
+        // [Authorize(Roles = "Admin")]
+        // public async Task<ActionResult<IEnumerable<VendorUserInfoDTO>>> GetVendorUserDetails([FromQuery(Name = "vendorUserIds[]")] int[] vendorUserIds)
+        // {
+        //     try
+        //     {
+        //         var vendorUsers = await _context.UserInfo
+        //             .Where(u => vendorUserIds.Contains(u.UserId))
+        //             .Include(u => u.Address)
+        //             .Select(u => new VendorUserInfoDTO
+        //             {
+        //                 UserId = u.UserId,
+        //                 UserName = u.UserName,
+        //                 Email = u.Email,
+        //                 Phone = u.Phone,
+        //                 Address = u.Address
+        //             })
+        //             .ToListAsync();
+
+        //         return Ok(vendorUsers);
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         return StatusCode(500, ex.Message);
+        //     }
+        // }
+
+        // GET: api/UserInfo/vendors
+        [HttpGet("vendors")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<IEnumerable<VendorUserInfoDTO>>> GetVendorUserDetails([FromQuery(Name = "vendorUserIds")] string vendorUserIdsString)
+        {
+            try
+            {
+                var vendorUserIds = vendorUserIdsString.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(int.Parse)
+                    .ToArray();
+
+                var vendorUsers = await _context.UserInfo
+                    .Where(u => vendorUserIds.Contains(u.UserId))
+                    .Include(u => u.Address)
+                    .Select(u => new VendorUserInfoDTO
+                    {
+                        UserId = u.UserId,
+                        UserName = u.UserName,
+                        Email = u.Email,
+                        Phone = u.Phone,
+                        Address = u.Address
+                    })
+                    .ToListAsync();
+
+                return Ok(vendorUsers);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         // GET Users by pages with sorting
         [HttpGet("paginated-users")]
         [Authorize(Roles = "Admin")]
