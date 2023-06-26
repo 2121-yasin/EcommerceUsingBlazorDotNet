@@ -114,6 +114,39 @@ public async Task<ActionResult> AddToCart(int userId, int productId, int product
 }
 
 
+// [HttpPost("{userId}")]
+// public async Task<ActionResult> AddToCart(int userId, [FromBody] CartItemModel cartItemModel)
+// {
+//     var cart = await _context.Carts
+//         .Include(c => c.CartItems)
+//         .FirstOrDefaultAsync(c => c.UserId == userId);
+
+//     if (cart == null)
+//     {
+//         var newCart = new Cart
+//         {
+//             UserId = userId
+//         };
+//         _context.Carts.Add(newCart);
+//         await _context.SaveChangesAsync();
+
+//         cart = newCart; // Assign the newly created cart to the 'cart' variable
+//     }
+
+//     var cartItem = new CartItem
+//     {
+//         CartId = cart.Id,
+//         ProductId = cartItemModel.ProductId,
+//         ProductVendorId = cartItemModel.ProductVendorId
+//     };
+
+//     _context.CartItems.Add(cartItem);
+//     await _context.SaveChangesAsync();
+
+//     return Ok(cartItem);
+// }
+
+
 
     }
 }

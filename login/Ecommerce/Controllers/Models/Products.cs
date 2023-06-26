@@ -12,12 +12,14 @@ namespace Ecommerce.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ProdId { get; set; }
+        public int VendorId{get; set;}
         public string ProdName { get; set; }
         public string Description { get; set; }
-        public double Price { get; set; }
+        public int Price { get; set; }
         public string ImageURL { get; set; }
         public DateTime StartDate { get; set; }
         public int StockQty { get; set; }  
+        public int ProductVendorId { get; set; }
     }
 }
 

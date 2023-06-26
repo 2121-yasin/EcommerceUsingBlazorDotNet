@@ -176,5 +176,19 @@ namespace JwtDbApi.Controllers
         {
             return _context.Products.Any(e => e.ProdId == id);
         }
+
+//get productvendorid
+        [HttpGet("{productId}/vendor")]
+        public ActionResult<ProductVendor> GetProductVendor(int productId)
+        {
+            var vendor = _context.ProductVendors.FirstOrDefault(v => v.ProductId == productId);
+            if (vendor == null)
+            {
+                return NotFound();
+            }
+
+            return vendor;
+        }
+
     }
 }
