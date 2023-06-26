@@ -6,6 +6,7 @@ using JwtDbApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace JwtDbApi.Controllers
 {
@@ -55,7 +56,7 @@ namespace JwtDbApi.Controllers
                 .Include(c => c.ChildCategories)
                 .ToListAsync();
 
-            var json = JsonSerializer.Serialize(categories, options);
+            var json = System.Text.Json.JsonSerializer.Serialize(categories, options);
 
             return Ok(json);
 
@@ -112,7 +113,7 @@ namespace JwtDbApi.Controllers
 
         // GET: api/Category/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Category>> GetCategory(int id)
+        public async Task<ActionResult<object>> GetCategory(int id)
         {
             var category = await _context.Categories.FindAsync(id);
 
@@ -121,7 +122,27 @@ namespace JwtDbApi.Controllers
                 return NotFound();
             }
 
-            return category;
+            var basicDetails =
+                category.BasicDetails != null
+                    ? JsonConvert.DeserializeObject<List<string>>(category.BasicDetails)
+                    : new List<string>();
+
+            var optionalDetails =
+                category.OptionalDetails != null
+                    ? JsonConvert.DeserializeObject<List<string>>(category.OptionalDetails)
+                    : new List<string>();
+
+            var selectedCategory = new
+            {
+                category.CategoryId,
+                category.Name,
+                category.Description,
+                category.CategoryImageUrl,
+                BasicDetails = basicDetails,
+                OptionalDetails = optionalDetails
+            };
+
+            return selectedCategory;
         }
 
         // POST: api/Category
@@ -138,11 +159,23 @@ namespace JwtDbApi.Controllers
 
                 if (parentCategory != null && parentCategory.HasProducts)
                 {
-                    return BadRequest(new { Field = "ParentCategoryId", Message = "Parent category already has products. Cannot add a new category." });
+                    return BadRequest(
+                        new
+                        {
+                            Field = "ParentCategoryId",
+                            Message = "Parent category already has products. Cannot add a new category."
+                        }
+                    );
                 }
                 else if (parentCategory == null)
                 {
-                    return BadRequest(new { Field = "ParentCategoryId", Message = "Parent category not found. Cannot add a new category." });
+                    return BadRequest(
+                        new
+                        {
+                            Field = "ParentCategoryId",
+                            Message = "Parent category not found. Cannot add a new category."
+                        }
+                    );
                 }
 
                 category.ParentCategoryId = categoryDto.ParentCategoryId;
@@ -164,10 +197,6 @@ namespace JwtDbApi.Controllers
 
             return CreatedAtAction("GetCategory", new { id = categoryDto.CategoryId }, categoryDto);
         }
-
-
-
-
 
         // PUT: api/Category/5
         [HttpPut("{id}")]
@@ -215,6 +244,40 @@ namespace JwtDbApi.Controllers
             await _context.SaveChangesAsync();
 
             return category;
+        }
+
+        [HttpPut("{categoryId}/postarraydetails")]
+        public async Task<IActionResult> PutArrayProductDetails(
+            int categoryId,
+            [FromBody] List<string> basicDetail
+        )
+        {
+            var category = await _context.Categories.FindAsync(categoryId);
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            category.BasicDetails = JsonConvert.SerializeObject(basicDetail);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpGet("{categoryId}/getarraydetails")]
+        public async Task<IActionResult> GetArrayProductDetails(int categoryId)
+        {
+            var category = _context.Categories.Find(categoryId);
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            var basicDetail = category.BasicDetails;
+            var arrayValues = JsonConvert.DeserializeObject<List<string>>(basicDetail);
+
+            // Return the array values or any other desired format
+            return Ok(arrayValues);
         }
 
         private bool CategoryExists(int id)

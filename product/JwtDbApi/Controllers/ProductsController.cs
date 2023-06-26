@@ -1,10 +1,13 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using JwtDbApi.Data;
+using JwtDbApi.DTOs;
 using JwtDbApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace JwtDbApi.Controllers
 {
@@ -113,15 +116,13 @@ namespace JwtDbApi.Controllers
             return Ok(searchResults);
         }
 
-        // POST: api/Product
+        // Post api/Products
         [HttpPost]
         [Authorize(Roles = "Admin,Vendor")]
-        public async Task<ActionResult<Product>> PostProduct(Product product)
+        public ActionResult PostNewProduct([FromBody] ProductDto productDto)
         {
-            _context.Products.Add(product);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetProduct", new { id = product.ProdId }, product);
+            // Work in progress in vendor side
+            return Ok();
         }
 
         // PUT: api/Product/5
@@ -170,6 +171,47 @@ namespace JwtDbApi.Controllers
             await _context.SaveChangesAsync();
 
             return product;
+        }
+
+        [HttpPut("{prodId}/postdetails")]
+        public async Task<IActionResult> PutProductDetails(int prodId, [FromBody] object details)
+        {
+            var product = await _context.Products.FindAsync(prodId);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            product.BasicDetails = details.ToString();
+            await _context.SaveChangesAsync();
+
+            return Ok(
+                new
+                {
+                    product.ProdId,
+                    product.ProdName,
+                    descrption = JsonConvert.DeserializeObject<Dictionary<string, object>>(
+                        product.BasicDetails
+                    ),
+                    product.ImageURL,
+                }
+            );
+        }
+
+        [HttpGet("{prodId}/getdetails")]
+        public async Task<IActionResult> GetProductDetails(int prodId)
+        {
+            var product = await _context.Products.FindAsync(prodId);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            var details = JsonConvert.DeserializeObject<Dictionary<string, object>>(
+                product.BasicDetails
+            );
+
+            return Ok(details);
         }
 
         private bool ProductExists(int id)
