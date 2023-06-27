@@ -49,7 +49,7 @@ else
 
 protected override async Task OnAfterRenderAsync(bool firstRender)
 {
-    var storage = await JSRuntime.InvokeAsync<IJSObjectReference>("eval", "sessionStorage");
+    var storage = await JSRuntime.InvokeAsync<IJSObjectReference>("eval", "localStorage");
     var json = await storage.InvokeAsync<string>("getItem", "wishlistItems");
     if (!string.IsNullOrEmpty(json))
     {
@@ -82,7 +82,7 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         wishlistItemsList.Remove(itemToRemove);
         wishlistItems = wishlistItemsList.ToArray();
-        var storage = await JSRuntime.InvokeAsync<IJSObjectReference>("eval", "sessionStorage");
+        var storage = await JSRuntime.InvokeAsync<IJSObjectReference>("eval", "localStorage");
         await storage.InvokeVoidAsync("setItem", "wishlistItems", JsonSerializer.Serialize(wishlistItems));
     }
 }

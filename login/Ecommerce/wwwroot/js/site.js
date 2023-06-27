@@ -131,7 +131,7 @@ function addToWishlist(event) {
     return;
   }
 
-  let wishlistItems = JSON.parse(sessionStorage.getItem("wishlistItems")) || [];
+  let wishlistItems = JSON.parse(localStorage.getItem("wishlistItems")) || [];
   let wishlistItem = wishlistItems.find(item => item.id === productId);
   if (wishlistItem) {
     // Product already exists in wishlist
@@ -141,7 +141,7 @@ function addToWishlist(event) {
     // Product doesn't exist in wishlist, add as new item
     wishlistItem = { id: productId, name: productName, price: productPrice, image: productImage };
     wishlistItems.push(wishlistItem);
-    sessionStorage.setItem("wishlistItems", JSON.stringify(wishlistItems));
+    localStorage.setItem("wishlistItems", JSON.stringify(wishlistItems));
     window.alert("Item added to wishlist");
   }
 }

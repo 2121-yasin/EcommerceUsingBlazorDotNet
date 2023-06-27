@@ -88,20 +88,27 @@ private async Task AddToCart(Products product)
         using (var httpClient = new HttpClient(httpClientHandler))
         {
             var response = await httpClient.PostAsync(url, null);
-            var statusCode = response.StatusCode; // Add this line to get the status code
+            var statusCode = response.StatusCode;
 
             if (response.IsSuccessStatusCode)
             {
-                await JSRuntime.InvokeVoidAsync("alert", $"Failed to add item to the cart. Status code: {statusCode}");
+                await JSRuntime.InvokeVoidAsync("alert", "Item successfully added to the cart.");
             }
             else
             {
-                await JSRuntime.InvokeVoidAsync("alert", "Item added to the cart successfully.");
+                if (statusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "Item already present in the cart.");
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "Failed to add item to the cart.");
+                }
             }
-
         }
     }
 }
+
 
 
 private int productVendorId;

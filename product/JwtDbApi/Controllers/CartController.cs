@@ -55,6 +55,24 @@ namespace JwtDbApi.Controllers
         }
 
 
+        [HttpDelete("RemoveFromCart/{cartItemId}")]
+        public async Task<ActionResult> RemoveFromCart(int cartItemId)
+        {
+            var cartItem = await _context.CartItems.FindAsync(cartItemId);
+
+            if (cartItem == null)
+            {
+                return NotFound();
+            }
+
+            _context.CartItems.Remove(cartItem);
+            await _context.SaveChangesAsync();
+
+            return Ok("Item successfully removed from the cart.");
+        }
+
+
+
         // Create new cart if cart for a user is not created
         // POST: api/cart/{userId}
         // [HttpPost("{userId}")]
@@ -76,75 +94,83 @@ namespace JwtDbApi.Controllers
         // }
 
 
-//     userId, productId, and productVendorId. The userId parameter is used to find the cart associated with the user, or create a new cart if it doesn't exist.
+        //     userId, productId, and productVendorId. The userId parameter is used to find the cart associated with the user, or create a new cart if it doesn't exist.
 
-// Once the cart is retrieved or created, a new CartItem entity is created with the provided productId and productVendorId, and the CartId is set to the ID of the cart. The CartItem is then added to the context and saved to the database.
+        // Once the cart is retrieved or created, a new CartItem entity is created with the provided productId and productVendorId, and the CartId is set to the ID of the cart. The CartItem is then added to the context and saved to the database.
 
-// POST: api/cart/{userId}
-[HttpPost("{userId}")]
-public async Task<ActionResult> AddToCart(int userId, int productId, int productVendorId)
-{
-    var cart = await _context.Carts
-        .Include(c => c.CartItems)
-        .FirstOrDefaultAsync(c => c.UserId == userId);
+        // POST: api/cart/{userId}
+        // [HttpPost("{userId}")]
+        // public async Task<ActionResult> AddToCart(int userId, int productId, int productVendorId)
+        // {
+        //     var cart = await _context.Carts
+        //         .Include(c => c.CartItems)
+        //         .FirstOrDefaultAsync(c => c.UserId == userId);
 
-    if (cart == null)
-    {
-        var newCart = new Cart
+        //     if (cart == null)
+        //     {
+        //         var newCart = new Cart
+        //         {
+        //             UserId = userId
+        //         };
+        //         _context.Carts.Add(newCart);
+        //         await _context.SaveChangesAsync();
+
+        //         cart = newCart; // Assign the newly created cart to the 'cart' variable
+        //     }
+
+        //     var cartItem = new CartItem
+        //     {
+        //         CartId = cart.Id,
+        //         ProductId = productId,
+        //         ProductVendorId = productVendorId
+        //     };
+
+        //     _context.CartItems.Add(cartItem);
+        //     await _context.SaveChangesAsync();
+
+        //     return Ok(cartItem);
+        // }
+
+
+        [HttpPost("{userId}")]
+        public async Task<ActionResult> AddToCart(int userId, int productId, int productVendorId)
         {
-            UserId = userId
-        };
-        _context.Carts.Add(newCart);
-        await _context.SaveChangesAsync();
+            var cart = await _context.Carts
+                .Include(c => c.CartItems)
+                .FirstOrDefaultAsync(c => c.UserId == userId);
 
-        cart = newCart; // Assign the newly created cart to the 'cart' variable
-    }
+            if (cart == null)
+            {
+                var newCart = new Cart
+                {
+                    UserId = userId
+                };
+                _context.Carts.Add(newCart);
+                await _context.SaveChangesAsync();
 
-    var cartItem = new CartItem
-    {
-        CartId = cart.Id,
-        ProductId = productId,
-        ProductVendorId = productVendorId
-    };
+                cart = newCart; // Assign the newly created cart to the 'cart' variable
+            }
 
-    _context.CartItems.Add(cartItem);
-    await _context.SaveChangesAsync();
+            // Check if the product is already present in the cart
+            var existingCartItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == productId);
+            if (existingCartItem != null)
+            {
+                return BadRequest("Item already present in the cart.");
+            }
 
-    return Ok(cartItem);
-}
+            var cartItem = new CartItem
+            {
+                CartId = cart.Id,
+                ProductId = productId,
+                ProductVendorId = productVendorId
+            };
 
+            _context.CartItems.Add(cartItem);
+            await _context.SaveChangesAsync();
 
-// [HttpPost("{userId}")]
-// public async Task<ActionResult> AddToCart(int userId, [FromBody] CartItemModel cartItemModel)
-// {
-//     var cart = await _context.Carts
-//         .Include(c => c.CartItems)
-//         .FirstOrDefaultAsync(c => c.UserId == userId);
+            return Ok("Item successfully added to the cart.");
+        }
 
-//     if (cart == null)
-//     {
-//         var newCart = new Cart
-//         {
-//             UserId = userId
-//         };
-//         _context.Carts.Add(newCart);
-//         await _context.SaveChangesAsync();
-
-//         cart = newCart; // Assign the newly created cart to the 'cart' variable
-//     }
-
-//     var cartItem = new CartItem
-//     {
-//         CartId = cart.Id,
-//         ProductId = cartItemModel.ProductId,
-//         ProductVendorId = cartItemModel.ProductVendorId
-//     };
-
-//     _context.CartItems.Add(cartItem);
-//     await _context.SaveChangesAsync();
-
-//     return Ok(cartItem);
-// }
 
 
 

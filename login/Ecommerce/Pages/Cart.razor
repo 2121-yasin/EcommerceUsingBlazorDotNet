@@ -2,8 +2,149 @@
 @using System.Text.Json
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
+@using System.Net.Http
+@inject HttpClient HttpClient
+@using System.IdentityModel.Tokens.Jwt
+@using System.Net.Http.Headers
+@using System.Net.Http.Json
 
-<h1>Cart</h1>
+<h3>Cart</h3>
+
+@if (cart != null)
+{
+    <table class="cart-table">
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Image</th>
+                <th>Description</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in cart.Products)
+            {
+                <tr>
+                    <td>@item.ProdName</td>
+                    <td><img class="product-image" src="@item.ImageURL" alt="Product Image" /></td>
+                    <td>@item.Description</td>
+                    <td>@item.Price</td>
+                    <td>
+                        @if (item.Quantity <= 0)
+                        {
+                            <span class="out-of-stock">Out of Stock</span>
+                        }
+                        else if (item.Quantity < 5)
+                        {
+                            <span class="low-stock">Low Stock</span>
+                        }
+                        else
+                        {
+                            <span class="in-stock">In Stock</span>
+                        }
+                    </td>
+                    <td>
+                        <span class="remove-icon">
+                            <i class="bi bi-trash text-success remove-icon fs-5" @onclick="() => RemoveFromCart(item)"></i>
+                        </span>
+                    </td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="6" class="total-row">
+                    Total Price: <span class="total-price">@CalculateTotalPrice(cart.Products)</span>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+}
+else
+{
+    <p>Your cart is empty.</p>
+}
+
+@code {
+    private CartModel cart;
+    private bool isLoaded;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !isLoaded)
+        {
+            await LoadCartData();
+            isLoaded = true;
+        }
+    }
+
+    private async Task LoadCartData()
+    {
+        var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var handler = new JwtSecurityTokenHandler();
+        var decodedToken = handler.ReadJwtToken(token);
+
+        var userId = decodedToken.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+
+        var url = $"https://localhost:7044/api/cart/{userId}";
+
+        cart = await HttpClient.GetFromJsonAsync<CartModel>(url);
+
+        StateHasChanged();
+    }
+private async Task RemoveFromCart(CartItemModel item)
+{
+    var url = $"https://localhost:7044/api/cart/RemoveFromCart/{item.CartItemId}";
+
+    var response = await HttpClient.DeleteAsync(url);
+
+    if (response.IsSuccessStatusCode)
+    {
+        cart.Products.Remove(item);
+        await LoadCartData(); // Reload the cart data after removing the item
+    }
+    else
+    {
+        // Handle error case
+    }
+}
+    private decimal CalculateTotalPrice(List<CartItemModel> products)
+    {
+        decimal totalPrice = 0;
+        foreach (var item in products)
+        {
+            if (item.Quantity > 0)
+            {
+                totalPrice += item.Price;
+            }
+        }
+        return totalPrice;
+    }
+
+    public class CartModel
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public decimal TotalPrice { get; set; }
+        public List<CartItemModel> Products { get; set; }
+    }
+
+    public class CartItemModel
+    {
+        public int CartItemId { get; set; }
+        public string ProdName { get; set; }
+        public string ImageURL { get; set; }
+        public string Description { get; set; }
+        public decimal Price { get; set; }
+        public int Quantity { get; set; }
+    }
+}
+
+
+@* <h1>Cart</h1>
 
 @if (isRendered)
 {
@@ -118,4 +259,4 @@ private async Task HandleCheckoutClick()
     }
 }
 
-}
+} *@

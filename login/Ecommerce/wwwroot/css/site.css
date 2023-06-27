@@ -1,5 +1,53 @@
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
+.cart-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.cart-table th,
+.cart-table td {
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+.product-image {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+}
+
+.out-of-stock {
+    color: red;
+    font-weight: bold;
+}
+
+.low-stock {
+    color: orange;
+    font-weight: bold;
+}
+
+.in-stock {
+    color: green;
+}
+
+.total-label {
+
+    padding-right: 10px; /* Adjust the desired spacing */
+}
+
+.total-row {
+    font-weight: bold;
+    text-align: right;
+}
+
+.total-price {
+    font-weight: bold;
+    display: inline-block;
+}
+
+
+
 .carousel-control-prev {
     background-color:rgb(211, 211, 211); /* Add desired color */
     width: 30px;
