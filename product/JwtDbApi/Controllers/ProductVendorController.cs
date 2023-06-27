@@ -131,7 +131,98 @@ namespace JwtDbApi.Controllers
             return NotFound();
         }
 
-        // GET: api/productvendor/category/{categoryId} - Cannot sort with vendor name. But is efficient as sorting and pagination is done in database directly
+        // GET: api/productvendor/category/{categoryId}
+        [HttpGet("category/{categoryId}")]
+        public async Task<IActionResult> GetProductVendor(int categoryId, int page = 1, int pageSize = 10, string sortBy = "ProductVendorListedOn", bool sortDesc = false)
+        {
+            try
+            {
+                var query = _context.Products
+                    .Where(product => categoryId == 0 || product.CategoryId == categoryId)
+                    .Include(product => product.ProductVendors)
+                    .ThenInclude(productVendor => productVendor.Vendor)
+                    .SelectMany(product => product.ProductVendors, (product, productVendor) => new
+                    {
+                        UniqueId = Guid.NewGuid(), // Generate a unique identifier since ProductId is duplicated cause of flattened data.
+                        ProductId = product.ProdId,
+                        ProductName = product.ProdName,
+                        ProductBasePrice = product.Price,
+                        ProductImageUrl = product.ImageURL,
+                        ProductVendorId = productVendor.Id,
+                        ProductVendorListedOn = productVendor.ListedOn,
+                        ProductVendorPrice = productVendor.Price,
+                        ProductVendorQuantity = productVendor.Quantity,
+                        ProductVendorVisible = productVendor.Visible,
+                        VendorId = productVendor.Vendor.Id,
+                        VendorUserId = productVendor.Vendor.UserId,
+                        VendorName = productVendor.Vendor.Name,
+                        CategoryId = product.CategoryId
+                    });
+
+                // Apply sorting
+                switch (sortBy.ToLower())
+                {
+                    case "productname":
+                        query = sortDesc ? query.OrderByDescending(p => p.ProductName) : query.OrderBy(p => p.ProductName);
+                        break;
+                    case "productbaseprice":
+                        query = sortDesc ? query.OrderByDescending(p => p.ProductBasePrice) : query.OrderBy(p => p.ProductBasePrice);
+                        break;
+                    case "vendorname":
+                        query = sortDesc ? query.OrderByDescending(p => p.VendorName) : query.OrderBy(p => p.VendorName);
+                        break;
+                    case "productvendorlistedon":
+                        query = sortDesc ? query.OrderByDescending(p => p.ProductVendorListedOn) : query.OrderBy(p => p.ProductVendorListedOn);
+                        break;
+                    case "productvendorprice":
+                        query = sortDesc ? query.OrderByDescending(p => p.ProductVendorPrice) : query.OrderBy(p => p.ProductVendorPrice);
+                        break;
+                    case "productvendorquantity":
+                        query = sortDesc ? query.OrderByDescending(p => p.ProductVendorQuantity) : query.OrderBy(p => p.ProductVendorQuantity);
+                        break;
+                    case "productvendorvisible":
+                        query = sortDesc ? query.OrderByDescending(p => p.ProductVendorVisible) : query.OrderBy(p => p.ProductVendorVisible);
+                        break;
+                    default:
+                        break;
+                }
+
+                // Total count before pagination
+                var totalItems = await query.CountAsync();
+
+                // Calculate total pages and ensure page is within range
+                int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+                page = Math.Max(1, Math.Min(page, totalPages));
+
+                // Query with pagination
+                var products = await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                var response = new
+                {
+                    TotalItems = totalItems,
+                    TotalPages = totalPages,
+                    Page = page,
+                    PageSize = pageSize,
+                    SortBy = sortBy,
+                    SortDesc = sortDesc,
+                    Data = products,
+                    Message = products.Count == 0 ? "No products found." : null
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
+        // GET: api/productvendor/category/{categoryId} - Can sort with vendor name. But is not efficient as all records are fetched from database and then sorting and pagination is done
+        // Old method: when vendor name was in separate application
         // [HttpGet("category/{categoryId}")]
         // public async Task<IActionResult> GetProductVendor(int categoryId, int page = 1, int pageSize = 10, string sortBy = "ProductName", bool sortDesc = false)
         // {
@@ -143,7 +234,7 @@ namespace JwtDbApi.Controllers
         //             .ThenInclude(productVendor => productVendor.Vendor)
         //             .SelectMany(product => product.ProductVendors, (product, productVendor) => new
         //             {
-        //                 UniqueId = Guid.NewGuid(), // Generate a unique identifier since ProductId is duplicated cause of flattened data.
+        //                 UniqueId = Guid.NewGuid(),
         //                 ProductId = product.ProdId,
         //                 ProductName = product.ProdName,
         //                 ProductBasePrice = product.Price,
@@ -157,227 +248,155 @@ namespace JwtDbApi.Controllers
         //                 VendorUserId = productVendor.Vendor.UserId
         //             });
 
-        //         // Apply sorting
-        //         switch (sortBy.ToLower())
+        //         var vendorUserIds = query.Select(p => p.VendorUserId).Distinct().ToArray();
+
+        //         var httpClientHandler = new HttpClientHandler()
         //         {
-        //             case "productname":
-        //                 query = sortDesc ? query.OrderByDescending(p => p.ProductName) : query.OrderBy(p => p.ProductName);
-        //                 break;
-        //             case "productbaseprice":
-        //                 query = sortDesc ? query.OrderByDescending(p => p.ProductBasePrice) : query.OrderBy(p => p.ProductBasePrice);
-        //                 break;
-        //             default:
-        //                 break;
-        //         }
-
-        //         // Total count before pagination
-        //         var totalItems = await query.CountAsync();
-
-        //         // Calculate total pages and ensure page is within range
-        //         int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-        //         page = Math.Max(1, Math.Min(page, totalPages));
-
-        //         // Query with pagination
-        //         var products = await query
-        //             .Skip((page - 1) * pageSize)
-        //             .Take(pageSize)
-        //             .ToListAsync();
-
-        //         // Create the response object
-        //         var response = new
-        //         {
-        //             TotalItems = totalItems,
-        //             TotalPages = totalPages,
-        //             Page = page,
-        //             PageSize = pageSize,
-        //             SortBy = sortBy,
-        //             SortDesc = sortDesc,
-        //             Data = products
+        //             ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
         //         };
 
-        //         return Ok(response);
+        //         var httpClient = new HttpClient(httpClientHandler);
+        //         var apiUrl = "https://localhost:7240/api/UserInfo";
+
+        //         // Extract the JWT token from the incoming request
+        //         var incomingToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Replace("Bearer ", "");
+
+        //         // Include the extracted JWT token in the outgoing request
+        //         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", incomingToken);
+
+        //         var secondApiResponse = await httpClient.GetAsync($"{apiUrl}/vendors?vendorUserIds={string.Join(",", vendorUserIds)}");
+
+        //         if (secondApiResponse.IsSuccessStatusCode)
+        //         {
+        //             var vendorUsers = await secondApiResponse.Content.ReadAsAsync<List<VendorUserInfoDTO>>();
+
+        //             // var productsWithVendorInfo = query.Join(vendorUsers, p => p.VendorUserId, v => v.UserId, (p, v) => new
+        //             // { // Does not work
+        //             //     p.UniqueId,
+        //             //     p.ProductId,
+        //             //     p.ProductName,
+        //             //     p.ProductBasePrice,
+        //             //     p.ProductImageUrl,
+        //             //     p.ProductVendorId,
+        //             //     p.ProductVendorListedOn,
+        //             //     p.ProductVendorPrice,
+        //             //     p.ProductVendorQuantity,
+        //             //     p.ProductVendorVisible,
+        //             //     p.VendorId,
+        //             //     p.VendorUserId,
+        //             //     VendorName = v.UserName
+        //             // });
+
+        //             // var productsWithVendorInfo = query.Select(p => new
+        //             // { // Does not work
+        //             //     p.UniqueId,
+        //             //     p.ProductId,
+        //             //     p.ProductName,
+        //             //     p.ProductBasePrice,
+        //             //     p.ProductImageUrl,
+        //             //     p.ProductVendorId,
+        //             //     p.ProductVendorListedOn,
+        //             //     p.ProductVendorPrice,
+        //             //     p.ProductVendorQuantity,
+        //             //     p.ProductVendorVisible,
+        //             //     p.VendorId,
+        //             //     p.VendorUserId,
+        //             //     VendorName = vendorUsers.FirstOrDefault(v => v.UserId == p.VendorUserId).UserName
+        //             // });
+
+        //             var productsWithVendorInfo = query.Select(p => new
+        //             {
+        //                 p.UniqueId,
+        //                 p.ProductId,
+        //                 p.ProductName,
+        //                 p.ProductBasePrice,
+        //                 p.ProductImageUrl,
+        //                 p.ProductVendorId,
+        //                 p.ProductVendorListedOn,
+        //                 p.ProductVendorPrice,
+        //                 p.ProductVendorQuantity,
+        //                 p.ProductVendorVisible,
+        //                 p.VendorId,
+        //                 p.VendorUserId
+        //             })
+        //             .AsEnumerable() // Switch to client-side evaluation
+        //             .Select(p => new
+        //             {
+        //                 p.UniqueId,
+        //                 p.ProductId,
+        //                 p.ProductName,
+        //                 p.ProductBasePrice,
+        //                 p.ProductImageUrl,
+        //                 p.ProductVendorId,
+        //                 p.ProductVendorListedOn,
+        //                 p.ProductVendorPrice,
+        //                 p.ProductVendorQuantity,
+        //                 p.ProductVendorVisible,
+        //                 p.VendorId,
+        //                 p.VendorUserId,
+        //                 VendorName = vendorUsers.FirstOrDefault(v => v.UserId == p.VendorUserId)?.UserName
+        //             });
+
+        //             switch (sortBy.ToLower())
+        //             {
+        //                 case "productname":
+        //                     productsWithVendorInfo = sortDesc ? productsWithVendorInfo.OrderByDescending(p => p.ProductName) : productsWithVendorInfo.OrderBy(p => p.ProductName);
+        //                     break;
+        //                 case "productbaseprice":
+        //                     productsWithVendorInfo = sortDesc ? productsWithVendorInfo.OrderByDescending(p => p.ProductBasePrice) : productsWithVendorInfo.OrderBy(p => p.ProductBasePrice);
+        //                     break;
+        //                 case "vendorname":
+        //                     productsWithVendorInfo = sortDesc ? productsWithVendorInfo.OrderByDescending(p => p.VendorName) : productsWithVendorInfo.OrderBy(p => p.VendorName);
+        //                     break;
+        //                 case "productvendorprice":
+        //                     productsWithVendorInfo = sortDesc ? productsWithVendorInfo.OrderByDescending(p => p.ProductVendorPrice) : productsWithVendorInfo.OrderBy(p => p.ProductVendorPrice);
+        //                     break;
+        //                 case "productvendorquantity":
+        //                     productsWithVendorInfo = sortDesc ? productsWithVendorInfo.OrderByDescending(p => p.ProductVendorQuantity) : productsWithVendorInfo.OrderBy(p => p.ProductVendorQuantity);
+        //                     break;
+        //                 case "productvendorvisible":
+        //                     productsWithVendorInfo = sortDesc ? productsWithVendorInfo.OrderByDescending(p => p.ProductVendorVisible) : productsWithVendorInfo.OrderBy(p => p.ProductVendorVisible);
+        //                     break;
+        //                 default:
+        //                     break;
+        //             }
+
+        //             var products = productsWithVendorInfo.ToList(); // Execute the query to retrieve all products
+
+        //             var totalItems = products.Count;
+
+        //             int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+        //             page = Math.Max(1, Math.Min(page, totalPages));
+
+        //             var paginatedProducts = products
+        //                 .Skip((page - 1) * pageSize)
+        //                 .Take(pageSize)
+        //                 .ToList(); // Retrieve the products for the current page
+
+        //             var responseObj = new
+        //             {
+        //                 TotalItems = totalItems,
+        //                 TotalPages = totalPages,
+        //                 Page = page,
+        //                 PageSize = pageSize,
+        //                 SortBy = sortBy,
+        //                 SortDesc = sortDesc,
+        //                 Data = paginatedProducts
+        //             };
+
+        //             return Ok(responseObj);
+        //         }
+        //         else
+        //         {
+        //             var errorMessage = await secondApiResponse.Content.ReadAsStringAsync();
+        //             return StatusCode((int)secondApiResponse.StatusCode, errorMessage);
+        //         }
         //     }
         //     catch (Exception ex)
         //     {
-        //         return StatusCode(500, ex.Message);
+        //         return StatusCode(500, ex.ToString());
         //     }
         // }
-
-        // GET: api/productvendor/category/{categoryId} - Can sort with vendor name. But is not efficient as all records are fetched from database and then sorting and pagination is done
-        [HttpGet("category/{categoryId}")]
-        public async Task<IActionResult> GetProductVendor(int categoryId, int page = 1, int pageSize = 10, string sortBy = "ProductName", bool sortDesc = false)
-        {
-            try
-            {
-                var query = _context.Products
-                    .Where(product => product.CategoryId == categoryId)
-                    .Include(product => product.ProductVendors)
-                    .ThenInclude(productVendor => productVendor.Vendor)
-                    .SelectMany(product => product.ProductVendors, (product, productVendor) => new
-                    {
-                        UniqueId = Guid.NewGuid(),
-                        ProductId = product.ProdId,
-                        ProductName = product.ProdName,
-                        ProductBasePrice = product.Price,
-                        ProductImageUrl = product.ImageURL,
-                        ProductVendorId = productVendor.Id,
-                        ProductVendorListedOn = productVendor.ListedOn,
-                        ProductVendorPrice = productVendor.Price,
-                        ProductVendorQuantity = productVendor.Quantity,
-                        ProductVendorVisible = productVendor.Visible,
-                        VendorId = productVendor.Vendor.Id,
-                        VendorUserId = productVendor.Vendor.UserId
-                    });
-
-                var vendorUserIds = query.Select(p => p.VendorUserId).Distinct().ToArray();
-
-                var httpClientHandler = new HttpClientHandler()
-                {
-                    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-                };
-
-                var httpClient = new HttpClient(httpClientHandler);
-                var apiUrl = "https://localhost:7240/api/UserInfo";
-
-                // Extract the JWT token from the incoming request
-                var incomingToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Replace("Bearer ", "");
-
-                // Include the extracted JWT token in the outgoing request
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", incomingToken);
-
-                var secondApiResponse = await httpClient.GetAsync($"{apiUrl}/vendors?vendorUserIds={string.Join(",", vendorUserIds)}");
-
-                if (secondApiResponse.IsSuccessStatusCode)
-                {
-                    var vendorUsers = await secondApiResponse.Content.ReadAsAsync<List<VendorUserInfoDTO>>();
-
-                    // var productsWithVendorInfo = query.Join(vendorUsers, p => p.VendorUserId, v => v.UserId, (p, v) => new
-                    // {
-                    //     p.UniqueId,
-                    //     p.ProductId,
-                    //     p.ProductName,
-                    //     p.ProductBasePrice,
-                    //     p.ProductImageUrl,
-                    //     p.ProductVendorId,
-                    //     p.ProductVendorListedOn,
-                    //     p.ProductVendorPrice,
-                    //     p.ProductVendorQuantity,
-                    //     p.ProductVendorVisible,
-                    //     p.VendorId,
-                    //     p.VendorUserId,
-                    //     VendorName = v.UserName
-                    // });
-
-                    // var productsWithVendorInfo = query.Select(p => new
-                    // {
-                    //     p.UniqueId,
-                    //     p.ProductId,
-                    //     p.ProductName,
-                    //     p.ProductBasePrice,
-                    //     p.ProductImageUrl,
-                    //     p.ProductVendorId,
-                    //     p.ProductVendorListedOn,
-                    //     p.ProductVendorPrice,
-                    //     p.ProductVendorQuantity,
-                    //     p.ProductVendorVisible,
-                    //     p.VendorId,
-                    //     p.VendorUserId,
-                    //     VendorName = vendorUsers.FirstOrDefault(v => v.UserId == p.VendorUserId).UserName
-                    // });
-
-                    var productsWithVendorInfo = query.Select(p => new
-                    {
-                        p.UniqueId,
-                        p.ProductId,
-                        p.ProductName,
-                        p.ProductBasePrice,
-                        p.ProductImageUrl,
-                        p.ProductVendorId,
-                        p.ProductVendorListedOn,
-                        p.ProductVendorPrice,
-                        p.ProductVendorQuantity,
-                        p.ProductVendorVisible,
-                        p.VendorId,
-                        p.VendorUserId
-                    })
-                    .AsEnumerable() // Switch to client-side evaluation
-                    .Select(p => new
-                    {
-                        p.UniqueId,
-                        p.ProductId,
-                        p.ProductName,
-                        p.ProductBasePrice,
-                        p.ProductImageUrl,
-                        p.ProductVendorId,
-                        p.ProductVendorListedOn,
-                        p.ProductVendorPrice,
-                        p.ProductVendorQuantity,
-                        p.ProductVendorVisible,
-                        p.VendorId,
-                        p.VendorUserId,
-                        VendorName = vendorUsers.FirstOrDefault(v => v.UserId == p.VendorUserId)?.UserName
-                    });
-
-                    switch (sortBy.ToLower())
-                    {
-                        case "productname":
-                            productsWithVendorInfo = sortDesc ? productsWithVendorInfo.OrderByDescending(p => p.ProductName) : productsWithVendorInfo.OrderBy(p => p.ProductName);
-                            break;
-                        case "productbaseprice":
-                            productsWithVendorInfo = sortDesc ? productsWithVendorInfo.OrderByDescending(p => p.ProductBasePrice) : productsWithVendorInfo.OrderBy(p => p.ProductBasePrice);
-                            break;
-                        case "vendorname":
-                            productsWithVendorInfo = sortDesc ? productsWithVendorInfo.OrderByDescending(p => p.VendorName) : productsWithVendorInfo.OrderBy(p => p.VendorName);
-                            break;
-                        case "productvendorprice":
-                            productsWithVendorInfo = sortDesc ? productsWithVendorInfo.OrderByDescending(p => p.ProductVendorPrice) : productsWithVendorInfo.OrderBy(p => p.ProductVendorPrice);
-                            break;
-                        case "productvendorquantity":
-                            productsWithVendorInfo = sortDesc ? productsWithVendorInfo.OrderByDescending(p => p.ProductVendorQuantity) : productsWithVendorInfo.OrderBy(p => p.ProductVendorQuantity);
-                            break;
-                        case "productvendorvisible":
-                            productsWithVendorInfo = sortDesc ? productsWithVendorInfo.OrderByDescending(p => p.ProductVendorVisible) : productsWithVendorInfo.OrderBy(p => p.ProductVendorVisible);
-                            break;
-                        default:
-                            break;
-                    }
-
-                    var products = productsWithVendorInfo.ToList(); // Execute the query to retrieve all products
-
-                    var totalItems = products.Count;
-
-                    int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-                    page = Math.Max(1, Math.Min(page, totalPages));
-
-                    var paginatedProducts = products
-                        .Skip((page - 1) * pageSize)
-                        .Take(pageSize)
-                        .ToList(); // Retrieve the products for the current page
-
-                    var responseObj = new
-                    {
-                        TotalItems = totalItems,
-                        TotalPages = totalPages,
-                        Page = page,
-                        PageSize = pageSize,
-                        SortBy = sortBy,
-                        SortDesc = sortDesc,
-                        Data = paginatedProducts
-                    };
-
-                    return Ok(responseObj);
-                }
-                else
-                {
-                    var errorMessage = await secondApiResponse.Content.ReadAsStringAsync();
-                    return StatusCode((int)secondApiResponse.StatusCode, errorMessage);
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.ToString());
-            }
-        }
 
         // POST: api/ProductVendor/{vendorId}
         // To add a new product to the listing of a vendor from the available products

@@ -21,7 +21,7 @@ namespace JwtDbApi.Data
                             new Vendor() { UserId = 2, Name = "Suraj" },
                             new Vendor()
                             {
-                                Name = "Suraj 1",
+                                Name = "Suraj2",
                                 GSTIN = "30AAAAA0000A1Z5",
                                 DeliveryPinCode = 403002,
                                 UserId = 3,
