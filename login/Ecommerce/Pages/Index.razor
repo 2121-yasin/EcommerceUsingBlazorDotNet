@@ -44,52 +44,93 @@ private async Task<List<Products>> GetProduct()
         {
             var jsonStr = await httpClient.GetStringAsync(baseUrl);
             var products = JsonConvert.DeserializeObject<List<Products>>(jsonStr);
+                    foreach (var product in products)
+    {
+        var vendor = await GetProductVendor(product.ProdId);
+        product.ProductVendorId = vendor?.Id ?? 0;
+    }
             return products;
         }
     }
 }
 
-@*
-private async Task AddToCart(Products product)
+private async Task<ProductVendor> GetProductVendor(int productId)
 {
-    // var userId = 1; // Replace with the actual user ID 
-    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
-    HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-    var handler = new JwtSecurityTokenHandler();
-    var decodedToken = handler.ReadJwtToken(token);
-    var userId = decodedToken.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
-    var addToCartUrl = $"https://localhost:7044/api/cart/{userId}";
+    var baseUrl = $"https://localhost:7044/api/products/{productId}/vendor";
 
     using (var httpClientHandler = new HttpClientHandler())
     {
         httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
         using (var httpClient = new HttpClient(httpClientHandler))
         {
-            var content = new StringContent(JsonConvert.SerializeObject(product), Encoding.UTF8, "application/json");
-            var response = await httpClient.PostAsync(addToCartUrl, content);
+            var jsonStr = await httpClient.GetStringAsync(baseUrl);
+            var vendor = JsonConvert.DeserializeObject<ProductVendor>(jsonStr);
+            return vendor;
+        }
+    }
+}
+
+private async Task AddToCart(Products product)
+{
+    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+    HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    var handler = new JwtSecurityTokenHandler();
+    var decodedToken = handler.ReadJwtToken(token);
+
+    var userId = decodedToken.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+    var productId = product.ProdId;
+
+    var url = $"https://localhost:7044/api/cart/{userId}?productId={productId}&productVendorId={productVendorId}";
+
+    using (var httpClientHandler = new HttpClientHandler())
+    {
+        httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+        using (var httpClient = new HttpClient(httpClientHandler))
+        {
+            var response = await httpClient.PostAsync(url, null);
+            var statusCode = response.StatusCode; // Add this line to get the status code
+
             if (response.IsSuccessStatusCode)
             {
-                var responseContent = await response.Content.ReadAsStringAsync();
-                if (responseContent == "ItemAlreadyExists")
-                {
-                    // Item already exists in the cart
-                    await JSRuntime.InvokeVoidAsync("MessageBox.show", "Error", "Item is already present in the cart.");
-                }
-                else
-                {
-                    // Cart item added successfully
-                    await JSRuntime.InvokeVoidAsync("MessageBox.show", "Success", "Item added to cart successfully.");
-                }
+                await JSRuntime.InvokeVoidAsync("alert", $"Failed to add item to the cart. Status code: {statusCode}");
             }
             else
             {
-                // Failed to add item to the cart
-                await JSRuntime.InvokeVoidAsync("MessageBox.show", "Error", "Failed to add item to the cart.");
+                await JSRuntime.InvokeVoidAsync("alert", "Item added to the cart successfully.");
             }
+
         }
     }
-}*@
+}
+
+
+private int productVendorId;
+private async Task SetProductVendorId(int vendorId, Products product)
+{
+    productVendorId = vendorId;
+    await AddToCart(product);
+}
+
+public bool IsTokenPresent { get; set; }
+
+protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (firstRender)
+    {
+        IsTokenPresent = await IsTokenPresentAsync();
+        StateHasChanged();
+    }
+}
+
+private async Task<bool> IsTokenPresentAsync()
+{
+    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+    return !string.IsNullOrEmpty(token);
+}
+
+
+
+
 
 
 }
@@ -235,19 +276,38 @@ private async Task AddToCart(Products product)
                     <h5 class="card-title">@product.ProdName</h5>
                     <p class="card-text">@product.Price.ToString("c")</p>
                     <div class="card-footer d-flex align-items-end pt-3 px-0 pb-0 mt-auto">
-                      <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
+                        
+                      @* <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
                       data-product-id="@product.ProdId"
                       data-product-image="@product.ImageURL"
                       data-product-name="@product.ProdName"
                       data-product-price="@product.Price"
                       onclick="addToCart(event)">
                         <i class="bi bi-cart4" style="font-size: 2rem;"></i>
-                      </a>
+                      </a> *@
                       
-                      @* <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
-   @onclick="() => AddToCart(product)">
+<a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
+   @onclick="() => SetProductVendorId(product.ProductVendorId, product)"
+   style="@(IsTokenPresent ? "" : "display: none;")">
     <i class="bi bi-cart4" style="font-size: 2rem;"></i>
-</a> *@
+</a>
+
+<a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
+   data-product-id="@product.ProdId"
+   data-product-image="@product.ImageURL"
+   data-product-name="@product.ProdName"
+   data-product-price="@product.Price"
+   onclick="addToCart(event)"
+   style="@(IsTokenPresent ? "display: none;" : "")">
+    <i class="bi bi-cart4" style="font-size: 2rem;"></i>
+</a>
+
+
+
+
+
+
+
 
 
                       <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to wishlist"
