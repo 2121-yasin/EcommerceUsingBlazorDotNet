@@ -188,7 +188,7 @@ namespace JwtDbApi.Controllers
             if (categoryDto.HasProducts)
             {
                 category.HasProducts = categoryDto.HasProducts;
-                category.BasicDetails = categoryDto.BasicDetails;
+                category.BasicDetails = JsonConvert.SerializeObject(categoryDto.BasicDetails);
                 category.OptionalDetails = categoryDto.OptionalDetails;
             }
 
