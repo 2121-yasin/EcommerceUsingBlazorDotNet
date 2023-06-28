@@ -141,11 +141,14 @@ namespace JwtDbApi.Controllers
                     .Where(product => categoryId == 0 || product.CategoryId == categoryId)
                     .Include(product => product.ProductVendors)
                     .ThenInclude(productVendor => productVendor.Vendor)
+                    .Include(product => product.Category)
                     .SelectMany(product => product.ProductVendors, (product, productVendor) => new
                     {
                         UniqueId = Guid.NewGuid(), // Generate a unique identifier since ProductId is duplicated cause of flattened data.
-                        ProductId = product.ProdId,
+                        // ProductId = product.ProdId,
                         ProductName = product.ProdName,
+                        ProductDescription = product.Description,
+                        ProductBasicDetails = product.BasicDetails,
                         ProductBasePrice = product.Price,
                         ProductImageUrl = product.ImageURL,
                         ProductVendorId = productVendor.Id,
@@ -153,10 +156,13 @@ namespace JwtDbApi.Controllers
                         ProductVendorPrice = productVendor.Price,
                         ProductVendorQuantity = productVendor.Quantity,
                         ProductVendorVisible = productVendor.Visible,
-                        VendorId = productVendor.Vendor.Id,
-                        VendorUserId = productVendor.Vendor.UserId,
+                        // VendorId = productVendor.Vendor.Id,
                         VendorName = productVendor.Vendor.Name,
-                        CategoryId = product.CategoryId
+                        VendorGSTIN = productVendor.Vendor.GSTIN,
+                        VendorDeliveryPinCode = productVendor.Vendor.DeliveryPinCode,
+                        VendorUserId = productVendor.Vendor.UserId,
+                        // CategoryId = product.CategoryId,
+                        CategoryName = product.Category.Name
                     });
 
                 // Apply sorting
