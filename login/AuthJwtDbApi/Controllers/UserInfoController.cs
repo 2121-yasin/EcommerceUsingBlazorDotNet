@@ -1,3 +1,4 @@
+using System.Linq.Dynamic.Core;
 using AuthJwtDbApi.Data;
 using AuthJwtDbApi.DTOs;
 using AuthJwtDbApi.Models;
@@ -107,42 +108,65 @@ namespace AuthJwtDbApi.Controllers
         //     }
         // }
 
-        // GET Users by pages with sorting
+        // GET Users by pages with sorting and filtering
         [HttpGet("paginated-users")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> GetUserInfo(int page = 1, int pageSize = 10, string sortBy = "UserName", bool sortDesc = false)
+        public async Task<ActionResult> GetUserInfo(int page = 1, int pageSize = 10, string sortBy = "UserName", bool sortDesc = false,
+            string? column = "", string? filterOperator = "", string? value = "")
         {
-            // Get count of total users
-            int totalItems = await _context.UserInfo.CountAsync();
-
-            // Calculate total pages and ensure page is within range
-            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-            page = Math.Max(1, Math.Min(page, totalPages));
-
-            // Calculate skip count for pagination
-            int skipCount = (page - 1) * pageSize;
-
-            // Apply sorting dynamically
-            IQueryable<UserInfo> query = _context.UserInfo.Include(u => u.Address).AsQueryable();
-            query = ApplySorting(query, sortBy, sortDesc);
-
-            // Retrieve paginated users
-            List<UserInfo> users = await query.Skip(skipCount).Take(pageSize).ToListAsync();
-
-            // Map UserInfo to UserInfoDto
-            List<UserInfoDto> usersDto = users.Select(u => ConvertToUserInfoDto(u)).ToList();
-
-            // Create response object
-            var response = new
+            try
             {
-                Page = page,
-                PageSize = pageSize,
-                TotalItems = totalItems,
-                TotalPages = totalPages,
-                Data = usersDto
-            };
+                // Create a base query
+                IQueryable<UserInfo> query = _context.UserInfo.Include(u => u.Address).AsQueryable();
 
-            return Ok(response);
+                // Apply filtering conditions if column, filterOperator, and value are provided
+                if (!string.IsNullOrEmpty(column) && !string.IsNullOrEmpty(filterOperator) && !string.IsNullOrEmpty(value))
+                {
+                    query = ApplyFilter(query, column, filterOperator, value);
+                }
+
+                // Get count of total users
+                int totalItems = await query.CountAsync();
+
+                // Calculate total pages and ensure page is within range
+                int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+                page = Math.Max(1, Math.Min(page, totalPages));
+
+                // Calculate skip count for pagination
+                int skipCount = (page - 1) * pageSize;
+
+                // Apply sorting dynamically
+                query = ApplySorting(query, sortBy, sortDesc);
+
+                // Retrieve paginated users
+                List<UserInfo> users = await query.Skip(skipCount).Take(pageSize).ToListAsync();
+
+                // Map UserInfo to UserInfoDto
+                List<UserInfoDto> usersDto = users.Select(u => ConvertToUserInfoDto(u)).ToList();
+
+                // Create response object
+                var response = new
+                {
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages,
+                    Data = usersDto
+                };
+
+                return Ok(response);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception /* ex */)
+            {
+                // Log the exception for further investigation
+                // logger.LogError(ex, "An error occurred while fetching user information.");
+
+                return StatusCode(500, "An unexpected error occurred while fetching user information. Please try again later.");
+            }
         }
 
         // Apply sorting to users
@@ -163,10 +187,101 @@ namespace AuthJwtDbApi.Controllers
                     query = sortDesc ? query.OrderByDescending(u => u.Role) : query.OrderBy(u => u.Role);
                     break;
                 default:
-                    break;
+                    throw new ArgumentException("Invalid sortBy parameter.");
             }
 
             return query;
+        }
+
+        private IQueryable<UserInfo> ApplyFilter(IQueryable<UserInfo> query, string column, string filterOperator, string value)
+        {
+            if (string.IsNullOrEmpty(column) || string.IsNullOrEmpty(filterOperator) || string.IsNullOrEmpty(value))
+            {
+                // No filtering parameters provided, return the original query
+                return query;
+            }
+
+            try
+            {
+                // Determine the data type of the column
+                var property = typeof(UserInfo).GetProperty(column);
+                if (property == null)
+                {
+                    throw new ArgumentException("Invalid column name.");
+                }
+
+                Type columnType = property.PropertyType;
+
+                // Build the filter expression dynamically
+                string filterExpression;
+                object[] filterValues;
+
+                if (columnType == typeof(string))
+                {
+                    // Handle string columns
+                    switch (filterOperator.ToLower())
+                    {
+                        case "equals":
+                            filterExpression = $"{column} == @0";
+                            break;
+                        case "contains":
+                            filterExpression = $"{column}.Contains(@0)";
+                            break;
+                        case "startswith":
+                            filterExpression = $"{column}.StartsWith(@0)";
+                            break;
+                        case "endswith":
+                            filterExpression = $"{column}.EndsWith(@0)";
+                            break;
+                        default:
+                            throw new ArgumentException("Invalid filter operator for string column.");
+                    }
+
+                    filterValues = new object[] { value };
+                }
+                else if (columnType == typeof(int))
+                {
+                    // Handle int columns
+                    int intValue;
+                    if (!int.TryParse(value, out intValue))
+                    {
+                        throw new ArgumentException("Invalid value for int column.");
+                    }
+
+                    switch (filterOperator.ToLower())
+                    {
+                        case "equals":
+                            filterExpression = $"{column} == @0";
+                            break;
+                        case "notequals":
+                            filterExpression = $"{column} != @0";
+                            break;
+                        case "greaterthan":
+                            filterExpression = $"{column} > @0";
+                            break;
+                        case "lessthan":
+                            filterExpression = $"{column} < @0";
+                            break;
+                        default:
+                            throw new ArgumentException("Invalid filter operator for int column.");
+                    }
+
+                    filterValues = new object[] { intValue };
+                }
+                else
+                {
+                    throw new ArgumentException("Unsupported column type.");
+                }
+
+                // Apply the filter using System.Linq.Dynamic
+                query = query.Where(filterExpression, filterValues);
+
+                return query;
+            }
+            catch (ArgumentException ex)
+            {
+                throw new ArgumentException($"Error applying filter: {ex.Message}");
+            }
         }
 
         // POST: api/UserInfo
