@@ -133,7 +133,7 @@ namespace JwtDbApi.Controllers
 
         // GET: api/productvendor/category/{categoryId}
         [HttpGet("category/{categoryId}")]
-        public async Task<IActionResult> GetProductVendor(int categoryId, int page = 1, int pageSize = 10, string sortBy = "ProductVendorListedOn", bool sortDesc = false)
+        public async Task<IActionResult> GetProductVendors(int categoryId, int page = 1, int pageSize = 10, string sortBy = "ProductVendorListedOn", bool sortDesc = false)
         {
             try
             {
@@ -145,13 +145,15 @@ namespace JwtDbApi.Controllers
                     .SelectMany(product => product.ProductVendors, (product, productVendor) => new
                     {
                         UniqueId = Guid.NewGuid(), // Generate a unique identifier since ProductId is duplicated cause of flattened data.
-                        // ProductId = product.ProdId,
+                        ProductId = product.ProdId,
                         ProductName = product.ProdName,
                         ProductDescription = product.Description,
                         ProductBasicDetails = product.BasicDetails,
+                        // ProductOptionalDetails = product.OptionalDetails,
                         ProductBasePrice = product.Price,
                         ProductImageUrl = product.ImageURL,
-                        ProductVendorId = productVendor.Id,
+                        // ProductStartDate = product.StartDate,
+                        // ProductVendorId = productVendor.Id,
                         ProductVendorListedOn = productVendor.ListedOn,
                         ProductVendorPrice = productVendor.Price,
                         ProductVendorQuantity = productVendor.Quantity,
@@ -215,7 +217,7 @@ namespace JwtDbApi.Controllers
                     SortBy = sortBy,
                     SortDesc = sortDesc,
                     Data = products,
-                    Message = products.Count == 0 ? "No products found." : null
+                    Message = totalItems == 0 ? "No products found." : null
                 };
 
                 return Ok(response);
