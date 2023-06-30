@@ -22,14 +22,18 @@ namespace AuthJwtDbApi.Controllers
         // GET: api/UserInfo
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<IEnumerable<UserInfo>>> GetUserInfo()
+        public async Task<ActionResult<IEnumerable<UserInfoDto>>> GetUserInfo()
         {
-            return await _context.UserInfo.Include(u => u.Address).ToListAsync();
+            var userInfo = await _context.UserInfo.Include(u => u.Address).ToListAsync();
+
+            var userInfoDto = userInfo.Select(u => ConvertToUserInfoDto(u));
+
+            return Ok(userInfoDto);
         }
 
         // GET: api/UserInfo/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<UserInfo>> GetUserInfo(int id)
+        public async Task<ActionResult<UserInfoDto>> GetUserInfo(int id)
         {
             var userInfo = await _context.UserInfo.Include(u => u.Address).FirstOrDefaultAsync(u => u.UserId == id);
 
@@ -38,20 +42,22 @@ namespace AuthJwtDbApi.Controllers
                 return NotFound();
             }
 
-            return userInfo;
+            var userInfoDto = ConvertToUserInfoDto(userInfo);
+
+            return Ok(userInfoDto);
         }
 
         // GET: api/UserInfo/vendors    -   Not used anymore as vendor name added in product application
         // [HttpGet("vendors")]
         // [Authorize(Roles = "Admin")]
-        // public async Task<ActionResult<IEnumerable<VendorUserInfoDTO>>> GetVendorUserDetails([FromQuery(Name = "vendorUserIds[]")] int[] vendorUserIds)
+        // public async Task<ActionResult<IEnumerable<UserInfoDto>>> GetVendorUserDetails([FromQuery(Name = "vendorUserIds[]")] int[] vendorUserIds)
         // {
         //     try
         //     {
         //         var vendorUsers = await _context.UserInfo
         //             .Where(u => vendorUserIds.Contains(u.UserId))
         //             .Include(u => u.Address)
-        //             .Select(u => new VendorUserInfoDTO
+        //             .Select(u => new UserInfoDto
         //             {
         //                 UserId = u.UserId,
         //                 UserName = u.UserName,
@@ -72,7 +78,7 @@ namespace AuthJwtDbApi.Controllers
         // GET: api/UserInfo/vendors    -   Not used anymore as vendor name added in product application
         // [HttpGet("vendors")]
         // [Authorize(Roles = "Admin")]
-        // public async Task<ActionResult<IEnumerable<VendorUserInfoDTO>>> GetVendorUserDetails([FromQuery(Name = "vendorUserIds")] string vendorUserIdsString)
+        // public async Task<ActionResult<IEnumerable<UserInfoDto>>> GetVendorUserDetails([FromQuery(Name = "vendorUserIds")] string vendorUserIdsString)
         // {
         //     try
         //     {
@@ -83,7 +89,7 @@ namespace AuthJwtDbApi.Controllers
         //         var vendorUsers = await _context.UserInfo
         //             .Where(u => vendorUserIds.Contains(u.UserId))
         //             .Include(u => u.Address)
-        //             .Select(u => new VendorUserInfoDTO
+        //             .Select(u => new UserInfoDto
         //             {
         //                 UserId = u.UserId,
         //                 UserName = u.UserName,
@@ -104,7 +110,7 @@ namespace AuthJwtDbApi.Controllers
         // GET Users by pages with sorting
         [HttpGet("paginated-users")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<IEnumerable<UserInfo>>> GetUserInfo(int page = 1, int pageSize = 10, string sortBy = "UserName", bool sortDesc = false)
+        public async Task<ActionResult> GetUserInfo(int page = 1, int pageSize = 10, string sortBy = "UserName", bool sortDesc = false)
         {
             // Get count of total users
             int totalItems = await _context.UserInfo.CountAsync();
@@ -117,11 +123,14 @@ namespace AuthJwtDbApi.Controllers
             int skipCount = (page - 1) * pageSize;
 
             // Apply sorting dynamically
-            IQueryable<UserInfo> query = _context.UserInfo.AsQueryable();
+            IQueryable<UserInfo> query = _context.UserInfo.Include(u => u.Address).AsQueryable();
             query = ApplySorting(query, sortBy, sortDesc);
 
             // Retrieve paginated users
             List<UserInfo> users = await query.Skip(skipCount).Take(pageSize).ToListAsync();
+
+            // Map UserInfo to UserInfoDto
+            List<UserInfoDto> usersDto = users.Select(u => ConvertToUserInfoDto(u)).ToList();
 
             // Create response object
             var response = new
@@ -130,7 +139,7 @@ namespace AuthJwtDbApi.Controllers
                 PageSize = pageSize,
                 TotalItems = totalItems,
                 TotalPages = totalPages,
-                Data = users
+                Data = usersDto
             };
 
             return Ok(response);
@@ -270,7 +279,20 @@ namespace AuthJwtDbApi.Controllers
         {
             return _context.UserInfo.Any(e => e.UserId == id);
         }
+
+        private UserInfoDto ConvertToUserInfoDto(UserInfo userInfo)
+        {
+            var userInfoDto = new UserInfoDto
+            {
+                UserId = userInfo.UserId,
+                UserName = userInfo.UserName,
+                Email = userInfo.Email,
+                Role = userInfo.Role,
+                Phone = userInfo.Phone,
+                Address = userInfo.Address
+            };
+
+            return userInfoDto;
+        }
     }
-
-
 }
