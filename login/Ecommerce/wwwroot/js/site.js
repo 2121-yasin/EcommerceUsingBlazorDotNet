@@ -1,3 +1,4 @@
+  
   // function saveToLocalStorage(imageURL, prodName, price) {
   //       var product = {
   //           imageURL: imageURL,
@@ -19,6 +20,9 @@
     products.push(product);
     localStorage.setItem('products', JSON.stringify(products));
   }
+
+
+
   
 
 // $(document).ready(function () {
