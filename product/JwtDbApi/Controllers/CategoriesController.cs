@@ -150,52 +150,99 @@ namespace JwtDbApi.Controllers
         [Authorize(Roles = "Admin,Vendor")]
         public async Task<ActionResult<CategoryDto>> PostCategory(CategoryDto categoryDto)
         {
-            Category parentCategory;
-            Category category = new Category();
-
-            if (categoryDto.ParentCategoryId != null && categoryDto.ParentCategoryId != 0)
+            // Check if parentCategoryId is 0 and treat it as null
+            if (categoryDto.ParentCategoryId == 0)
             {
-                parentCategory = await _context.Categories.FindAsync(categoryDto.ParentCategoryId);
-
-                if (parentCategory != null && parentCategory.HasProducts)
-                {
-                    return BadRequest(
-                        new
-                        {
-                            Field = "ParentCategoryId",
-                            Message = "Parent category already has products. Cannot add a new category."
-                        }
-                    );
-                }
-                else if (parentCategory == null)
-                {
-                    return BadRequest(
-                        new
-                        {
-                            Field = "ParentCategoryId",
-                            Message = "Parent category not found. Cannot add a new category."
-                        }
-                    );
-                }
-
-                category.ParentCategoryId = categoryDto.ParentCategoryId;
+                categoryDto.ParentCategoryId = null;
             }
 
-            category.CategoryId = categoryDto.CategoryId;
-            category.Name = categoryDto.Name;
-            category.Description = categoryDto.Description;
+            // Category validation
+            var validationErrors = await ValidateCategory(categoryDto);
 
-            if (categoryDto.HasProducts)
+            if (validationErrors.Any())
             {
-                category.HasProducts = categoryDto.HasProducts;
-                category.BasicDetails = JsonConvert.SerializeObject(categoryDto.BasicDetails);
-                category.OptionalDetails = categoryDto.OptionalDetails;
+                return BadRequest(validationErrors);
+            }
+
+            // Create a new category
+            var category = new Category
+            {
+                Name = categoryDto.Name,
+                Description = categoryDto.Description,
+                ParentCategoryId = categoryDto.ParentCategoryId
+            };
+
+            if (categoryDto.HasSpecifications)
+            {
+                category.HasSpecifications = true;
+                category.BasicDetails = categoryDto.BasicDetails?.Any() == true
+                    ? JsonConvert.SerializeObject(categoryDto.BasicDetails)
+                    : null;
+                category.OptionalDetails = categoryDto.OptionalDetails?.Any() == true
+                    ? JsonConvert.SerializeObject(categoryDto.OptionalDetails)
+                    : null;
             }
 
             _context.Categories.Add(category);
             await _context.SaveChangesAsync();
 
+            // Assign the generated CategoryId to the CategoryDto
+            categoryDto.CategoryId = category.CategoryId;
+
             return CreatedAtAction("GetCategory", new { id = categoryDto.CategoryId }, categoryDto);
+        }
+
+        private async Task<List<ErrorResponse>> ValidateCategory(CategoryDto categoryDto)
+        {
+            var errors = new List<ErrorResponse>();
+
+            // Check if category Name is null or more than 50 characters - Data annotation does this but error response format is different
+            // if (string.IsNullOrWhiteSpace(categoryDto.Name))
+            // {
+            //     errors.Add(new ErrorResponse { Field = "Name", Message = "Category name is required." });
+            // }
+            // else if (categoryDto.Name.Length > 50)
+            // {
+            //     errors.Add(new ErrorResponse { Field = "Name", Message = "Category name must be at most 50 characters." });
+            // }
+
+            // Check if category Description is null or more than 250 characters - Data annotation does this but error response format is different
+            // if (string.IsNullOrWhiteSpace(categoryDto.Description))
+            // {
+            //     errors.Add(new ErrorResponse { Field = "Description", Message = "Category description is required." });
+            // }
+            // else if (categoryDto.Description.Length > 250)
+            // {
+            //     errors.Add(new ErrorResponse { Field = "Description", Message = "Description must be at most 250 characters." });
+            // }
+
+            if (categoryDto.ParentCategoryId != null && categoryDto.ParentCategoryId != 0)
+            {
+                var parentCategory = await _context.Categories.FindAsync(categoryDto.ParentCategoryId);
+                if (parentCategory == null)
+                {
+                    errors.Add(new ErrorResponse { Field = "ParentCategoryId", Message = "Parent category not found. Cannot add a subcategory." });
+                }
+                else if (parentCategory.HasSpecifications)
+                {
+                    errors.Add(new ErrorResponse { Field = "ParentCategoryId", Message = "Parent category already has specifications. Cannot add a subcategory." });
+                }
+            }
+
+            // Check if a category with the same name under the same parent already exists
+            var isExistingCategory = await _context.Categories
+                .AnyAsync(c => c.Name == categoryDto.Name && c.ParentCategoryId == categoryDto.ParentCategoryId);
+
+            if (isExistingCategory)
+            {
+                var errorMessage = categoryDto.ParentCategoryId == null
+                    ? "A main category with the same name already exists."
+                    : "A category with the same name already exists under the selected parent category.";
+
+                errors.Add(new ErrorResponse { Field = "Name", Message = errorMessage });
+            }
+
+            return errors;
         }
 
         // PUT: api/Category/5

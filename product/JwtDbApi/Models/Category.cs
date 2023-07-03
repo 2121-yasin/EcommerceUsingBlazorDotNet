@@ -10,10 +10,11 @@ namespace JwtDbApi.Models
 
         [Required(ErrorMessage = "Category name is required")]
         [MaxLength(50)]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
+        [Required(ErrorMessage = "Category description is required.")]
         [MaxLength(250)]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         public string? CategoryImageUrl { get; set; }
 
@@ -23,14 +24,14 @@ namespace JwtDbApi.Models
         [ForeignKey("ParentCategoryId")]
         public Category? ParentCategory { get; set; }
 
-        public List<Category> ChildCategories { get; set; }
+        public List<Category>? ChildCategories { get; set; }
 
-        public virtual List<Product> Products { get; set; }
+        public virtual List<Product>? Products { get; set; }
 
         [NotMapped]
         public int ProductCount => Products?.Count() ?? 0;
 
-        public bool HasProducts { get; set; } = false;
+        public bool HasSpecifications { get; set; } = false;
 
         public string? BasicDetails { get; set; }
 
