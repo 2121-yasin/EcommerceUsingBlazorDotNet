@@ -20,6 +20,7 @@
                 <th>Description</th>
                 <th>Price</th>
                 <th>Status</th>
+                <th>Quantity</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -30,7 +31,7 @@
                     <td>@item.ProdName</td>
                     <td><img class="product-image" src="@item.ImageURL" alt="Product Image" /></td>
                     <td>@item.Description</td>
-                    <td>@item.Price</td>
+                    <td>@(item.Price * item.Quantity)</td>
                     <td>
                         @if (item.Quantity <= 0)
                         {
@@ -46,10 +47,26 @@
                         }
                     </td>
                     <td>
-                        <span class="remove-icon">
-                            <i class="bi bi-trash text-success remove-icon fs-5" @onclick="() => RemoveFromCart(item)"></i>
-                        </span>
+                        <select @bind="item.Quantity">
+                            @for (int i = 1; i <= 10; i++)
+                            {
+                                <option value="@i" selected="@i == item.Quantity">@i</option>
+                            }
+                            <option value="-1" selected="@item.Quantity == -1">Custom</option>
+                        </select>
+                        @if (item.Quantity == -1)
+                        {
+                            <input type="number" min="1" @bind="item.Quantity" />
+                        }
                     </td>
+    <td>
+<span class="remove-icon">
+    <i class="bi bi-trash text-success remove-icon fs-5" @onclick="async () => await RemoveItemFromCart(item.CartItemId)"></i>
+    @* <i class="bi bi-trash text-success remove-icon fs-5" @onclick="() => RemoveItemFromCart(item.CartItemId)"></i> *@
+</span>
+
+
+    </td>
                 </tr>
             }
         </tbody>
@@ -73,44 +90,88 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && !isLoaded)
+        if (firstRender)
         {
-            await LoadCartData();
+            var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var handler = new JwtSecurityTokenHandler();
+            var decodedToken = handler.ReadJwtToken(token);
+            var userId = decodedToken.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+
+            var url = $"https://localhost:7044/api/cart/{userId}";
+
+            cart = await HttpClient.GetFromJsonAsync<CartModel>(url);
+
             isLoaded = true;
+            StateHasChanged();
         }
     }
 
-    private async Task LoadCartData()
-    {
-        var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
-        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        var handler = new JwtSecurityTokenHandler();
-        var decodedToken = handler.ReadJwtToken(token);
-
-        var userId = decodedToken.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
-
-        var url = $"https://localhost:7044/api/cart/{userId}";
-
-        cart = await HttpClient.GetFromJsonAsync<CartModel>(url);
-
-        StateHasChanged();
-    }
-private async Task RemoveFromCart(CartItemModel item)
+private async Task LoadCartData()
 {
-    var url = $"https://localhost:7044/api/cart/RemoveFromCart/{item.CartItemId}";
+    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+    HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    var handler = new JwtSecurityTokenHandler();
+    var decodedToken = handler.ReadJwtToken(token);
 
-    var response = await HttpClient.DeleteAsync(url);
+    var userId = decodedToken.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
 
-    if (response.IsSuccessStatusCode)
+    var url = $"https://localhost:7044/api/cart/{userId}";
+
+    var updatedCart = await HttpClient.GetFromJsonAsync<CartModel>(url);
+
+    if (updatedCart != null && updatedCart.Products.Count < cart.Products.Count)
     {
-        cart.Products.Remove(item);
-        await LoadCartData(); // Reload the cart data after removing the item
+        var removedItemIds = cart.Products.Select(p => p.CartItemId)
+            .Except(updatedCart.Products.Select(p => p.CartItemId))
+            .ToList();
+
+        foreach (var itemId in removedItemIds)
+        {
+            RemoveItemFromCart(itemId);
+        }
     }
-    else
-    {
-        // Handle error case
-    }
+
+    cart = updatedCart;
+
+    StateHasChanged();
 }
+
+
+
+ private async Task RemoveItemFromCart(int cartItemId)
+{
+    var result = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to remove this item from the cart?");
+    if (result)
+    {
+        var itemToRemove = cart.Products.FirstOrDefault(item => item.CartItemId == cartItemId);
+        if (itemToRemove != null)
+        {
+            cart.Products.Remove(itemToRemove);
+            StateHasChanged();
+        }
+    }
+} 
+
+@* private async Task RemoveItemFromCart(int cartItemId)
+{
+    var result = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to remove this item from the cart?");
+    if (result)
+    {
+        var response = await HttpClient.DeleteAsync($"https://localhost:7044/api/cart/RemoveFromCart/{cartItemId}");
+        if (response.IsSuccessStatusCode)
+        {
+            await LoadCartData(); // Reload the cart data after removing the item
+        }
+        else
+        {
+            // Handle error
+        }
+    }
+} *@
+
+
+
     private decimal CalculateTotalPrice(List<CartItemModel> products)
     {
         decimal totalPrice = 0;
@@ -118,7 +179,7 @@ private async Task RemoveFromCart(CartItemModel item)
         {
             if (item.Quantity > 0)
             {
-                totalPrice += item.Price;
+                totalPrice += item.Price * item.Quantity;
             }
         }
         return totalPrice;
@@ -138,8 +199,9 @@ private async Task RemoveFromCart(CartItemModel item)
         public string ProdName { get; set; }
         public string ImageURL { get; set; }
         public string Description { get; set; }
-        public decimal Price { get; set; }
-        public int Quantity { get; set; }
+        public decimal BasePrice { get; set; } // Original price
+        public decimal Price { get; set; } // Updated price based on quantity
+        public int Quantity { get; set; } // Initialize to 1
     }
 }
 
