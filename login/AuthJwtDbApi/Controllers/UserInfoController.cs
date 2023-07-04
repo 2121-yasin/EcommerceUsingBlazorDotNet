@@ -1,4 +1,6 @@
 using System.Linq.Dynamic.Core;
+using System.Linq.Expressions;
+using System.Reflection;
 using AuthJwtDbApi.Data;
 using AuthJwtDbApi.DTOs;
 using AuthJwtDbApi.Models;
@@ -119,8 +121,8 @@ namespace AuthJwtDbApi.Controllers
                 // Create a base query
                 IQueryable<UserInfo> query = _context.UserInfo.Include(u => u.Address).AsQueryable();
 
-                // Apply filtering conditions if column, filterOperator, and value are provided
-                if (!string.IsNullOrEmpty(column) && !string.IsNullOrEmpty(filterOperator) && !string.IsNullOrEmpty(value))
+                // Apply filtering conditions if column, and filterOperator are provided
+                if (!string.IsNullOrEmpty(column) && !string.IsNullOrEmpty(filterOperator))
                 {
                     query = ApplyFilter(query, column, filterOperator, value);
                 }
@@ -174,16 +176,16 @@ namespace AuthJwtDbApi.Controllers
         {
             switch (sortBy)
             {
-                case "UserId":
+                case nameof(UserInfo.UserId):
                     query = sortDesc ? query.OrderByDescending(u => u.UserId) : query.OrderBy(u => u.UserId);
                     break;
-                case "UserName":
+                case nameof(UserInfo.UserName):
                     query = sortDesc ? query.OrderByDescending(u => u.UserName) : query.OrderBy(u => u.UserName);
                     break;
-                case "Email":
+                case nameof(UserInfo.Email):
                     query = sortDesc ? query.OrderByDescending(u => u.Email) : query.OrderBy(u => u.Email);
                     break;
-                case "Role":
+                case nameof(UserInfo.Role):
                     query = sortDesc ? query.OrderByDescending(u => u.Role) : query.OrderBy(u => u.Role);
                     break;
                 default:
@@ -193,9 +195,32 @@ namespace AuthJwtDbApi.Controllers
             return query;
         }
 
-        private IQueryable<UserInfo> ApplyFilter(IQueryable<UserInfo> query, string column, string filterOperator, string value)
+        // Apply sorting to users - Dynamically create the sorting expression using reflection - Switch statement approach might perform better
+        // private IQueryable<UserInfo> ApplySorting(IQueryable<UserInfo> query, string sortBy, bool sortDesc)
+        // {
+        //     PropertyInfo? prop = typeof(UserInfo).GetProperty(sortBy);
+        //     if (prop == null || sortBy == nameof(UserInfo.Password))
+        //     {
+        //         throw new ArgumentException("Invalid sortBy parameter.");
+        //     }
+
+        //     ParameterExpression parameter = Expression.Parameter(typeof(UserInfo), "u");
+        //     Expression property = Expression.Property(parameter, prop);
+        //     LambdaExpression lambda = Expression.Lambda(property, parameter);
+
+        //     string methodName = sortDesc ? "OrderByDescending" : "OrderBy";
+        //     MethodCallExpression orderByExpression = Expression.Call(typeof(Queryable), methodName,
+        //         new[] { typeof(UserInfo), prop.PropertyType }, query.Expression, Expression.Quote(lambda));
+
+        //     query = query.Provider.CreateQuery<UserInfo>(orderByExpression);
+
+        //     return query;
+        // }
+
+        // Apply filtering
+        private IQueryable<UserInfo> ApplyFilter(IQueryable<UserInfo> query, string column, string filterOperator, string? value)
         {
-            if (string.IsNullOrEmpty(column) || string.IsNullOrEmpty(filterOperator) || string.IsNullOrEmpty(value))
+            if (string.IsNullOrEmpty(column) || string.IsNullOrEmpty(filterOperator))
             {
                 // No filtering parameters provided, return the original query
                 return query;
@@ -219,6 +244,11 @@ namespace AuthJwtDbApi.Controllers
                 if (columnType == typeof(string))
                 {
                     // Handle string columns
+                    if (string.IsNullOrEmpty(value) && filterOperator.ToLower() != "isempty")
+                    {
+                        throw new ArgumentException("Invalid filter value for string column.");
+                    }
+
                     switch (filterOperator.ToLower())
                     {
                         case "equals":
@@ -233,19 +263,30 @@ namespace AuthJwtDbApi.Controllers
                         case "endswith":
                             filterExpression = $"{column}.EndsWith(@0)";
                             break;
+                        case "isempty":
+                            filterExpression = $"string.IsNullOrEmpty({column})";
+                            break;
                         default:
                             throw new ArgumentException("Invalid filter operator for string column.");
                     }
-
-                    filterValues = new object[] { value };
+                    filterValues = filterOperator.ToLower() != "isempty" ? new object[] { value! } : new object[] { };
                 }
-                else if (columnType == typeof(int))
+                else if (columnType == typeof(int) || columnType == typeof(int?))
                 {
-                    // Handle int columns
-                    int intValue;
-                    if (!int.TryParse(value, out intValue))
+                    // Handle int or nullable int columns
+                    if (value == null && filterOperator.ToLower() != "isempty")
                     {
-                        throw new ArgumentException("Invalid value for int column.");
+                        throw new ArgumentException("Invalid filter value for int column.");
+                    }
+
+                    int? intValue = null;
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        if (!int.TryParse(value, out int parsedValue))
+                        {
+                            throw new ArgumentException("Invalid filter value for int column.");
+                        }
+                        intValue = parsedValue;
                     }
 
                     switch (filterOperator.ToLower())
@@ -262,11 +303,14 @@ namespace AuthJwtDbApi.Controllers
                         case "lessthan":
                             filterExpression = $"{column} < @0";
                             break;
+                        case "isempty":
+                            filterExpression = $"{column} == null";
+                            break;
                         default:
                             throw new ArgumentException("Invalid filter operator for int column.");
                     }
 
-                    filterValues = new object[] { intValue };
+                    filterValues = filterOperator.ToLower() == "isempty" ? new object[] { } : new object[] { intValue };
                 }
                 else
                 {
