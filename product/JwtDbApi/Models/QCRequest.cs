@@ -1,33 +1,25 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace JwtDbApi.Models
 {
     public class QCRequest
     {
         [Key]
-        public int QCId { get; set; }
-        public string ProductName { get; set; }
-        public string ImageURL { get; set; }
-        public int Status { get; set; }
-        public int BasePrice { get; set; }
-        public string Description { get; set; }
-        public string BasicDetails { get; set; }
-        public string? OptionalDetails { get; set; }
+        public int Id { get; set; }
+        public string Product { get; set; } // Object to store product details like name, description, image, MRP, etc.
+        public string BasicDetails { get; set; } // Object to store basic product details
+        public string? OptionalDetails { get; set; } // Object to store optional product details
+        public string ProductVendor { get; set; } // Object to store productvendor details like vendorId, price, stock, visibility, etc.
         public int CategoryId { get; set; }
         public string CategoryName { get; set; }
         public int VendorId { get; set; }
         public string VendorName { get; set; }
-        public int Quantity { get; set; }
-        public int Price { get; set; }
-        public int Visible { get; set; }
-        public string QCStatus { get; set; }
-        public int AdminAlert { get; set; }
-        public int VendorAlert { get; set; }
-        public string RequestMessage { get; set; }
-        public string ResponseMessage { get; set; }
+        public int Status { get; set; } // QCStatus can be 0="Pending", 1="Rejected"
+        public DateTime RequestDate { get; set; }
+
+        // public int AdminAlert { get; set; }
+        // public int VendorAlert { get; set; }
+        public string AdminMessage { get; set; }
+        public string VendorMessage { get; set; }
     }
 }
