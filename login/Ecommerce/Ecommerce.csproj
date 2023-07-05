@@ -17,6 +17,8 @@
     <PackageReference Include="SendGrid.SmtpApi" Version="1.4.6"/>
     <PackageReference Include="filesaver" Version="1.1.20151003"/>
     <PackageReference Include="BlazorStrap" Version="5.2.100-preview3"/>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="6.0.19"/>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AuthJwtDbApi\AuthJwtDbApi.csproj"/>

@@ -2,6 +2,9 @@
 @using System.Text.Json
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.AspNetCore.WebUtilities
 @using Razorpay
 @using Razorpay.Api
 @using SendGrid;
@@ -10,13 +13,417 @@
 @using System.Threading.Tasks;
 @using System.IdentityModel.Tokens.Jwt;
 
+<h3>Checkout</h3>
+
+@if (!string.IsNullOrEmpty(productsJson))
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Image</th>
+                <th>Description</th>
+                <th>Price</th>
+                <th>Quantity</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in products)
+            {
+                <tr>
+                    <td>@product.ProdName</td>
+                    <td><img src="@product.ImageURL" alt="Product Image" width="100" /></td>
+                    <td>@product.Description</td>
+                    <td>@(product.Price * product.Quantity)</td>
+                    <td>@product.Quantity</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3">Total Price:</td>
+                <td>@CalculateTotalPrice(products)</td>
+            </tr>
+        </tfoot>
+    </table>
+}
+else
+{
+    <p>No products found.</p>
+}
+
+@if (totalAmount >= 5000)
+        {
+
+            <div class="alert alert-success" role="alert">
+                2% off coupon code: 2OFF
+            </div>
+        }
+        @if (totalAmount >= 10000)
+        {
+            <div class="alert alert-success" role="alert">
+                5% off coupon code: 5OFF
+            </div>
+        }
+
+        @if (totalAmount >= 15000)
+        {
+            <div class="alert alert-success" role="alert">
+                10% off coupon code: 10OFF
+            </div>
+        }
+
+        @if (totalAmount >= 20000)
+        {
+            <div class="alert alert-success" role="alert">
+                15% off coupon code: 15OFF
+            </div>
+        }
+
+        @if (totalAmount >= 25000)
+        {
+            <div class="alert alert-success" role="alert">
+                20% off coupon code: 20OFF
+            </div>
+        }
+
+        @if (totalAmount >= 30000)
+        {
+            <div class="alert alert-success" role="alert">
+                25% off coupon code: 25OFF
+            </div>
+        }
+
+        @if (totalAmount >= 40000)
+        {
+            <div class="alert alert-success" role="alert">
+                30% off coupon code: 30OFF
+            </div>
+        }
+
+        @if (totalAmount >= 50000)
+        {
+            <div class="alert alert-success" role="alert">
+                35% off coupon code: 35OFF
+            </div>
+        }
+
+        @if (totalAmount >= 60000)
+        {
+            <div class="alert alert-success" role="alert">
+                40% off coupon code: 40OFF
+            </div>
+        }
+
+        @if (totalAmount >= 70000)
+        {
+            <div class="alert alert-success" role="alert">
+                45% off coupon code: 45OFF
+            </div>
+        }
+
+@if (totalAmount >= 5000)
+        {
+<form method="post">
+    <div class="form-group">
+        <label for="offerCode">Offer Code:</label>
+        <input type="text" class="form-control" id="offerCode" name="offerCode" style="max-width: 250px; margin-right: 10px;">
+        <button type="button" class="btn btn-primary" @onclick="ApplyOffer">Apply Offer</button>
+    </div>
+</form>
+        }
+
+<div class="row align-items-center">
+  <h5 class="card-title mb-0 col-6">Amount to Pay: @(totalAmount - discountAmount)</h5>
+  <button class="btn btn-outline-success col-6" style="max-width: 250px;" @onclick="(() => ProceedToPayment(totalAmount - discountAmount))">Proceed for payment &#x20B9;@(totalAmount - discountAmount)</button>
+</div>
+
+<button class="btn btn-outline-danger" @onclick="GoBackToCart">Go Back to Cart</button>
 
 
+@code {
+    private bool isRendered;
+    //private CartItem[] cartItems;
+    private RazorpayClient _razorpayClient;
+    private string _orderId;
+    private List<CartItemModel> products;
+    private string productsJson;
+    private decimal totalAmount = 0;
+    private decimal discountAmount = 0;
+    private bool offerApplied = false; 
 
-<h1>Checkout</h1>
+        private void GoBackToCart()
+    {
+        NavigationManager.NavigateTo("/cart");
+    }
+
+private async Task ProceedToPayment(decimal totalAmount)
+{
+    _razorpayClient = new RazorpayClient("rzp_test_ey1WcrE0RhwbYJ", "EcjqcEhxYm4cy639PIqMTHkI");
+
+    var options = new Dictionary<string, object>
+    {
+        { "amount", (int)(totalAmount * 100) }, // Convert to paise
+        { "currency", "INR" }, // Replace with your currency code
+        { "receipt", Guid.NewGuid().ToString() }
+    };
+
+    var order = _razorpayClient.Order.Create(options);
+    _orderId = order["id"].ToString();
+
+    var script = await JSRuntime.InvokeAsync<string>("RazorpayCheckout.createPayment", _orderId, "rzp_test_ey1WcrE0RhwbYJ", totalAmount);
+    var paymentDetails = await JSRuntime.InvokeAsync<string>("eval", script);
+
+    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+    var handler = new JwtSecurityTokenHandler();
+    var decodedToken = handler.ReadJwtToken(token);
+    // After the order is successfully placed and stored in the database
+    var recipientEmail = decodedToken.Claims.FirstOrDefault(c => c.Type == "Email")?.Value; // Replace with the recipient's email address
+    await SendOrderConfirmationEmail(recipientEmail);
+      // Clear the cart items from local storage
+    await ClearCartItems();
+}
+
+private async Task ClearCartItems()
+{
+    await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "products");
+    products = new List<CartItemModel>();
+    totalAmount = 0;
+    discountAmount = 0;
+    offerApplied = false;
+    StateHasChanged();
+}
 
 
+private async Task SendOrderConfirmationEmail(string recipientEmail)
+{
+    var apiKey = ""; // Remove this key before uploading on GitHub
+    var client = new SendGridClient(apiKey);
+    var from = new EmailAddress("honnolliyasin@gmail.com", "E shop");
+    var subject = "Order Confirmation";
+    var to = new EmailAddress(recipientEmail);
 
+    // Retrieve the payment details from session storage
+    var paymentDetailsJson = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "paymentDetails");
+    var paymentDetails = JsonSerializer.Deserialize<PaymentDetails>(paymentDetailsJson);
+
+    // Generate the HTML content using Bootstrap classes
+    var htmlContent = @"<!DOCTYPE html>
+                        <html>
+                        <head>
+                            <link rel=""stylesheet"" href=""https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"">
+                            <style>
+                                .paid-watermark {
+                                    position: absolute;
+                                    top: 50%;
+                                    left: 50%;
+                                    transform: translate(-50%, -50%);
+                                    font-size: 64px;
+                                    color: green;
+                                    opacity: 0.5;
+                                    z-index: 1;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class=""container"">
+                                <h1 class=""mb-4"">Thank you for your order!</h1>
+                                <table class=""table table-bordered"">
+                                    <tr>
+                                        <th>Payment ID:</th>
+                                        <td>" + paymentDetails.paymentId + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Created At:</th>
+                                        <td>" + paymentDetails.createdAt.ToString() + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Description:</th>
+                                        <td>" + paymentDetails.description + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Customer:</th>
+                                        <td>" + paymentDetails.customer + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Email:</th>
+                                        <td>" + paymentDetails.email + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Contact:</th>
+                                        <td>" + paymentDetails.contact + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Street:</th>
+                                        <td>" + paymentDetails.street + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>City:</th>
+                                        <td>" + paymentDetails.city + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>State:</th>
+                                        <td>" + paymentDetails.state + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Pincode:</th>
+                                        <td>" + paymentDetails.pincode + @"</td>
+                                    </tr>                               
+                                    <tr>
+                                        <th>Order ID:</th>
+                                        <td>" + paymentDetails.orderId + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Notes:</th>
+                                        <td>" + paymentDetails.notes + @"</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Total Fee:</th>
+                                        <td><span class=""text-success"">" + paymentDetails.totalFee + @"</span></td>
+                                    </tr>
+                                </table>
+                                <div class=""paid-watermark"">Paid</div>
+                                </div>
+                            </body>
+                        </html>";
+
+    // Save the payment details to a text file
+    var filePath = "PaymentDetails.html";
+    await File.WriteAllTextAsync(filePath, htmlContent);
+
+    // Read the payment details from the text file
+    var attachmentBytes = await File.ReadAllBytesAsync(filePath);
+
+    var attachment = new Attachment
+    {
+        Filename = "PaymentDetails.html",
+        Type = "text/html",
+        Content = Convert.ToBase64String(attachmentBytes),
+        ContentId = "PaymentDetails"
+    };
+
+    // Create the email message
+    var msg = new SendGridMessage();
+    msg.From = from;
+    msg.AddTo(to);
+    msg.Subject = subject;
+    msg.HtmlContent = "<strong>Thank you for your order!</strong><br><br>" +
+    "<p>Payment details are attached.</p>";
+    msg.AddAttachment(attachment);
+
+    // Send the email
+    var response = await client.SendEmailAsync(msg);
+}
+
+
+private class PaymentDetails
+{
+    public string paymentId { get; set; }
+    public DateTime createdAt { get; set; }
+    public string description { get; set; }
+    public string customer { get; set; }
+    public string email { get; set; }
+    public string contact { get; set; }
+    public string street { get; set; }
+    public string city { get; set; }
+    public string state { get; set; }
+    public string pincode { get; set; }
+    public string totalFee { get; set; }
+    public string orderId { get; set; }
+    public string notes { get; set; }
+}
+
+    public class CartItemModel
+    {
+        public int CartItemId { get; set; }
+        public string ProdName { get; set; }
+        public string ImageURL { get; set; }
+        public string Description { get; set; }
+        public decimal BasePrice { get; set; } // Original price
+        public decimal Price { get; set; } // Updated price based on quantity
+        public int Quantity { get; set; } // Initialize to 1
+    }
+
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(NavigationManager.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        productsJson = query["products"];
+
+        if (!string.IsNullOrEmpty(productsJson))
+        {
+            products = JsonSerializer.Deserialize<List<CartItemModel>>(productsJson);
+            totalAmount = CalculateTotalPrice(products);
+        }
+    }
+
+    private decimal CalculateTotalPrice(List<CartItemModel> products)
+    {
+        decimal totalPrice = 0;
+        foreach (var product in products)
+        {
+            totalPrice += product.Price * product.Quantity;
+        }
+        return totalPrice;
+    }
+
+private async Task ApplyOffer()
+{
+    if (offerApplied)
+    {
+        await JSRuntime.InvokeVoidAsync("alert", "You have already applied an offer code.");
+        return;
+    }
+
+    var offerCode = await JSRuntime.InvokeAsync<string>("eval", "document.getElementById('offerCode').value");
+
+    switch (offerCode)
+    {
+        case "2OFF":
+            discountAmount = totalAmount * 0.02m; // 2% discount
+            break;
+        case "5OFF":
+            discountAmount = totalAmount * 0.05m; // 5% discount
+            break;
+        case "10OFF":
+            discountAmount = totalAmount * 0.10m; // 10% discount
+            break;
+        case "15OFF":
+            discountAmount = totalAmount * 0.15m; // 15% discount
+            break;
+        case "20OFF":
+            discountAmount = totalAmount * 0.20m; // 20% discount
+            break;
+        case "25OFF":
+            discountAmount = totalAmount * 0.25m; // 25% discount
+            break;
+        case "30OFF":
+            discountAmount = totalAmount * 0.30m; // 30% discount
+            break;
+        case "35OFF":
+            discountAmount = totalAmount * 0.35m; // 35% discount
+            break;
+        case "40OFF":
+            discountAmount = totalAmount * 0.40m; // 40% discount
+            break;
+        case "45OFF":
+            discountAmount = totalAmount * 0.45m; // 45% discount
+            break;
+        default:
+            discountAmount = 0; // no discount
+            await JSRuntime.InvokeVoidAsync("alert", "Invalid offer code");
+            break;
+    }
+
+    totalAmount -= discountAmount; // update the total amount after applying discount
+    offerApplied = true; // set the flag to true
+    StateHasChanged();
+}
+
+}
+
+
+@* 
 @if (isRendered)
 {
 @if (cartItems != null && cartItems.Length > 0)
@@ -413,4 +820,4 @@ private class CartItem
     public int quantity { get; set; }
     public string totalPrice { get; set; }
 }
-}
+} *@
