@@ -214,7 +214,7 @@ private async Task ProceedToPayment(decimal totalAmount)
 
 private async Task SendOrderConfirmationEmail(string recipientEmail)
 {
-    var apiKey = "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"; // Remove this key before uploading on GitHub
+    var apiKey = ""; // Remove this key before uploading on GitHub
     var client = new SendGridClient(apiKey);
     var from = new EmailAddress("honnolliyasin@gmail.com", "E shop");
     var subject = "Order Confirmation";
