@@ -18,35 +18,44 @@
 
 @if (!string.IsNullOrEmpty(productsJson))
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Product Name</th>
-                <th>Image</th>
-                <th>Description</th>
-                <th>Price</th>
-                <th>Quantity</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var product in products)
-            {
+    var filteredProducts = products.Where(p => p.Price > 0 && p.ProductQuantity > 0).ToList();
+
+    if (filteredProducts.Any())
+    {
+        <table class="table">
+            <thead>
                 <tr>
-                    <td>@product.ProdName</td>
-                    <td><img src="@product.ImageURL" alt="Product Image" width="100" /></td>
-                    <td>@product.Description</td>
-                    <td>@string.Format("{0:N0}", product.Price * product.ProductQuantity)</td>
-                    <td>@product.ProductQuantity</td>
+                    <th>Product Name</th>
+                    <th>Image</th>
+                    <th>Description</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
                 </tr>
-            }
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="3">Total Price:</td>
-                <td>@string.Format("{0:N0}", CalculateTotalPrice(products))</td>
-            </tr>
-        </tfoot>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var product in filteredProducts)
+                {
+                    <tr>
+                        <td>@product.ProdName</td>
+                        <td><img src="@product.ImageURL" alt="Product Image" width="100" /></td>
+                        <td>@product.Description</td>
+                        <td>@string.Format("{0:N0}", product.Price * product.ProductQuantity)</td>
+                        <td>@product.ProductQuantity</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3">Total Price:</td>
+                    <td>@string.Format("{0:N0}", CalculateTotalPrice(filteredProducts))</td>
+                </tr>
+            </tfoot>
+        </table>
+    }
+    else
+    {
+        <p>No products found.</p>
+    }
 }
 else
 {
