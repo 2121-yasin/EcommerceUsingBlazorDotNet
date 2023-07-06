@@ -13,6 +13,7 @@
 @using System.Threading.Tasks;
 @using System.IdentityModel.Tokens.Jwt;
 @inject HttpClient HttpClient
+@using System.Net.Http.Headers
 
 <h3>Checkout</h3>
 
@@ -196,7 +197,11 @@ private async Task ProceedToPayment(decimal totalAmount)
 
     private async Task ClearCart()
     {
-        var userId = 7; // Replace with the actual user ID
+        var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var handler = new JwtSecurityTokenHandler();
+        var decodedToken = handler.ReadJwtToken(token);
+        var userId = decodedToken.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
         var response = await HttpClient.DeleteAsync($"https://localhost:7044/api/cart/ClearCart/{userId}");
 
         if (response.IsSuccessStatusCode)
