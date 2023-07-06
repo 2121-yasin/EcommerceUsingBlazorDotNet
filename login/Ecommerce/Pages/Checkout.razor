@@ -12,6 +12,7 @@
 @using System;
 @using System.Threading.Tasks;
 @using System.IdentityModel.Tokens.Jwt;
+@inject HttpClient HttpClient
 
 <h3>Checkout</h3>
 
@@ -34,15 +35,15 @@
                     <td>@product.ProdName</td>
                     <td><img src="@product.ImageURL" alt="Product Image" width="100" /></td>
                     <td>@product.Description</td>
-                    <td>@(product.Price * product.Quantity)</td>
-                    <td>@product.Quantity</td>
+                    <td>@string.Format("{0:N0}", product.Price * product.ProductQuantity)</td>
+                    <td>@product.ProductQuantity</td>
                 </tr>
             }
         </tbody>
         <tfoot>
             <tr>
                 <td colspan="3">Total Price:</td>
-                <td>@CalculateTotalPrice(products)</td>
+                <td>@string.Format("{0:N0}", CalculateTotalPrice(products))</td>
             </tr>
         </tfoot>
     </table>
@@ -134,7 +135,7 @@ else
         }
 
 <div class="row align-items-center">
-  <h5 class="card-title mb-0 col-6">Amount to Pay: @(totalAmount - discountAmount)</h5>
+  <h5 class="card-title mb-0 col-6">Amount to Pay: @string.Format("{0:N0}", totalAmount - discountAmount)</h5>
   <button class="btn btn-outline-success col-6" style="max-width: 250px;" @onclick="(() => ProceedToPayment(totalAmount - discountAmount))">Proceed for payment &#x20B9;@(totalAmount - discountAmount)</button>
 </div>
 
@@ -181,23 +182,30 @@ private async Task ProceedToPayment(decimal totalAmount)
     var recipientEmail = decodedToken.Claims.FirstOrDefault(c => c.Type == "Email")?.Value; // Replace with the recipient's email address
     await SendOrderConfirmationEmail(recipientEmail);
       // Clear the cart items from local storage
-    await ClearCartItems();
+    await ClearCart();
 }
 
-private async Task ClearCartItems()
-{
-    await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "products");
-    products = new List<CartItemModel>();
-    totalAmount = 0;
-    discountAmount = 0;
-    offerApplied = false;
-    StateHasChanged();
-}
+    private async Task ClearCart()
+    {
+        var userId = 7; // Replace with the actual user ID
+        var response = await HttpClient.DeleteAsync($"https://localhost:7044/api/cart/ClearCart/{userId}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            // Cart cleared successfully
+            // Perform any additional logic or display a success message
+        }
+        else
+        {
+            // Failed to clear cart
+            // Handle the error or display an error message
+        }
+    }
 
 
 private async Task SendOrderConfirmationEmail(string recipientEmail)
 {
-    var apiKey = ""; // Remove this key before uploading on GitHub
+    var apiKey = "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"; // Remove this key before uploading on GitHub
     var client = new SendGridClient(apiKey);
     var from = new EmailAddress("honnolliyasin@gmail.com", "E shop");
     var subject = "Order Confirmation";
@@ -342,6 +350,7 @@ private class PaymentDetails
         public decimal BasePrice { get; set; } // Original price
         public decimal Price { get; set; } // Updated price based on quantity
         public int Quantity { get; set; } // Initialize to 1
+        public int ProductQuantity{get;set;}
     }
 
     protected override void OnInitialized()
@@ -362,7 +371,7 @@ private class PaymentDetails
         decimal totalPrice = 0;
         foreach (var product in products)
         {
-            totalPrice += product.Price * product.Quantity;
+            totalPrice += product.Price * product.ProductQuantity;
         }
         return totalPrice;
     }

@@ -138,6 +138,24 @@ private async Task GetCartItemCount()
         // Redirect to the search results page with the search query as a parameter
         await JSRuntime.InvokeVoidAsync("open", $"/?search={Uri.EscapeDataString(searchQuery)}", "_self");
     }
+
+    private async Task HandleCartClick()
+    {
+        var token = await GetTokenFromLocalStorage();
+        if (string.IsNullOrEmpty(token))
+        {
+            var result = await JSRuntime.InvokeAsync<bool>("confirm", "Please login to your account");
+            if (result)
+            {
+                NavigationManager.NavigateTo($"https://localhost:7085/?ClientId={clientId}");
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/");
+        }
+    }
+
 }
 
 <div class="page">
@@ -156,8 +174,9 @@ private async Task GetCartItemCount()
             
             @if (!isLoggedIn)
             {
-                <a href="cart" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart"><i class="bi bi-cart4">
-                </i></a>
+<button class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart" @onclick="HandleCartClick">
+    <i class="bi bi-cart4"></i>
+</button>
             <a href="wishlist" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Wishlist"><i class="bi bi-heart-fill"></i></a>
                 <button class="btn btn-outline-danger my-2 my-sm-0 mx-2" @onclick='() => NavigationManager.NavigateTo($"https://localhost:7085/?ClientId={clientId}")'>Login</button>
             }

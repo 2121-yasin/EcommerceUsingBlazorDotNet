@@ -14,64 +14,59 @@
 
 <h3>Cart</h3>
 
-@if (cart != null)
+@if (cart != null && cart.Products != null && cart.Products.Any())
 {
     <div class="row">
         @foreach (var item in cart.Products)
-        {
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="card h-100">
-                    <img src="@item.ImageURL" class="card-img-top" alt="Product Image" />
-                    <div class="card-body">
-                        <h5 class="card-title">@item.ProdName</h5>
-                        <p class="card-text">@item.Description</p>
-                        <p class="card-text">Price: @(item.Price * item.Quantity)</p>
-                        <p class="card-text">
-                            <strong>Status: </strong>
-                            @if (item.Quantity <= 0)
-                            {
-                                <span class="out-of-stock">Out of Stock</span>
-                            }
-                            else if (item.Quantity < 5)
-                            {
-                                <span class="low-stock">Low Stock</span>
-                            }
-                            else
-                            {
-                                <span class="in-stock">In Stock</span>
-                            }
-                        </p>
-                        <div class="form-group">
-                            <label for="quantitySelect">Quantity:</label>
-                            <select class="form-control" id="quantitySelect" @bind="item.Quantity">
-                                @for (int i = 1; i <= 3; i++)
-                                {
-                                    <option value="@i" selected="@i == item.Quantity">@i</option>
-                                }
-                                <option value="-1" selected="@item.Quantity == -1">more..</option>
-                            </select>
-                            @if (item.Quantity == -1)
-                            {
-                                <input type="number" class="form-control mt-2" min="1" @bind="item.Quantity" />
-                            }
-                        </div>
-                    </div>
-<div class="card-footer text-center">
-@* <button class="btn btn-outline-danger" data-toggle="tooltip" data-placement="top" title="Remove item from cart" @onclick="async () => await RemoveItemFromCart(item.Id)">
-    <i class="bi bi-cart-x" style="font-size: 2rem;"></i>
-</button> *@
-                <button class="btn btn-outline-danger" data-toggle="tooltip" data-placement="top" title="Remove item from cart" @onclick="() => RemoveItemFromCart(item.Id)">
-                    <i class="bi bi-cart-x" style="font-size: 2rem;"></i>
-                    @* <span>Cart Item ID: @item.Id</span> *@
-                </button>
-
-
-
-</div>
-
+{
+    <div class="col-lg-3 col-md-4 col-sm-6">
+        <div class="card h-100">
+            <img src="@item.ImageURL" class="card-img-top" alt="Product Image" />
+            <div class="card-body">
+                <h5 class="card-title">@item.ProdName</h5>
+                <p class="card-text">@item.Description</p>
+                <p class="card-text">Price: @(item.Price * item.ProductQuantity)</p>
+                <p class="card-text">
+                    <strong>Status: </strong>
+                    @if (item.Quantity <= 0)
+                    {
+                        <span class="out-of-stock">Out of Stock</span>
+                    }
+                    else if (item.Quantity < 5)
+                    {
+                        <span class="low-stock">Low Stock</span>
+                    }
+                    else
+                    {
+                        <span class="in-stock">In Stock</span>
+                    }
+                </p>
+                <div class="form-group">
+                    <label for="quantitySelect">Quantity:</label>
+                    <select class="form-control" id="quantitySelect" @bind="item.ProductQuantity">
+                        @for (int i = 1; i <= 3; i++)
+                        {
+                            <option value="@i" selected="@i == item.ProductQuantity">@i</option>
+                        }
+                        <option value="-1" selected="@item.ProductQuantity == -1">more..</option>
+                    </select>
+                    @if (item.ProductQuantity == -1)
+                    {
+                        <input type="number" class="form-control mt-2" min="1" @bind="item.ProductQuantity" />
+                    }
                 </div>
             </div>
-        }
+            <div class="card-footer text-center">
+                <button class="btn btn-outline-danger" data-toggle="tooltip" data-placement="top" title="Remove item from cart" @onclick="() => RemoveItemFromCart(item.Id)">
+                    <i class="bi bi-cart-x" style="font-size: 2rem;"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+
+
     </div>
 
         <div class="row mt-4">
@@ -91,12 +86,20 @@ else
 
 
 @code {
+    public List<Products> Product { get; set; }
 
     private CartModel cart;
     private bool isLoaded;
 
 private async Task HandleCheckoutClick()
 {
+    var totalPrice = CalculateTotalPrice(cart.Products);
+    if (totalPrice == 0)
+    {
+        await JSRuntime.InvokeVoidAsync("alert", "Select quantity to proceed to checkout.");
+        return;
+    }
+
     var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
     if (string.IsNullOrEmpty(token))
     {
@@ -113,6 +116,7 @@ private async Task HandleCheckoutClick()
         NavigationManager.NavigateTo($"/checkout?token={token}&products={productsJson}");
     }
 }
+
 
 
 
@@ -200,18 +204,18 @@ private async Task RemoveItemFromCart(int cartItemId)
 
 
 
-    private decimal CalculateTotalPrice(List<CartItemModel> products)
+private decimal CalculateTotalPrice(List<CartItemModel> products)
+{
+    decimal totalPrice = 0;
+    foreach (var item in products)
     {
-        decimal totalPrice = 0;
-        foreach (var item in products)
+        if (item.ProductQuantity > 0)
         {
-            if (item.Quantity > 0)
-            {
-                totalPrice += item.Price * item.Quantity;
-            }
+            totalPrice += item.Price * item.ProductQuantity;
         }
-        return totalPrice;
     }
+    return totalPrice;
+}
 
     public class CartModel
     {
@@ -230,6 +234,7 @@ private async Task RemoveItemFromCart(int cartItemId)
         public decimal BasePrice { get; set; } // Original price
         public decimal Price { get; set; } // Updated price based on quantity
         public int Quantity { get; set; } // Initialize to 1
+        public int ProductQuantity { get; set; } // Stock quantity of the product
     }
 }
 

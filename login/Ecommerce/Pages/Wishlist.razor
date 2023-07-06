@@ -1,6 +1,19 @@
 ﻿@page "/wishlist"
 @using System.Text.Json
 @inject IJSRuntime JSRuntime
+@using System.IdentityModel.Tokens.Jwt;
+@using SendGrid;
+@using SendGrid.Helpers.Mail;
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@using System;
+@using Microsoft.JSInterop
+@using System.Text
+@inject HttpClient HttpClient
+@using System.Net.Http.Headers;
+@using Newtonsoft.Json
+@using Ecommerce.Models
+
 
 <h1>Wishlist</h1>
 
@@ -24,14 +37,10 @@ else
               <p class="card-text">Price: @item.price</p>
               <div class="card-footer d-flex align-items-end pt-3 px-0 pb-0 mt-auto">
                   <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" data-toggle="tooltip" data-placement="top" title="Remove from wishlist" onclick="@(() => RemoveFromWishlist(item.id))"><i class="bi bi-x-circle" style="font-size: 2rem;"></i></a>
-                  <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
-                  data-product-id="@item.id"
-                  data-product-image="@item.image"
-                  data-product-name="@item.name"
-                  data-product-price="@item.price"
-                  onclick="addToCart(event)">
-                    <i class="bi bi-cart4 " style="font-size: 2rem;"></i>
-                  </a>
+<button class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
+   @onclick="() => AddToCart(item)">
+    <i class="bi bi-cart4" style="font-size: 2rem;"></i>
+</button>
               </div>
             </div>
           </div>
@@ -47,13 +56,83 @@ else
     private bool isRendered;
     private WishListItem[] wishlistItems;
 
+    private async Task AddToCart(WishListItem item)
+{
+    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+    if (string.IsNullOrEmpty(token))
+    {
+        var result = await JSRuntime.InvokeAsync<bool>("confirm", "Please login to your account");
+        if (result)
+        {
+            NavigationManager.NavigateTo($"https://localhost:7085/?ClientId=a0d0b3a2-efa4-47ca-b193-45bdbd950f3a");
+            return;
+        }
+    }
+
+    HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    var handler = new JwtSecurityTokenHandler();
+    var decodedToken = handler.ReadJwtToken(token);
+
+    var userId = decodedToken.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+    var productId = item.id;
+
+    // Fetch the product vendor ID dynamically
+    var productVendorId = await GetProductVendorId(productId);
+
+    var url = $"https://localhost:7044/api/cart/{userId}?productId={productId}&productVendorId={productVendorId}";
+
+    using (var httpClientHandler = new HttpClientHandler())
+    {
+        httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+        using (var httpClient = new HttpClient(httpClientHandler))
+        {
+            var response = await httpClient.PostAsync(url, null);
+            var statusCode = response.StatusCode;
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Item successfully added to the cart.");
+            }
+            else
+            {
+                if (statusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "Item already present in the cart.");
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "Failed to add item to the cart.");
+                }
+            }
+        }
+    }
+}
+
+private async Task<int> GetProductVendorId(string productId)
+{
+    var baseUrl = $"https://localhost:7044/api/products/{productId}/vendor";
+
+    using (var httpClientHandler = new HttpClientHandler())
+    {
+        httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+        using (var httpClient = new HttpClient(httpClientHandler))
+        {
+            var jsonStr = await httpClient.GetStringAsync(baseUrl);
+            var vendor = JsonConvert.DeserializeObject<ProductVendor>(jsonStr);
+            return vendor?.Id ?? 0;
+        }
+    }
+}
+
+
+
 protected override async Task OnAfterRenderAsync(bool firstRender)
 {
     var storage = await JSRuntime.InvokeAsync<IJSObjectReference>("eval", "localStorage");
     var json = await storage.InvokeAsync<string>("getItem", "wishlistItems");
     if (!string.IsNullOrEmpty(json))
     {
-        wishlistItems = JsonSerializer.Deserialize<WishListItem[]>(json);
+        wishlistItems = System.Text.Json.JsonSerializer.Deserialize<WishListItem[]>(json);
     }
     else
     {
@@ -83,7 +162,7 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
         wishlistItemsList.Remove(itemToRemove);
         wishlistItems = wishlistItemsList.ToArray();
         var storage = await JSRuntime.InvokeAsync<IJSObjectReference>("eval", "localStorage");
-        await storage.InvokeVoidAsync("setItem", "wishlistItems", JsonSerializer.Serialize(wishlistItems));
+        await storage.InvokeVoidAsync("setItem", "wishlistItems", System.Text.Json.JsonSerializer.Serialize(wishlistItems));
     }
 }
 

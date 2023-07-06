@@ -179,6 +179,23 @@ namespace JwtDbApi.Controllers
             return Ok("Item successfully added to the cart.");
         }
 
+[HttpDelete("ClearCart/{userId}")]
+public async Task<ActionResult> ClearCart(int userId)
+{
+    var cart = await _context.Carts
+        .Include(c => c.CartItems)
+        .FirstOrDefaultAsync(c => c.UserId == userId);
+
+    if (cart == null)
+    {
+        return NotFound();
+    }
+
+    _context.CartItems.RemoveRange(cart.CartItems);
+    await _context.SaveChangesAsync();
+
+    return Ok("Cart cleared successfully.");
+}
 
 
 

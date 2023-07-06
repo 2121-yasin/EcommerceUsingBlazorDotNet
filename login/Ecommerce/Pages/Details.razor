@@ -17,6 +17,8 @@
 @using System;
 @using Microsoft.JSInterop
 @using System.Text
+@inject HttpClient HttpClient
+@using System.Net.Http.Headers;
 
 
 
@@ -100,14 +102,10 @@
 }
 
 
- <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
-  data-product-id="@Product.ProdId"
-  data-product-image="@Product.ImageURL"
-   data-product-name="@Product.ProdName"
-   data-product-price="@Product.Price"
-   onclick="addToCart(event)">
-  <i class="bi bi-cart4 " style="font-size: 2rem;"></i>
-</a>
+<button class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
+   @onclick="() => AddToCart(Product)">
+    <i class="bi bi-cart4" style="font-size: 2rem;"></i>
+</button>
 
     
   <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to wishlist"
@@ -135,6 +133,87 @@
 
     private RazorpayClient _razorpayClient;
     private string _orderId;
+
+    
+
+private async Task AddToCart(Products product)
+{
+    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+    if (string.IsNullOrEmpty(token))
+    {
+        var result = await JSRuntime.InvokeAsync<bool>("confirm", "Please login to your account");
+        if (result)
+        {
+            NavigationManager.NavigateTo($"https://localhost:7085/?ClientId=a0d0b3a2-efa4-47ca-b193-45bdbd950f3a");
+            return;
+        }
+    }
+
+    HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    var handler = new JwtSecurityTokenHandler();
+    var decodedToken = handler.ReadJwtToken(token);
+
+    var userId = decodedToken.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+    var productId = product.ProdId;
+
+    // Fetch the product vendor ID dynamically
+    var productVendorId = await GetProductVendorId(productId);
+
+    var url = $"https://localhost:7044/api/cart/{userId}?productId={productId}&productVendorId={productVendorId}";
+
+    using (var httpClientHandler = new HttpClientHandler())
+    {
+        httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+        using (var httpClient = new HttpClient(httpClientHandler))
+        {
+            var response = await httpClient.PostAsync(url, null);
+            var statusCode = response.StatusCode;
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Item successfully added to the cart.");
+            }
+            else
+            {
+                if (statusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "Item already present in the cart.");
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "Failed to add item to the cart.");
+                }
+            }
+        }
+    }
+}
+
+private async Task<int> GetProductVendorId(int productId)
+{
+    var url = $"https://localhost:7044/api/products/{productId}/vendor";
+
+    using (var httpClientHandler = new HttpClientHandler())
+    {
+        httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+        using (var httpClient = new HttpClient(httpClientHandler))
+        {
+            var response = await httpClient.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonStr = await response.Content.ReadAsStringAsync();
+                var vendor = JsonConvert.DeserializeObject<ProductVendor>(jsonStr);
+                return vendor.Id;
+            }
+            else
+            {
+                throw new Exception("Failed to retrieve product vendor ID.");
+            }
+        }
+    }
+}
+
+
 
 
 
