@@ -7,86 +7,129 @@
 @using System.IdentityModel.Tokens.Jwt
 @using System.Net.Http.Headers
 @using System.Net.Http.Json
+@using Ecommerce.Models
+@using System.Collections.Generic
+@using System.Linq
+
 
 <h3>Cart</h3>
 
-@if (cart != null)
+@if (cart != null && cart.Products != null && cart.Products.Any())
 {
-    <table class="cart-table">
-        <thead>
-            <tr>
-                <th>Product Name</th>
-                <th>Image</th>
-                <th>Description</th>
-                <th>Price</th>
-                <th>Status</th>
-                <th>Quantity</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in cart.Products)
-            {
-                <tr>
-                    <td>@item.ProdName</td>
-                    <td><img class="product-image" src="@item.ImageURL" alt="Product Image" /></td>
-                    <td>@item.Description</td>
-                    <td>@(item.Price * item.Quantity)</td>
-                    <td>
-                        @if (item.Quantity <= 0)
+    <div class="row">
+        @foreach (var item in cart.Products)
+{
+    <div class="col-lg-3 col-md-4 col-sm-6">
+        <div class="card h-100">
+            <img src="@item.ImageURL" class="card-img-top" alt="Product Image" />
+            <div class="card-body">
+                <h5 class="card-title">@item.ProdName</h5>
+                <p class="card-text">@item.Description</p>
+                <p class="card-text">Price: @(item.Price * item.ProductQuantity)</p>
+                <p class="card-text">
+                    <strong>Status: </strong>
+                    @if (item.Quantity <= 0)
+                    {
+                        <span class="out-of-stock">Out of Stock</span>
+                    }
+                    else if (item.Quantity < 5)
+                    {
+                        <span class="low-stock">Low Stock</span>
+                    }
+                    else
+                    {
+                        <span class="in-stock">In Stock</span>
+                    }
+                </p>
+                <div class="form-group">
+                    <label for="quantitySelect">Quantity:</label>
+                    <select class="form-control" id="quantitySelect" @bind="item.ProductQuantity">
+                        @for (int i = 1; i <= 3; i++)
                         {
-                            <span class="out-of-stock">Out of Stock</span>
+                            <option value="@i" selected="@i == item.ProductQuantity">@i</option>
                         }
-                        else if (item.Quantity < 5)
-                        {
-                            <span class="low-stock">Low Stock</span>
-                        }
-                        else
-                        {
-                            <span class="in-stock">In Stock</span>
-                        }
-                    </td>
-                    <td>
-                        <select @bind="item.Quantity">
-                            @for (int i = 1; i <= 10; i++)
-                            {
-                                <option value="@i" selected="@i == item.Quantity">@i</option>
-                            }
-                            <option value="-1" selected="@item.Quantity == -1">Custom</option>
-                        </select>
-                        @if (item.Quantity == -1)
-                        {
-                            <input type="number" min="1" @bind="item.Quantity" />
-                        }
-                    </td>
-    <td>
-<span class="remove-icon">
-    <i class="bi bi-trash text-success remove-icon fs-5" @onclick="async () => await RemoveItemFromCart(item.CartItemId)"></i>
-    @* <i class="bi bi-trash text-success remove-icon fs-5" @onclick="() => RemoveItemFromCart(item.CartItemId)"></i> *@
-</span>
+                        <option value="-1" selected="@item.ProductQuantity == -1">more..</option>
+                    </select>
+                    @if (item.ProductQuantity == -1)
+                    {
+                        <input type="number" class="form-control mt-2" min="1" @bind="item.ProductQuantity" />
+                    }
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <button class="btn btn-outline-danger" data-toggle="tooltip" data-placement="top" title="Remove item from cart" @onclick="() => RemoveItemFromCart(item.Id)">
+                    <i class="bi bi-cart-x" style="font-size: 2rem;"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+}
 
 
-    </td>
-                </tr>
-            }
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="6" class="total-row">
-                    Total Price: <span class="total-price">@CalculateTotalPrice(cart.Products)</span>
-                </td>
-            </tr>
-        </tfoot>
-    </table>
+
+    </div>
+
+        <div class="row mt-4">
+        <div class="col-lg-12 text-center">
+            <h4>Total Price: <span class="total-price">@CalculateTotalPrice(cart.Products)</span></h4>
+        </div>
+        <div style="text-align: center;">
+  <a @onclick="HandleCheckoutClick" class="btn btn-outline-danger" data-toggle="tooltip" data-placement="top" title="Checkout for Payment Options" style="max-width: 250px;"><i class="bi bi-bag-check" style="font-size: 2rem;"></i></a>
+</div>
+    </div>
 }
 else
 {
     <p>Your cart is empty.</p>
 }
 
+
+
 @code {
+    public List<Products> Product { get; set; }
+
     private CartModel cart;
     private bool isLoaded;
+
+private async Task HandleCheckoutClick()
+{
+    var totalPrice = CalculateTotalPrice(cart.Products);
+    if (totalPrice == 0)
+    {
+        await JSRuntime.InvokeVoidAsync("alert", "Select quantity to proceed to checkout.");
+        return;
+    }
+
+    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+    if (string.IsNullOrEmpty(token))
+    {
+        var result = await JSRuntime.InvokeAsync<bool>("confirm", "Please login to your account");
+        if (result)
+        {
+            NavigationManager.NavigateTo($"https://localhost:7085/?ClientId=a0d0b3a2-efa4-47ca-b193-45bdbd950f3a");
+        }
+    }
+    else
+    {
+        var outOfStockProducts = cart.Products.Where(p => p.Quantity <= 0).ToList();
+        if (outOfStockProducts.Any())
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Some products are not in stock. We will notify you once they are back in stock.");
+            var availableProducts = cart.Products.Where(p => p.Quantity > 0).ToList();
+            var productsJson = JsonSerializer.Serialize(availableProducts);
+            NavigationManager.NavigateTo($"/checkout?token={token}&products={productsJson}");
+        }
+        else
+        {
+            var availableProducts = cart.Products.Where(p => p.Quantity > 0).ToList();
+            var productsJson = JsonSerializer.Serialize(availableProducts);
+            NavigationManager.NavigateTo($"/checkout?token={token}&products={productsJson}");
+        }
+    }
+}
+
+
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -120,70 +163,70 @@ private async Task LoadCartData()
 
     var updatedCart = await HttpClient.GetFromJsonAsync<CartModel>(url);
 
-    if (updatedCart != null && updatedCart.Products.Count < cart.Products.Count)
+    if (updatedCart != null)
     {
-        var removedItemIds = cart.Products.Select(p => p.CartItemId)
-            .Except(updatedCart.Products.Select(p => p.CartItemId))
-            .ToList();
-
-        foreach (var itemId in removedItemIds)
-        {
-            RemoveItemFromCart(itemId);
-        }
+        cart = updatedCart;
     }
-
-    cart = updatedCart;
 
     StateHasChanged();
 }
 
 
 
- private async Task RemoveItemFromCart(int cartItemId)
+  @* private async Task RemoveItemFromCart(int cartItemId)
 {
     var result = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to remove this item from the cart?");
     if (result)
     {
-        var itemToRemove = cart.Products.FirstOrDefault(item => item.CartItemId == cartItemId);
+        var itemToRemove = cart.Products.FirstOrDefault(item => item.Id == cartItemId);
         if (itemToRemove != null)
         {
             cart.Products.Remove(itemToRemove);
             StateHasChanged();
         }
     }
-} 
+}   *@
 
-@* private async Task RemoveItemFromCart(int cartItemId)
+private async Task RemoveItemFromCart(int cartItemId)
 {
     var result = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to remove this item from the cart?");
     if (result)
     {
+        var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await HttpClient.DeleteAsync($"https://localhost:7044/api/cart/RemoveFromCart/{cartItemId}");
+
         if (response.IsSuccessStatusCode)
         {
-            await LoadCartData(); // Reload the cart data after removing the item
+            // Item successfully removed from the cart in the database
+            // Refresh the cart data or update the UI accordingly
+            await LoadCartData();
         }
         else
         {
-            // Handle error
+            // Handle error response
+            // Display an error message or perform appropriate error handling
         }
     }
-} *@
+}
 
 
 
-    private decimal CalculateTotalPrice(List<CartItemModel> products)
+
+
+
+private decimal CalculateTotalPrice(List<CartItemModel> products)
+{
+    decimal totalPrice = 0;
+    foreach (var item in products)
     {
-        decimal totalPrice = 0;
-        foreach (var item in products)
+        if (item.ProductQuantity > 0)
         {
-            if (item.Quantity > 0)
-            {
-                totalPrice += item.Price * item.Quantity;
-            }
+            totalPrice += item.Price * item.ProductQuantity;
         }
-        return totalPrice;
     }
+    return totalPrice;
+}
 
     public class CartModel
     {
@@ -195,15 +238,18 @@ private async Task LoadCartData()
 
     public class CartItemModel
     {
-        public int CartItemId { get; set; }
+        public int Id { get; set; }
         public string ProdName { get; set; }
         public string ImageURL { get; set; }
         public string Description { get; set; }
         public decimal BasePrice { get; set; } // Original price
         public decimal Price { get; set; } // Updated price based on quantity
         public int Quantity { get; set; } // Initialize to 1
+        public int ProductQuantity { get; set; } // Stock quantity of the product
     }
 }
+
+@* ---------------------------------------- *@
 
 
 @* <h1>Cart</h1>

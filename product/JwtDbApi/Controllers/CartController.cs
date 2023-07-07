@@ -16,6 +16,7 @@ namespace JwtDbApi.Controllers
         {
             _context = context;
         }
+        
 
         [HttpGet("{userId}")]
         public ActionResult<Cart> GetCart(int userId)
@@ -41,24 +42,31 @@ namespace JwtDbApi.Controllers
                 cart.TotalPrice,
                 products = cart.CartItems.Select(ci => new
                 {
+                    ci.Id,
                     ci.Product.ProdName,
                     ci.Product.ImageURL,
                     ci.Product.Description,
                     price = ci.ProductVendor.Price,
                     quantity = ci.ProductVendor.Quantity
-                }
-
-                )
+                })
             };
 
             return Ok(response);
         }
 
 
-        [HttpDelete("RemoveFromCart/{cartItemId}")]
-        public async Task<ActionResult> RemoveFromCart(int cartItemId)
+        [HttpGet("ItemCount/{userId}")]
+        public ActionResult<int> GetCartItemCount(int userId)
         {
-            var cartItem = await _context.CartItems.FindAsync(cartItemId);
+            var itemCount = _context.CartItems.Count(ci => ci.Cart.UserId == userId);
+            return Ok(itemCount);
+        }
+
+
+        [HttpDelete("RemoveFromCart/{Id}")]
+        public async Task<ActionResult> RemoveFromCart(int Id)
+        {
+            var cartItem = await _context.CartItems.FindAsync(Id);
 
             if (cartItem == null)
             {
@@ -171,6 +179,23 @@ namespace JwtDbApi.Controllers
             return Ok("Item successfully added to the cart.");
         }
 
+[HttpDelete("ClearCart/{userId}")]
+public async Task<ActionResult> ClearCart(int userId)
+{
+    var cart = await _context.Carts
+        .Include(c => c.CartItems)
+        .FirstOrDefaultAsync(c => c.UserId == userId);
+
+    if (cart == null)
+    {
+        return NotFound();
+    }
+
+    _context.CartItems.RemoveRange(cart.CartItems);
+    await _context.SaveChangesAsync();
+
+    return Ok("Cart cleared successfully.");
+}
 
 
 

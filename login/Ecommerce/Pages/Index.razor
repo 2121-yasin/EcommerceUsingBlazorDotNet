@@ -25,13 +25,18 @@ protected override async Task OnInitializedAsync()
         searchQuery = uri.Query.Split("=")[1];
     }
 
+    await LoadProducts();
+}
+
+private async Task LoadProducts()
+{
     Product = await GetProduct();
 }
 
 private async Task<List<Products>> GetProduct()
 {
     var baseUrl = "https://localhost:7044/api/products/all";
-    
+
     if (!string.IsNullOrEmpty(searchQuery))
     {
         baseUrl = $"https://localhost:7044/api/products/search?name={Uri.EscapeDataString(searchQuery)}";
@@ -44,15 +49,16 @@ private async Task<List<Products>> GetProduct()
         {
             var jsonStr = await httpClient.GetStringAsync(baseUrl);
             var products = JsonConvert.DeserializeObject<List<Products>>(jsonStr);
-                    foreach (var product in products)
-    {
-        var vendor = await GetProductVendor(product.ProdId);
-        product.ProductVendorId = vendor?.Id ?? 0;
-    }
+            foreach (var product in products)
+            {
+                var vendor = await GetProductVendor(product.ProdId);
+                product.ProductVendorId = vendor?.Id ?? 0;
+            }
             return products;
         }
     }
 }
+
 
 private async Task<ProductVendor> GetProductVendor(int productId)
 {
@@ -69,10 +75,19 @@ private async Task<ProductVendor> GetProductVendor(int productId)
         }
     }
 }
-
 private async Task AddToCart(Products product)
 {
     var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+    if (string.IsNullOrEmpty(token))
+    {
+        var result = await JSRuntime.InvokeAsync<bool>("confirm", "Please login to your account");
+        if (result)
+        {
+            NavigationManager.NavigateTo($"https://localhost:7085/?ClientId=a0d0b3a2-efa4-47ca-b193-45bdbd950f3a");
+            return;
+        }
+    }
+
     HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     var handler = new JwtSecurityTokenHandler();
     var decodedToken = handler.ReadJwtToken(token);
@@ -111,12 +126,14 @@ private async Task AddToCart(Products product)
 
 
 
+
 private int productVendorId;
 private async Task SetProductVendorId(int vendorId, Products product)
 {
     productVendorId = vendorId;
     await AddToCart(product);
 }
+
 
 public bool IsTokenPresent { get; set; }
 
@@ -299,7 +316,7 @@ private async Task<bool> IsTokenPresentAsync()
     <i class="bi bi-cart4" style="font-size: 2rem;"></i>
 </a>
 
-<a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
+@* <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
    data-product-id="@product.ProdId"
    data-product-image="@product.ImageURL"
    data-product-name="@product.ProdName"
@@ -307,7 +324,7 @@ private async Task<bool> IsTokenPresentAsync()
    onclick="addToCart(event)"
    style="@(IsTokenPresent ? "display: none;" : "")">
     <i class="bi bi-cart4" style="font-size: 2rem;"></i>
-</a>
+</a> *@
 
 
 

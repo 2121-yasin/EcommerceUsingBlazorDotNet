@@ -6,46 +6,33 @@
 @inject HttpClient httpClient
 @inject IConfiguration Configuration
 @using System.IdentityModel.Tokens.Jwt;
+@inject HttpClient HttpClient
+@using System.Net.Http.Headers
 <PageTitle>EShop</PageTitle>
 
 @code {
-    private int cartCounter;
+    private int cartItemCount;
     private bool isLoaded = false;
     public List<Products> Product { get; set; }
     private string searchQuery;
     private bool isLoggedIn = false;
 
     private string token;
-     private string clientId;
+    private string clientId;
     private string username;
-    
+
     protected override void OnInitialized()
     {
         clientId = Configuration.GetValue<string>("AppSettings:ClientId");
         GetUsernameFromToken();
     }
 
-
-     protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender && !isLoaded)
         {
-    // Set the flag to prevent repeated execution
-        isLoaded = true;
-
-        // Retrieve the cart counter value from local storage
-  var cartCounterString = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "cartCounter");
-    if (int.TryParse(cartCounterString, out var parsedCartCounter))
-    {
-        cartCounter = parsedCartCounter;
-    }
-    else
-    {
-        cartCounter = 0;
-    }
-
-
-
+            // Set the flag to prevent repeated execution
+            isLoaded = true;
 
             var uri = new Uri(NavigationManager.Uri);
             if (uri.Query.Contains("token="))
@@ -53,40 +40,40 @@
                 token = uri.Query.Split("=")[1];
                 await JSRuntime.InvokeVoidAsync("localStorage.setItem", "token", token);
                 isLoggedIn = true;
-               
                 GetUsernameFromToken();
                 StateHasChanged();
             }
 
-
+            await GetCartItemCount();
+            Product = await GetProduct();
+            StateHasChanged();
         }
     }
 
-
-private async Task<string> GetTokenFromLocalStorage()
-{
-    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
-    return token;
-}
-
-private async Task GetUsernameFromToken()
-{
-    var token = await GetTokenFromLocalStorage();
-    if (!string.IsNullOrEmpty(token))
+    private async Task<string> GetTokenFromLocalStorage()
     {
-        var handler = new JwtSecurityTokenHandler();
-        var decodedToken = handler.ReadJwtToken(token);
-        foreach (var claim in decodedToken.Claims)
+        var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+        return token;
+    }
+
+    private async Task GetUsernameFromToken()
+    {
+        var token = await GetTokenFromLocalStorage();
+        if (!string.IsNullOrEmpty(token))
         {
-            if (claim.Type == "UserName")
+            var handler = new JwtSecurityTokenHandler();
+            var decodedToken = handler.ReadJwtToken(token);
+            foreach (var claim in decodedToken.Claims)
             {
-                username = claim.Value;
-                isLoggedIn = true;
-                break;
+                if (claim.Type == "UserName")
+                {
+                    username = claim.Value;
+                    isLoggedIn = true;
+                    break;
+                }
             }
         }
     }
-}
 
     private async Task Logout()
     {
@@ -96,46 +83,78 @@ private async Task GetUsernameFromToken()
         NavigationManager.NavigateTo("/");
     }
 
-protected override async Task OnInitializedAsync()
-    {
-        var uri = new Uri(NavigationManager.Uri);
-        if (uri.Query.Contains("search="))
-        {
-            searchQuery = uri.Query.Split("=")[1];
-        }
-
-        Product = await GetProduct();
-
-    }
-
-    private async Task<List<Products>> GetProduct()
+private async Task GetCartItemCount()
 {
-    var baseUrl = "https://localhost:7044/api/products/all";
-    
-    if (!string.IsNullOrEmpty(searchQuery))
-    {
-        baseUrl = $"https://localhost:7044/api/products/search?name={Uri.EscapeDataString(searchQuery)}";
-    }
+    var token = await GetTokenFromLocalStorage();
+    HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    var handler = new JwtSecurityTokenHandler();
+    var decodedToken = handler.ReadJwtToken(token);
+    var userId = decodedToken.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+    var apiUrl = $"https://localhost:7044/api/cart/ItemCount/{userId}";
 
     using (var httpClientHandler = new HttpClientHandler())
     {
         httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
         using (var httpClient = new HttpClient(httpClientHandler))
         {
-            var jsonStr = await httpClient.GetStringAsync(baseUrl);
-            var products = JsonConvert.DeserializeObject<List<Products>>(jsonStr);
-            return products;
+            var response = await httpClient.GetAsync(apiUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var count = await response.Content.ReadAsStringAsync();
+                cartItemCount = int.Parse(count);
+                
+                // Notify the components that the cart item count has been updated
+                StateHasChanged();
+            }
         }
     }
 }
 
 
-private async Task SearchProducts()
-{
-    // Redirect to the search results page with the search query as a parameter
-    await JSRuntime.InvokeVoidAsync("open", $"/?search={Uri.EscapeDataString(searchQuery)}", "_self");
-}
+    private async Task<List<Products>> GetProduct()
+    {
+        var baseUrl = "https://localhost:7044/api/products/all";
 
+        if (!string.IsNullOrEmpty(searchQuery))
+        {
+            baseUrl = $"https://localhost:7044/api/products/search?name={Uri.EscapeDataString(searchQuery)}";
+        }
+
+        using (var httpClientHandler = new HttpClientHandler())
+        {
+            httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+            using (var httpClient = new HttpClient(httpClientHandler))
+            {
+                var jsonStr = await httpClient.GetStringAsync(baseUrl);
+                var products = JsonConvert.DeserializeObject<List<Products>>(jsonStr);
+                return products;
+            }
+        }
+    }
+
+    private async Task SearchProducts()
+    {
+        // Redirect to the search results page with the search query as a parameter
+        await JSRuntime.InvokeVoidAsync("open", $"/?search={Uri.EscapeDataString(searchQuery)}", "_self");
+    }
+
+    private async Task HandleCartClick()
+    {
+        var token = await GetTokenFromLocalStorage();
+        if (string.IsNullOrEmpty(token))
+        {
+            var result = await JSRuntime.InvokeAsync<bool>("confirm", "Please login to your account");
+            if (result)
+            {
+                NavigationManager.NavigateTo($"https://localhost:7085/?ClientId={clientId}");
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/");
+        }
+    }
 
 }
 
@@ -155,22 +174,16 @@ private async Task SearchProducts()
             
             @if (!isLoggedIn)
             {
-                <a href="cart" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart"><i class="bi bi-cart4">
-                @if (cartCounter > 0)
-                {
-                    <span id="cartCounter" class="cart-counter">@cartCounter</span>
-                }
-                </i></a>
+<button class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart" @onclick="HandleCartClick">
+    <i class="bi bi-cart4"></i>
+</button>
             <a href="wishlist" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Wishlist"><i class="bi bi-heart-fill"></i></a>
                 <button class="btn btn-outline-danger my-2 my-sm-0 mx-2" @onclick='() => NavigationManager.NavigateTo($"https://localhost:7085/?ClientId={clientId}")'>Login</button>
             }
             else
             {
             <a href="@($"/cart?token={token}")" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart"><i class="bi bi-cart4">   
-                @if (cartCounter > 0)
-            {
-                 <span id="cartCounter" class="cart-counter">@cartCounter</span>
-            }
+                 <span id="cartCounter" class="cart-counter">@cartItemCount</span>
             </i>
             </a>
             <a href="@($"/wishlist?token={token}")" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Wishlist"><i class="bi bi-heart-fill"></i></a>

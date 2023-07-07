@@ -17,6 +17,8 @@
 @using System;
 @using Microsoft.JSInterop
 @using System.Text
+@inject HttpClient HttpClient
+@using System.Net.Http.Headers;
 
 
 
@@ -100,14 +102,10 @@
 }
 
 
- <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
-  data-product-id="@Product.ProdId"
-  data-product-image="@Product.ImageURL"
-   data-product-name="@Product.ProdName"
-   data-product-price="@Product.Price"
-   onclick="addToCart(event)">
-  <i class="bi bi-cart4 " style="font-size: 2rem;"></i>
-</a>
+<button class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
+   @onclick="() => AddToCart(Product)">
+    <i class="bi bi-cart4" style="font-size: 2rem;"></i>
+</button>
 
     
   <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to wishlist"
@@ -135,6 +133,87 @@
 
     private RazorpayClient _razorpayClient;
     private string _orderId;
+
+    
+
+private async Task AddToCart(Products product)
+{
+    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+    if (string.IsNullOrEmpty(token))
+    {
+        var result = await JSRuntime.InvokeAsync<bool>("confirm", "Please login to your account");
+        if (result)
+        {
+            NavigationManager.NavigateTo($"https://localhost:7085/?ClientId=a0d0b3a2-efa4-47ca-b193-45bdbd950f3a");
+            return;
+        }
+    }
+
+    HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    var handler = new JwtSecurityTokenHandler();
+    var decodedToken = handler.ReadJwtToken(token);
+
+    var userId = decodedToken.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+    var productId = product.ProdId;
+
+    // Fetch the product vendor ID dynamically
+    var productVendorId = await GetProductVendorId(productId);
+
+    var url = $"https://localhost:7044/api/cart/{userId}?productId={productId}&productVendorId={productVendorId}";
+
+    using (var httpClientHandler = new HttpClientHandler())
+    {
+        httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+        using (var httpClient = new HttpClient(httpClientHandler))
+        {
+            var response = await httpClient.PostAsync(url, null);
+            var statusCode = response.StatusCode;
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Item successfully added to the cart.");
+            }
+            else
+            {
+                if (statusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "Item already present in the cart.");
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "Failed to add item to the cart.");
+                }
+            }
+        }
+    }
+}
+
+private async Task<int> GetProductVendorId(int productId)
+{
+    var url = $"https://localhost:7044/api/products/{productId}/vendor";
+
+    using (var httpClientHandler = new HttpClientHandler())
+    {
+        httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+        using (var httpClient = new HttpClient(httpClientHandler))
+        {
+            var response = await httpClient.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonStr = await response.Content.ReadAsStringAsync();
+                var vendor = JsonConvert.DeserializeObject<ProductVendor>(jsonStr);
+                return vendor.Id;
+            }
+            else
+            {
+                throw new Exception("Failed to retrieve product vendor ID.");
+            }
+        }
+    }
+}
+
+
 
 
 
@@ -220,84 +299,93 @@ private async Task SendOrderConfirmationEmail(string recipientEmail)
     var paymentDetails = System.Text.Json.JsonSerializer.Deserialize<PaymentDetails>(paymentDetailsJson);
 
     // Generate the HTML content using Bootstrap classes
-    var htmlContent = @"<!DOCTYPE html>
-                        <html>
-                        <head>
-                            <link rel=""stylesheet"" href=""https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"">
-                            <style>
-                                .paid-watermark {
-                                    position: absolute;
-                                    top: 50%;
-                                    left: 50%;
-                                    transform: translate(-50%, -50%);
-                                    font-size: 64px;
-                                    color: green;
-                                    opacity: 0.5;
-                                    z-index: 1;
-                                }
-                            </style>
-                        </head>
-                        <body>
-                            <div class=""container"">
-                                <h1 class=""mb-4"">Thank you for your order!</h1>
-                                <table class=""table table-bordered"">
-                                    <tr>
-                                        <th>Payment ID:</th>
-                                        <td>" + paymentDetails.paymentId + @"</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Created At:</th>
-                                        <td>" + paymentDetails.createdAt.ToString() + @"</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Description:</th>
-                                        <td>" + paymentDetails.description + @"</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Customer:</th>
-                                        <td>" + paymentDetails.customer + @"</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Email:</th>
-                                        <td>" + paymentDetails.email + @"</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Contact:</th>
-                                        <td>" + paymentDetails.contact + @"</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Street:</th>
-                                        <td>" + paymentDetails.street + @"</td>
-                                    </tr>
-                                    <tr>
-                                        <th>City:</th>
-                                        <td>" + paymentDetails.city + @"</td>
-                                    </tr>
-                                    <tr>
-                                        <th>State:</th>
-                                        <td>" + paymentDetails.state + @"</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Pincode:</th>
-                                        <td>" + paymentDetails.pincode + @"</td>
-                                    </tr>                               
-                                    <tr>
-                                        <th>Order ID:</th>
-                                        <td>" + paymentDetails.orderId + @"</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Notes:</th>
-                                        <td>" + paymentDetails.notes + @"</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Total Fee:</th>
-                                        <td><span class=""text-success"">" + paymentDetails.totalFee + @"</span></td>
-                                    </tr>
-                                </table>
-                                <div class=""paid-watermark"">Paid</div>
-                                </div>
-                            </body>
-                        </html>";
+var htmlContent = @"<!DOCTYPE html>
+                    <html>
+                    <head>
+                        <link rel=""stylesheet"" href=""https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"">
+                        <style>
+                            .paid-watermark {
+                                position: absolute;
+                                top: 50%;
+                                left: 50%;
+                                transform: translate(-50%, -50%);
+                                font-size: 64px;
+                                color: green;
+                                opacity: 0.5;
+                                z-index: 1;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class=""container"">
+                            <h1 class=""mb-4"">Thank you for your order!</h1>
+                            <table class=""table table-bordered"">
+                                <tr>
+                                    <th>Payment ID:</th>
+                                    <td>" + paymentDetails.paymentId + @"</td>
+                                </tr>
+                                <tr>
+                                    <th>Created At:</th>
+                                    <td>" + paymentDetails.createdAt.ToString() + @"</td>
+                                </tr>
+                                <tr>
+                                    <th>Description:</th>
+                                    <td>" + paymentDetails.description + @"</td>
+                                </tr>
+                                <tr>
+                                    <th>Customer:</th>
+                                    <td>" + paymentDetails.customer + @"</td>
+                                </tr>
+                                <tr>
+                                    <th>Email:</th>
+                                    <td>" + paymentDetails.email + @"</td>
+                                </tr>
+                                <tr>
+                                    <th>Contact:</th>
+                                    <td>" + paymentDetails.contact + @"</td>
+                                </tr>
+                                <tr>
+                                    <th>Street:</th>
+                                    <td>" + paymentDetails.street + @"</td>
+                                </tr>
+                                <tr>
+                                    <th>City:</th>
+                                    <td>" + paymentDetails.city + @"</td>
+                                </tr>
+                                <tr>
+                                    <th>State:</th>
+                                    <td>" + paymentDetails.state + @"</td>
+                                </tr>
+                                <tr>
+                                    <th>Pincode:</th>
+                                    <td>" + paymentDetails.pincode + @"</td>
+                                </tr>";
+
+@if (Product != null)
+{
+    htmlContent += @"<tr>
+                        <th>Product Name:</th>
+                        <td>" + Product.ProdName + @"</td>
+                    </tr>";
+}
+
+htmlContent += @"<tr>
+                    <th>Order ID:</th>
+                    <td>" + paymentDetails.orderId + @"</td>
+                </tr>
+                <tr>
+                    <th>Notes:</th>
+                    <td>" + paymentDetails.notes + @"</td>
+                </tr>
+                <tr>
+                    <th>Total Fee:</th>
+                    <td><span class=""text-success"">" + paymentDetails.totalFee + @"</span></td>
+                </tr>
+            </table>
+            <div class=""paid-watermark"">Paid</div>
+            </div>
+        </body>
+    </html>";
 
     // Save the payment details to a text file
     var filePath = "PaymentDetails.html";
