@@ -1,5 +1,5 @@
 namespace JwtDbApi.DTOs
-{
+{   // This DTO may no longer be required as vendor name added to vendor model
     public class VendorUserInfoDTO
     {
         public int UserId { get; set; }
