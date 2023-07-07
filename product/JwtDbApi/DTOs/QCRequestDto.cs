@@ -1,18 +1,17 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace JwtDbApi.Models
+namespace JwtDbApi.DTOs
 {
-    public class QCRequest
+    public class QCRequestDto
     {
-        [Key]
         public int Id { get; set; }
         [Required(ErrorMessage = "Product is required")]
-        public string? Product { get; set; } // Object to store product details like name, description, image, MRP, etc.
+        public ProductDto? Product { get; set; } // Object to store product details like name, description, image, MRP, etc.
         [Required(ErrorMessage = "Basic Details is required")]
-        public string? BasicDetails { get; set; } // Object to store basic product details
-        public string? OptionalDetails { get; set; } // Object to store optional product details
+        public object? BasicDetails { get; set; } // Object to store basic product details
+        public object? OptionalDetails { get; set; } // Object to store optional product details
         [Required(ErrorMessage = "ProductVendor is required")]
-        public string? ProductVendor { get; set; } // Object to store productvendor details like vendorId, price, stock, visibility, etc.
+        public ProductVendorDto? ProductVendor { get; set; } // Object to store productvendor details like vendorId, price, stock, visibility, etc.
         public int CategoryId { get; set; }
         [Required(ErrorMessage = "Category name is required")]
         public string? CategoryName { get; set; }
