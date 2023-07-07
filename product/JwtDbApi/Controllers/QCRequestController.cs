@@ -296,7 +296,7 @@ namespace JwtDbApi.Controllers
 
             try
             {
-                return JsonSerializer.Deserialize<T>(property)!;
+                return JsonSerializer.Deserialize<T>(property) ?? throw new Exception("Deserialization returned null.");
             }
             catch (Exception ex)
             {
