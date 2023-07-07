@@ -253,16 +253,16 @@ namespace JwtDbApi.Controllers
         {
             if (string.IsNullOrEmpty(sortBy))
             {
-                sortBy = "RequestDate";
+                sortBy = nameof(QCRequest.RequestDate);
             }
 
-            var sortFieldMappings = new Dictionary<string, Expression<Func<QCRequest, object>>>
+            var sortFieldMappings = new Dictionary<string, Expression<Func<QCRequest, object>>>(StringComparer.OrdinalIgnoreCase)
             {
-                { "vendorname", qc => qc.VendorName ?? string.Empty },
-                { "requestdate", qc => qc.RequestDate }
+                { nameof(QCRequest.VendorName), qc => qc.VendorName ?? string.Empty },
+                { nameof(QCRequest.RequestDate), qc => qc.RequestDate }
             };
 
-            if (sortFieldMappings.TryGetValue(sortBy.ToLower(), out var sortField))
+            if (sortFieldMappings.TryGetValue(sortBy, out var sortField))
             {
                 query = sortDesc ? query.OrderByDescending(sortField) : query.OrderBy(sortField);
             }
