@@ -31,7 +31,7 @@ namespace AuthJwtDbApi.Controllers
         {
             var userInfo = await _context.UserInfo.Include(u => u.Address).ToListAsync();
 
-            var userInfoDto = userInfo.Select(u => ConvertToUserInfoDto(u));
+            var userInfoDto = userInfo.Select(u => MapToUserInfoDto(u));
 
             return Ok(userInfoDto);
         }
@@ -47,7 +47,7 @@ namespace AuthJwtDbApi.Controllers
                 return NotFound();
             }
 
-            var userInfoDto = ConvertToUserInfoDto(userInfo);
+            var userInfoDto = MapToUserInfoDto(userInfo);
 
             return Ok(userInfoDto);
         }
@@ -112,16 +112,17 @@ namespace AuthJwtDbApi.Controllers
         //     }
         // }
 
-        // GET Users by pages with sorting and filtering
+        // GET: api/UserInfo/paginated-users
+        // GET paginated Users with sorting and filtering
         [HttpGet("paginated-users")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> GetUserInfo(int page = 1, int pageSize = 10, string sortBy = "UserName", bool sortDesc = false,
+        public async Task<ActionResult> GetUserInfo(int page = 1, int pageSize = 10,
+            string sortBy = "UserName", bool sortDesc = false,
             string? column = "", string? filterOperator = "", string? value = "")
         {
             try
             {
-                // Create a base query
-                IQueryable<UserInfo> query = _context.UserInfo.Include(u => u.Address).AsQueryable();
+                IQueryable<UserInfo>? query = _context.UserInfo.Include(u => u.Address);
 
                 // Apply filtering conditions if column, and filterOperator are provided
                 if (!string.IsNullOrEmpty(column) && !string.IsNullOrEmpty(filterOperator))
@@ -129,32 +130,32 @@ namespace AuthJwtDbApi.Controllers
                     query = ApplyFilter(query, column, filterOperator, value);
                 }
 
-                // Get count of total users
-                int totalItems = await query.CountAsync();
-
-                // Calculate total pages and ensure page is within range
-                int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-                page = Math.Max(1, Math.Min(page, totalPages));
-
-                // Calculate skip count for pagination
-                int skipCount = (page - 1) * pageSize;
-
-                // Apply sorting dynamically
                 query = ApplySorting(query, sortBy, sortDesc);
 
-                // Retrieve paginated users
-                List<UserInfo> users = await query.Skip(skipCount).Take(pageSize).ToListAsync();
+                int totalItems = await query.CountAsync();
+
+                // Ensure pageSize is at least 1
+                pageSize = Math.Max(1, pageSize);
+
+                int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+                // Ensure page is within valid range
+                page = Math.Max(1, Math.Min(page, totalPages));
+
+                var users = await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
 
                 // Map UserInfo to UserInfoDto
-                List<UserInfoDto> usersDto = users.Select(u => ConvertToUserInfoDto(u)).ToList();
+                var usersDto = users.Select(u => MapToUserInfoDto(u)).ToList();
 
-                // Create response object
                 var response = new
                 {
-                    Page = page,
-                    PageSize = pageSize,
                     TotalItems = totalItems,
                     TotalPages = totalPages,
+                    Page = page,
+                    PageSize = pageSize,
                     Data = usersDto
                 };
 
@@ -173,29 +174,52 @@ namespace AuthJwtDbApi.Controllers
             }
         }
 
-        // Apply sorting to users
         private IQueryable<UserInfo> ApplySorting(IQueryable<UserInfo> query, string sortBy, bool sortDesc)
         {
-            switch (sortBy)
+            var sortFieldMappings = new Dictionary<string, Expression<Func<UserInfo, object>>>(StringComparer.OrdinalIgnoreCase)
             {
-                case nameof(UserInfo.UserId):
-                    query = sortDesc ? query.OrderByDescending(u => u.UserId) : query.OrderBy(u => u.UserId);
-                    break;
-                case nameof(UserInfo.UserName):
-                    query = sortDesc ? query.OrderByDescending(u => u.UserName) : query.OrderBy(u => u.UserName);
-                    break;
-                case nameof(UserInfo.Email):
-                    query = sortDesc ? query.OrderByDescending(u => u.Email) : query.OrderBy(u => u.Email);
-                    break;
-                case nameof(UserInfo.Role):
-                    query = sortDesc ? query.OrderByDescending(u => u.Role) : query.OrderBy(u => u.Role);
-                    break;
-                default:
-                    throw new ArgumentException("Invalid sortBy parameter.");
+                { nameof(UserInfo.UserId), u => u.UserId },
+                { nameof(UserInfo.UserName), u => u.UserName },
+                { nameof(UserInfo.Email), u => u.Email },
+                { nameof(UserInfo.Role), u => u.Role }
+            };
+
+            if (sortFieldMappings.TryGetValue(sortBy, out var sortField))
+            {
+                query = sortDesc ? query.OrderByDescending(sortField) : query.OrderBy(sortField);
             }
+            // else
+            // {
+            //     throw new ArgumentException("Invalid sortBy parameter.");
+            // }
 
             return query;
         }
+
+
+        // Apply sorting to users
+        // private IQueryable<UserInfo> ApplySorting(IQueryable<UserInfo> query, string sortBy, bool sortDesc)
+        // {
+        //     switch (sortBy)
+        //     {
+        //         case nameof(UserInfo.UserId):
+        //             query = sortDesc ? query.OrderByDescending(u => u.UserId) : query.OrderBy(u => u.UserId);
+        //             break;
+        //         case nameof(UserInfo.UserName):
+        //             query = sortDesc ? query.OrderByDescending(u => u.UserName) : query.OrderBy(u => u.UserName);
+        //             break;
+        //         case nameof(UserInfo.Email):
+        //             query = sortDesc ? query.OrderByDescending(u => u.Email) : query.OrderBy(u => u.Email);
+        //             break;
+        //         case nameof(UserInfo.Role):
+        //             query = sortDesc ? query.OrderByDescending(u => u.Role) : query.OrderBy(u => u.Role);
+        //             break;
+        //         default:
+        //             throw new ArgumentException("Invalid sortBy parameter.");
+        //     }
+
+        //     return query;
+        // }
 
         // Apply sorting to users - Dynamically create the sorting expression using reflection - Switch statement approach might perform better
         // private IQueryable<UserInfo> ApplySorting(IQueryable<UserInfo> query, string sortBy, bool sortDesc)
@@ -441,7 +465,7 @@ namespace AuthJwtDbApi.Controllers
             return _context.UserInfo.Any(e => e.UserId == id);
         }
 
-        private UserInfoDto ConvertToUserInfoDto(UserInfo userInfo)
+        private UserInfoDto MapToUserInfoDto(UserInfo userInfo)
         {
             var userInfoDto = new UserInfoDto
             {
