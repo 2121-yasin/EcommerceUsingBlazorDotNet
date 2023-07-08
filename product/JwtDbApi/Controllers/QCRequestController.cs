@@ -39,18 +39,21 @@ namespace JwtDbApi.Controllers
                 var qCrequestsDto = MapToQCRequestDto(qCRequest);
 
                 return Ok(qCrequestsDto);
-
             }
             catch (ArgumentException ex)
             {
                 return BadRequest(ex.Message);
             }
-            catch (Exception /* ex */)
+            catch (Exception /* ex */
+            )
             {
                 // Log the exception for further investigation
                 // logger.LogError(ex, "An error occurred while fetching the QCRequest.");
 
-                return StatusCode(500, "An unexpected error occurred while fetching the QCRequest. Please try again later.");
+                return StatusCode(
+                    500,
+                    "An unexpected error occurred while fetching the QCRequest. Please try again later."
+                );
             }
         }
 
@@ -61,7 +64,9 @@ namespace JwtDbApi.Controllers
         {
             try
             {
-                var query = _context.QCRequests.OrderBy(qc => qc.Status).ThenBy(qc => qc.RequestDate);
+                var query = _context.QCRequests
+                    .OrderBy(qc => qc.Status)
+                    .ThenBy(qc => qc.RequestDate);
 
                 int totalItems = await query.CountAsync();
 
@@ -91,20 +96,28 @@ namespace JwtDbApi.Controllers
 
                 return Ok(response);
             }
-            catch (Exception /* ex */)
+            catch (Exception /* ex */
+            )
             {
                 // Log the exception for further investigation
                 // logger.LogError(ex, "An error occurred while fetching QCRequests.");
 
-                return StatusCode(500, "An unexpected error occurred while fetching QCRequests. Please try again later.");
+                return StatusCode(
+                    500,
+                    "An unexpected error occurred while fetching QCRequests. Please try again later."
+                );
             }
         }
 
         // GET: api/QCRequest/pending
         [HttpGet("pending")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetPendingQCRequests(int page = 1, int pageSize = 10,
-            string sortBy = "RequestDate", bool sortDesc = false)
+        public async Task<IActionResult> GetPendingQCRequests(
+            int page = 1,
+            int pageSize = 10,
+            string sortBy = "RequestDate",
+            bool sortDesc = false
+        )
         {
             try
             {
@@ -138,12 +151,16 @@ namespace JwtDbApi.Controllers
 
                 return Ok(response);
             }
-            catch (Exception /* ex */)
+            catch (Exception /* ex */
+            )
             {
                 // Log the exception for further investigation
                 // logger.LogError(ex, "An error occurred while fetching the the pending QCRequests.");
 
-                return StatusCode(500, "An unexpected error occurred while fetching the pending QCRequests. Please try again later.");
+                return StatusCode(
+                    500,
+                    "An unexpected error occurred while fetching the pending QCRequests. Please try again later."
+                );
             }
         }
 
@@ -159,12 +176,16 @@ namespace JwtDbApi.Controllers
 
                 return Ok(count);
             }
-            catch (Exception /* ex */)
+            catch (Exception /* ex */
+            )
             {
                 // Log the exception for further investigation
                 // logger.LogError(ex, "An error occurred while fetching the count of pending QCRequests.");
 
-                return StatusCode(500, "An unexpected error occurred while fetching the count of pending QCRequests. Please try again later.");
+                return StatusCode(
+                    500,
+                    "An unexpected error occurred while fetching the count of pending QCRequests. Please try again later."
+                );
             }
         }
 
@@ -184,15 +205,22 @@ namespace JwtDbApi.Controllers
                 qCRequestDto.Id = qCRequest.Id;
 
                 // Return qCRequestDto as it is in object format
-                return CreatedAtAction(nameof(GetQCRequest), new { id = qCRequest.Id }, qCRequestDto);
-
+                return CreatedAtAction(
+                    nameof(GetQCRequest),
+                    new { id = qCRequest.Id },
+                    qCRequestDto
+                );
             }
-            catch (Exception /* ex */)
+            catch (Exception /* ex */
+            )
             {
                 // Log the exception for further investigation
                 // logger.LogError(ex, "An error occurred while adding the QCRequest.");
 
-                return StatusCode(500, "An unexpected error occurred while adding the QCRequest. Please try again later.");
+                return StatusCode(
+                    500,
+                    "An unexpected error occurred while adding the QCRequest. Please try again later."
+                );
             }
         }
 
@@ -203,8 +231,8 @@ namespace JwtDbApi.Controllers
                 return new QCRequest
                 {
                     Product = SerializeObject(qCRequestDto.Product),
-                    BasicDetails = qCRequestDto.BasicDetails?.ToString(),
-                    OptionalDetails = qCRequestDto.OptionalDetails?.ToString(),
+                    // BasicDetails = qCRequestDto.BasicDetails?.ToString(),
+                    // OptionalDetails = qCRequestDto.OptionalDetails?.ToString(),
                     ProductVendor = SerializeObject(qCRequestDto.ProductVendor),
                     CategoryId = qCRequestDto.CategoryId,
                     CategoryName = qCRequestDto.CategoryName,
@@ -218,7 +246,10 @@ namespace JwtDbApi.Controllers
             }
             catch (Exception ex)
             {
-                throw new Exception("An error occurred while converting the qCRequestDto to QCRequest. Possible serialization error", ex);
+                throw new Exception(
+                    "An error occurred while converting the qCRequestDto to QCRequest. Possible serialization error",
+                    ex
+                );
             }
         }
 
@@ -230,8 +261,12 @@ namespace JwtDbApi.Controllers
                 {
                     Id = qcRequest.Id,
                     Product = DeserializeJson<ProductDto>(qcRequest.Product),
-                    BasicDetails = DeserializeJson<Dictionary<string, string>>(qcRequest.BasicDetails),
-                    OptionalDetails = DeserializeJson<Dictionary<string, string>>(qcRequest.OptionalDetails),
+                    // BasicDetails = DeserializeJson<Dictionary<string, string>>(
+                    //     qcRequest.BasicDetails
+                    // ),
+                    // OptionalDetails = DeserializeJson<Dictionary<string, string>>(
+                    //     qcRequest.OptionalDetails
+                    // ),
                     ProductVendor = DeserializeJson<ProductVendorDto>(qcRequest.ProductVendor),
                     CategoryId = qcRequest.CategoryId,
                     CategoryName = qcRequest.CategoryName,
@@ -245,18 +280,27 @@ namespace JwtDbApi.Controllers
             }
             catch (Exception ex)
             {
-                throw new Exception("An error occurred while converting the qCRequestDto to QCRequest. Possible serialization error", ex);
+                throw new Exception(
+                    "An error occurred while converting the qCRequestDto to QCRequest. Possible serialization error",
+                    ex
+                );
             }
         }
 
-        private IQueryable<QCRequest> ApplySorting(IQueryable<QCRequest> query, string sortBy, bool sortDesc)
+        private IQueryable<QCRequest> ApplySorting(
+            IQueryable<QCRequest> query,
+            string sortBy,
+            bool sortDesc
+        )
         {
             if (string.IsNullOrEmpty(sortBy))
             {
                 sortBy = nameof(QCRequest.RequestDate);
             }
 
-            var sortFieldMappings = new Dictionary<string, Expression<Func<QCRequest, object>>>(StringComparer.OrdinalIgnoreCase)
+            var sortFieldMappings = new Dictionary<string, Expression<Func<QCRequest, object>>>(
+                StringComparer.OrdinalIgnoreCase
+            )
             {
                 { nameof(QCRequest.VendorName), qc => qc.VendorName ?? string.Empty },
                 { nameof(QCRequest.RequestDate), qc => qc.RequestDate }
@@ -291,12 +335,15 @@ namespace JwtDbApi.Controllers
         {
             if (property == null)
             {
-                throw new ArgumentException("The property " + nameof(property) + " cannot be null.");
+                throw new ArgumentException(
+                    "The property " + nameof(property) + " cannot be null."
+                );
             }
 
             try
             {
-                return JsonSerializer.Deserialize<T>(property) ?? throw new Exception("Deserialization returned null.");
+                return JsonSerializer.Deserialize<T>(property)
+                    ?? throw new Exception("Deserialization returned null.");
             }
             catch (Exception ex)
             {
