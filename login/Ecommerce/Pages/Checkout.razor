@@ -191,6 +191,44 @@ private async Task ProceedToPayment(decimal totalAmount)
     // After the order is successfully placed and stored in the database
     var recipientEmail = decodedToken.Claims.FirstOrDefault(c => c.Type == "Email")?.Value; // Replace with the recipient's email address
     await SendOrderConfirmationEmail(recipientEmail);
+
+    // Store the product details in local storage
+    // Store the product details and total price in local storage
+    var productData = new Dictionary<string, Dictionary<string, object>>();
+    var productId = Guid.NewGuid().ToString(); // Generate a unique ID for each payment
+    var productDetails = new Dictionary<string, object>();
+    decimal totalPrice = 0;
+
+    for (var i = 0; i < products.Count; i++)
+    {
+        var product = products[i];
+        var details = new
+        {
+            ImageURL = product.ImageURL,
+            ProdName = product.ProdName,
+            Price = product.Price
+        };
+        productDetails.Add(i.ToString(), details);
+        totalPrice += product.Price;
+    }
+
+    productDetails.Add("totalPrice", totalPrice); // Add the total price to the product details dictionary
+    productData.Add(productId, productDetails);
+
+    var existingProductDataJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "productData");
+    if (!string.IsNullOrEmpty(existingProductDataJson))
+    {
+        var existingProductData = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(existingProductDataJson);
+        foreach (var kvp in existingProductData)
+        {
+            productData.Add(kvp.Key, kvp.Value);
+        }
+    }
+
+    var productDataJson = JsonSerializer.Serialize(productData);
+    await JSRuntime.InvokeVoidAsync("localStorage.setItem", "productData", productDataJson);
+
+
       // Clear the cart items from local storage
     await ClearCart();
 }
@@ -215,6 +253,9 @@ private async Task ProceedToPayment(decimal totalAmount)
             // Handle the error or display an error message
         }
     }
+
+
+    
 
 
 private async Task SendOrderConfirmationEmail(string recipientEmail)
