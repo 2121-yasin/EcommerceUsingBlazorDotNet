@@ -15,6 +15,27 @@
 @code{
     public List<Products> Product { get; set; }
     private string searchQuery;
+
+
+    private string GetStockStatus(int stockQty)
+{
+    if (stockQty <= 0)
+    {
+        return "Out of Stock";
+    }
+    else if (stockQty < 5)
+    {
+        return "Low Stock";
+    }
+    else
+    {
+        return "In Stock";
+    }
+}
+
+
+
+
     
 
 protected override async Task OnInitializedAsync()
@@ -31,6 +52,10 @@ protected override async Task OnInitializedAsync()
 private async Task LoadProducts()
 {
     Product = await GetProduct();
+    foreach (var product in Product)
+    {
+        product.StockStatus = GetStockStatus(product.StockQty);
+    }
 }
 
 private async Task<List<Products>> GetProduct()
@@ -299,6 +324,11 @@ private async Task<bool> IsTokenPresentAsync()
                   <div class="card-body d-flex flex-column">
                     <h5 class="card-title">@product.ProdName</h5>
                     <p class="card-text">@product.Price.ToString("c")</p>
+                        <p class="card-text">
+        <span style="@(product.StockStatus == "In Stock" ? "color: green;" : (product.StockStatus == "Out of Stock" ? "color: red;" : "color: orange;"))">
+            @product.StockStatus
+        </span>
+    </p>
                     <div class="card-footer d-flex align-items-end pt-3 px-0 pb-0 mt-auto">
                         
                       @* <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"
