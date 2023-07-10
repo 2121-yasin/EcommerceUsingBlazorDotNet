@@ -11,34 +11,34 @@ namespace JwtDbApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class QCRequestController : ControllerBase
+    public class QCRequestsController : ControllerBase
     {
         private readonly AppDbContext _context;
         private readonly int _pendingStatus = 0;
         private readonly int _rejectedStatus = 1;
 
-        public QCRequestController(AppDbContext context)
+        public QCRequestsController(AppDbContext context)
         {
             _context = context;
         }
 
-        // GET: api/QCRequest/5
+        // GET: api/QCRequests/5
         [HttpGet("{id}")]
         [Authorize(Roles = "Admin,Vendor")]
         public async Task<IActionResult> GetQCRequest(int id)
         {
             try
             {
-                var qCRequest = await _context.QCRequests.FindAsync(id);
+                var qcRequest = await _context.QCRequests.FindAsync(id);
 
-                if (qCRequest == null)
+                if (qcRequest == null)
                 {
                     return NotFound();
                 }
 
-                var qCrequestsDto = MapToQCRequestDto(qCRequest);
+                var qcRequestDto = MapToQCRequestDto(qcRequest);
 
-                return Ok(qCrequestsDto);
+                return Ok(qcRequestDto);
             }
             catch (ArgumentException ex)
             {
@@ -57,7 +57,7 @@ namespace JwtDbApi.Controllers
             }
         }
 
-        // GET: api/QCRequest
+        // GET: api/QCRequests
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetQCRequests(int page = 1, int pageSize = 10)
@@ -78,12 +78,12 @@ namespace JwtDbApi.Controllers
                 // Ensure page is within valid range
                 page = Math.Max(1, Math.Min(page, totalPages));
 
-                var qCRequests = await query
+                var qcRequests = await query
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
 
-                var qCRequestsDto = qCRequests.Select(qc => MapToQCRequestDto(qc)).ToList();
+                var qcRequestsDto = qcRequests.Select(qc => MapToQCRequestDto(qc)).ToList();
 
                 var response = new
                 {
@@ -91,7 +91,7 @@ namespace JwtDbApi.Controllers
                     TotalPages = totalPages,
                     Page = page,
                     PageSize = pageSize,
-                    Data = qCRequestsDto
+                    Data = qcRequestsDto
                 };
 
                 return Ok(response);
@@ -109,7 +109,7 @@ namespace JwtDbApi.Controllers
             }
         }
 
-        // GET: api/QCRequest/pending
+        // GET: api/QCRequests/pending
         [HttpGet("pending")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetPendingQCRequests(
@@ -164,7 +164,7 @@ namespace JwtDbApi.Controllers
             }
         }
 
-        // GET: api/QCRequest/count-pending
+        // GET: api/QCRequests/count-pending
         [HttpGet("count-pending")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetCountPendingQCRequests()
@@ -189,26 +189,26 @@ namespace JwtDbApi.Controllers
             }
         }
 
-        // POST: api/QCRequest
+        // POST: api/QCRequests
         [HttpPost]
         [Authorize(Roles = "Admin,Vendor")]
-        public async Task<IActionResult> PostQCRequest(QCRequestDto qCRequestDto)
+        public async Task<IActionResult> PostQCRequest(QCRequestDto qcRequestDto)
         {
             try
             {
-                var qCRequest = MapToQCRequest(qCRequestDto);
+                var qcRequest = MapToQCRequest(qcRequestDto);
 
-                _context.Add(qCRequest);
+                _context.Add(qcRequest);
                 await _context.SaveChangesAsync();
 
-                // Assign the generated qCRequest.Id to the qCRequestDto.Id
-                qCRequestDto.Id = qCRequest.Id;
+                // Assign the generated qcRequest.Id to the qcRequestDto.Id
+                qcRequestDto.Id = qcRequest.Id;
 
-                // Return qCRequestDto as it is in object format
+                // Return qcRequestDto as it is in object format
                 return CreatedAtAction(
                     nameof(GetQCRequest),
-                    new { id = qCRequest.Id },
-                    qCRequestDto
+                    new { id = qcRequest.Id },
+                    qcRequestDto
                 );
             }
             catch (Exception /* ex */
@@ -224,30 +224,30 @@ namespace JwtDbApi.Controllers
             }
         }
 
-        private QCRequest MapToQCRequest(QCRequestDto qCRequestDto)
+        private QCRequest MapToQCRequest(QCRequestDto qcRequestDto)
         {
             try
             {
                 return new QCRequest
                 {
-                    Product = SerializeObject(qCRequestDto.Product),
-                    // BasicDetails = qCRequestDto.BasicDetails?.ToString(),
-                    // OptionalDetails = qCRequestDto.OptionalDetails?.ToString(),
-                    ProductVendor = SerializeObject(qCRequestDto.ProductVendor),
-                    CategoryId = qCRequestDto.CategoryId,
-                    CategoryName = qCRequestDto.CategoryName,
-                    VendorId = qCRequestDto.VendorId,
-                    VendorName = qCRequestDto.VendorName,
-                    Status = qCRequestDto.Status,
-                    RequestDate = qCRequestDto.RequestDate,
-                    AdminMessage = qCRequestDto.AdminMessage,
-                    VendorMessage = qCRequestDto.VendorMessage,
+                    Product = SerializeObject(qcRequestDto.Product),
+                    // BasicDetails = qcRequestDto.BasicDetails?.ToString(),
+                    // OptionalDetails = qcRequestDto.OptionalDetails?.ToString(),
+                    ProductVendor = SerializeObject(qcRequestDto.ProductVendor),
+                    CategoryId = qcRequestDto.CategoryId,
+                    CategoryName = qcRequestDto.CategoryName,
+                    VendorId = qcRequestDto.VendorId,
+                    VendorName = qcRequestDto.VendorName,
+                    Status = qcRequestDto.Status,
+                    RequestDate = qcRequestDto.RequestDate,
+                    AdminMessage = qcRequestDto.AdminMessage,
+                    VendorMessage = qcRequestDto.VendorMessage,
                 };
             }
             catch (Exception ex)
             {
                 throw new Exception(
-                    "An error occurred while converting the qCRequestDto to QCRequest. Possible serialization error",
+                    "An error occurred while converting the qcRequestDto to QCRequest. Possible serialization error",
                     ex
                 );
             }
@@ -281,7 +281,7 @@ namespace JwtDbApi.Controllers
             catch (Exception ex)
             {
                 throw new Exception(
-                    "An error occurred while converting the qCRequestDto to QCRequest. Possible serialization error",
+                    "An error occurred while converting the qcRequest to QCRequestDto. Possible deserialization error",
                     ex
                 );
             }
