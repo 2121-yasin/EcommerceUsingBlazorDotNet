@@ -11,6 +11,7 @@ namespace JwtDbApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin,Vendor")]
     public class QCRequestsController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -176,8 +177,7 @@ namespace JwtDbApi.Controllers
 
                 return Ok(count);
             }
-            catch (Exception /* ex */
-            )
+            catch (Exception)
             {
                 // Log the exception for further investigation
                 // logger.LogError(ex, "An error occurred while fetching the count of pending QCRequests.");
@@ -185,6 +185,29 @@ namespace JwtDbApi.Controllers
                 return StatusCode(
                     500,
                     "An unexpected error occurred while fetching the count of pending QCRequests. Please try again later."
+                );
+            }
+        }
+
+        // GET: api/QCRequests/count-rejected
+        [HttpGet("count-rejected/{vendorId}")]
+        [Authorize(Roles = "Admin,Vendor")]
+        public async Task<IActionResult> GetCountRejectedQCRequests(int vendorId)
+        {
+            try
+            {
+                var query = _context.QCRequests.Where(
+                    qc => qc.VendorId == vendorId && qc.Status == _rejectedStatus
+                );
+                int count = await query.CountAsync();
+
+                return Ok(count);
+            }
+            catch (Exception)
+            {
+                return StatusCode(
+                    500,
+                    "An unexpected error occurred while fetching the count of rejected QCRequests. Please try again later."
                 );
             }
         }
@@ -211,8 +234,7 @@ namespace JwtDbApi.Controllers
                     qcRequestDto
                 );
             }
-            catch (Exception /* ex */
-            )
+            catch (Exception)
             {
                 // Log the exception for further investigation
                 // logger.LogError(ex, "An error occurred while adding the QCRequest.");
