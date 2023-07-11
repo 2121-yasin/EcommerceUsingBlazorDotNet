@@ -118,11 +118,26 @@ namespace JwtDbApi.Controllers
 
         // Post api/Products
         [HttpPost]
-        [Authorize(Roles = "Admin,Vendor")]
-        public ActionResult PostNewProduct([FromBody] ProductDto productDto)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> PostNewProduct([FromBody] ProductDto productDto)
         {
-            // Work in progress in vendor side
-            return Ok();
+            // Create a new Product entity based on the ProductDto
+            var product = new Product
+            {
+                ProdName = productDto.ProdName,
+                Description = productDto.Description,
+                Price = productDto.Price,
+                ImageURL = productDto.ImageURL,
+                BasicDetails = System.Text.Json.JsonSerializer.Serialize(productDto.BasicDetails),
+                OptionalDetails = System.Text.Json.JsonSerializer.Serialize(productDto.OptionalDetails),
+                CategoryId = productDto.CategoryId
+            };
+
+            // Add the new product to the context
+            _context.Products.Add(product);
+            await _context.SaveChangesAsync();
+
+            return Ok(product);
         }
 
         // PUT: api/Product/5
@@ -219,7 +234,7 @@ namespace JwtDbApi.Controllers
             return _context.Products.Any(e => e.ProdId == id);
         }
 
-//get productvendorid
+        //get productvendorid
         [HttpGet("{productId}/vendor")]
         public ActionResult<ProductVendor> GetProductVendor(int productId)
         {
