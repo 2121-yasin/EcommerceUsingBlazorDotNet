@@ -166,12 +166,22 @@ namespace JwtDbApi.Controllers
 
         // GET: api/QCRequests/count-pending
         [HttpGet("count-pending")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetCountPendingQCRequests()
+        [Authorize(Roles = "Admin,Vendor")]
+        public async Task<IActionResult> GetCountPendingQCRequests([FromQuery] int? vendorId = null)
         {
             try
             {
-                var query = _context.QCRequests.Where(qc => qc.Status == _pendingStatus);
+                IQueryable<QCRequest>? query;
+
+                if (vendorId != null)
+                {
+                    query = _context.QCRequests.Where(qc => qc.VendorId == vendorId && qc.Status == _pendingStatus);
+                }
+                else
+                {
+                    query = _context.QCRequests.Where(qc => qc.Status == _pendingStatus);
+                }
+
                 int count = await query.CountAsync();
 
                 return Ok(count);
@@ -220,6 +230,77 @@ namespace JwtDbApi.Controllers
                 return StatusCode(
                     500,
                     "An unexpected error occurred while adding the QCRequest. Please try again later."
+                );
+            }
+        }
+
+        // PUT: api/QCRequests/5
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RejectQCRequest(int id, [FromBody] string adminMessage)
+        {
+            try
+            {
+                var qcRequest = await _context.QCRequests.FindAsync(id);
+
+                if (qcRequest == null)
+                {
+                    return NotFound();
+                }
+
+                if (qcRequest.Status == _rejectedStatus)
+                {
+                    return BadRequest("QC request is already rejected.");
+                }
+
+                qcRequest.AdminMessage = adminMessage;
+                qcRequest.Status = _rejectedStatus;
+                await _context.SaveChangesAsync();
+
+                var qcRequestDto = MapToQCRequestDto(qcRequest);
+
+                return Ok(qcRequestDto);
+            }
+            catch (Exception /* ex */
+            )
+            {
+                // Log the exception for further investigation
+                // logger.LogError(ex, "An error occurred while rejecting the QCRequest.");
+
+                return StatusCode(
+                    500,
+                    "An unexpected error occurred while rejecting the QCRequest. Please try again later."
+                );
+            }
+        }
+
+        // DELETE: api/QCRequests/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteQCRequest(int id)
+        {
+            try
+            {
+                var qcRequest = await _context.QCRequests.FindAsync(id);
+
+                if (qcRequest == null)
+                {
+                    return NotFound();
+                }
+
+                _context.QCRequests.Remove(qcRequest);
+                await _context.SaveChangesAsync();
+
+                return NoContent();
+            }
+            catch (Exception /* ex */
+            )
+            {
+                // Log the exception for further investigation
+                // logger.LogError(ex, "An error occurred while updating the AdminMessage.");
+
+                return StatusCode(
+                    500,
+                    "An unexpected error occurred while deleting the QCRequest. Please try again later."
                 );
             }
         }
