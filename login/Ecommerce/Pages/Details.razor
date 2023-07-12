@@ -87,6 +87,15 @@
             <dd class="col-sm-11">
                 <span>@Product.StockQty</span>
             </dd>
+            <dt class="col-sm-1">
+                <label>@nameof(Product.StockStatus)</label>
+            </dt>
+            <dd class="col-sm-11">
+    <span style="@(Product.StockQty == 0 ? "color: red;" : (Product.StockQty < 5 ? "color: orange;" : "color: green;"))">
+        @(Product.StockQty == 0 ? "Out of Stock" : (Product.StockQty < 5 ? "Low Stock" : "In Stock"))
+    </span>
+</dd>
+
         </div>
 
     </dl>
