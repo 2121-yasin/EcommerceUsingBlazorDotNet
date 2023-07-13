@@ -5,12 +5,36 @@ using Microsoft.AspNetCore.Http;
 using AuthJwtDbApi.Models;
 using Ecommerce.Models;
 using Microsoft.JSInterop;
+using Firebase.Database;
+using Firebase.Database.Query;
+using FireSharp.Config;
+using FireSharp.Interfaces;
+using FireSharp.Response;
+
+
+
+// string credentialPath =@"D:\myclonings\EcommerceUsingBlazorDotNet\login\eshop-7f58a-firebase-adminsdk-kbagk-63176e3c5e.json";
+// Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS",credentialPath);
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 
 //builder.Services.AddScoped<ICartService, CartService>();
  // Add this line
+
+//firebase config
+// builder.Services.AddScoped<IFirebaseClient>(_ =>
+// {
+//     IFirebaseConfig config = new FirebaseConfig
+//     {
+//         AuthSecret = "K6HGOj9LIhd5PmFR1GfzmQZN1RLYo4rQuYuc6P0I",
+//         BasePath = "https://eshop-7f58a-default-rtdb.firebaseio.com"
+//     };
+
+//     IFirebaseClient client = new FireSharp.FirebaseClient(config);
+//     return client;
+// });
 
 // Add services to the container.
 //builder.Services.AddScoped<RedirectUrls>(); // register the service
@@ -37,6 +61,7 @@ builder.Services.AddSession(options =>
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton(new HttpClient());
 var app = builder.Build();
+
 
 // app.UseEndpoints(endpoints =>
 // {

@@ -21,7 +21,7 @@
                 <tr>
                     <td><img src="@productItem.ImageURL" alt="Product Image" style="width: 100px;" /></td>
                     <td>@productItem.ProdName</td>
-                    <td>@productItem.Price</td>
+                    <td>@string.Format("{0:N0}",@productItem.Price)</td>
                     <td><button class="btn btn-outline-success" @onclick="() => TrackOrder(productItem.Id)">Track Order</button></td>
                     <td>
                         <span class="@GetOrderStatusClass(productItem.Status)">@GetOrderStatusText(productItem.Status)</span>
