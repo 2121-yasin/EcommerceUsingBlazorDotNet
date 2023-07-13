@@ -250,7 +250,7 @@ namespace JwtDbApi.Controllers
                     VendorId = vendorId,
                     Price = productVendorDto.Price,
                     Quantity = productVendorDto.Quantity,
-                    Visible = 1,
+                    Visible = productVendorDto.Visible ?? 1,
                 };
 
                 // Add the new ProductVendor instance to the database
