@@ -14,6 +14,7 @@ namespace JwtDbApi.DTOs
         [MaxLength(250, ErrorMessage = "Description must be at most 250 characters.")]
         public string? Description { get; set; }
 
+        public string? CategoryImageUrl { get; set; }
         public int? ParentCategoryId { get; set; }
         public bool HasSpecifications { get; set; } = false;
         public List<string>? BasicDetails { get; set; }

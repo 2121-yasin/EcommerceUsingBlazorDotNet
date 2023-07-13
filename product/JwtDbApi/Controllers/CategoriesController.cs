@@ -169,6 +169,7 @@ namespace JwtDbApi.Controllers
             {
                 Name = categoryDto.Name,
                 Description = categoryDto.Description,
+                CategoryImageUrl = categoryDto.CategoryImageUrl,
                 ParentCategoryId = categoryDto.ParentCategoryId
             };
 
@@ -248,12 +249,25 @@ namespace JwtDbApi.Controllers
         // PUT: api/Category/5
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin,Vendor")]
-        public async Task<IActionResult> PutCategory(int id, Category category)
+        public async Task<IActionResult> PutCategory(int id, CategoryDto categoryDto)
         {
-            if (id != category.CategoryId)
+            // if (id != categoryDto.CategoryId)
+            // {
+            //     return BadRequest();
+            // }
+
+            var category = await _context.Categories.FindAsync(id);
+            if (category == null)
             {
-                return BadRequest();
+                return NotFound();
             }
+
+            category.Name = categoryDto.Name;
+            category.Description = categoryDto.Description;
+            category.CategoryImageUrl = categoryDto.CategoryImageUrl;
+            category.HasSpecifications = categoryDto.HasSpecifications;
+            category.BasicDetails = category.HasSpecifications ? System.Text.Json.JsonSerializer.Serialize(categoryDto.BasicDetails) : null;
+            category.OptionalDetails = category.HasSpecifications ? System.Text.Json.JsonSerializer.Serialize(categoryDto.OptionalDetails) : null;
 
             _context.Entry(category).State = EntityState.Modified;
 
@@ -263,14 +277,7 @@ namespace JwtDbApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!CategoryExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                throw;
             }
 
             return NoContent();
