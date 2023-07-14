@@ -6,6 +6,7 @@ using JwtDbApi.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Http.Headers;
 using System.Linq.Expressions;
+using System.Text.Json;
 
 namespace JwtDbApi.Controllers
 {
@@ -149,8 +150,12 @@ namespace JwtDbApi.Controllers
                         ProductId = product.ProdId,
                         ProductName = product.ProdName,
                         ProductDescription = product.Description,
-                        ProductBasicDetails = product.BasicDetails,
-                        // ProductOptionalDetails = product.OptionalDetails,
+                        ProductBasicDetails = product.BasicDetails != null
+                            ? JsonSerializer.Deserialize<Dictionary<string, string>>(product.BasicDetails, new JsonSerializerOptions())
+                            : null,
+                        ProductOptionalDetails = product.OptionalDetails != null
+                            ? JsonSerializer.Deserialize<Dictionary<string, string>>(product.OptionalDetails, new JsonSerializerOptions())
+                            : null,
                         ProductBasePrice = product.Price,
                         ProductImageUrl = product.ImageURL,
                         // ProductStartDate = product.StartDate,
@@ -211,9 +216,9 @@ namespace JwtDbApi.Controllers
 
             var sortFieldMappings = new Dictionary<string, Expression<Func<ProductVendorSortingDto, object>>>(StringComparer.OrdinalIgnoreCase)
             {
-                { nameof(ProductVendorSortingDto.ProductName), p => p.ProductName },
+                { nameof(ProductVendorSortingDto.ProductName), p => p.ProductName ?? string.Empty },
                 { nameof(ProductVendorSortingDto.ProductBasePrice), p => p.ProductBasePrice },
-                { nameof(ProductVendorSortingDto.VendorName), p => p.VendorName },
+                { nameof(ProductVendorSortingDto.VendorName), p => p.VendorName ?? string.Empty },
                 { nameof(ProductVendorSortingDto.ProductVendorListedOn), p => p.ProductVendorListedOn },
                 { nameof(ProductVendorSortingDto.ProductVendorPrice), p => p.ProductVendorPrice },
                 { nameof(ProductVendorSortingDto.ProductVendorQuantity), p => p.ProductVendorQuantity },
