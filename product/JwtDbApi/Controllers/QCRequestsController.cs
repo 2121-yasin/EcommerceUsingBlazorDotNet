@@ -313,8 +313,8 @@ namespace JwtDbApi.Controllers
             }
         }
 
-        // PUT: api/QCRequests/5
-        [HttpPut("{id}")]
+        // PUT: api/QCRequests/reject/5
+        [HttpPut("reject/{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RejectQCRequest(int id, [FromBody] string adminMessage)
         {
