@@ -165,6 +165,61 @@ namespace JwtDbApi.Controllers
             }
         }
 
+        // GET: api/QCRequests/rejected
+        [HttpGet("rejected/{vendorId}")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> GetPendingQCRequests(
+            int vendorId,
+            int page = 1,
+            int pageSize = 10
+        )
+        {
+            try
+            {
+                var query = _context.QCRequests
+                    .Where(qc => qc.VendorId == vendorId)
+                    .OrderByDescending(qc => qc.Status);
+
+                int totalItems = await query.CountAsync();
+
+                // Ensure pageSize is at least 1
+                pageSize = Math.Max(1, pageSize);
+
+                int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+                // Ensure page is within valid range
+                page = Math.Max(1, Math.Min(page, totalPages));
+
+                var QCRequests = await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                var qcRequestsDto = QCRequests.Select(qc => MapToQCRequestDto(qc)).ToList();
+
+                var response = new
+                {
+                    TotalItems = totalItems,
+                    TotalPages = totalPages,
+                    Page = page,
+                    PageSize = pageSize,
+                    Data = qcRequestsDto,
+                };
+
+                return Ok(response);
+            }
+            catch (Exception)
+            {
+                // Log the exception for further investigation
+                // logger.LogError(ex, "An error occurred while fetching the the pending QCRequests.");
+
+                return StatusCode(
+                    500,
+                    "An unexpected error occurred while fetching the pending QCRequests. Please try again later."
+                );
+            }
+        }
+
         // GET: api/QCRequests/count-pending
         [HttpGet("count-pending")]
         [Authorize(Roles = "Admin,Vendor")]
@@ -176,7 +231,9 @@ namespace JwtDbApi.Controllers
 
                 if (vendorId != null)
                 {
-                    query = _context.QCRequests.Where(qc => qc.VendorId == vendorId && qc.Status == _pendingStatus);
+                    query = _context.QCRequests.Where(
+                        qc => qc.VendorId == vendorId && qc.Status == _pendingStatus
+                    );
                 }
                 else
                 {
@@ -292,6 +349,42 @@ namespace JwtDbApi.Controllers
                 return StatusCode(
                     500,
                     "An unexpected error occurred while rejecting the QCRequest. Please try again later."
+                );
+            }
+        }
+
+        // PUT: api/QCRequests/VendorResponse/5
+        [HttpPut("VendorResponse/{QCRequestId}")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> VendorResponse(int QCRequestId, QCRequestDto qcRequestDto)
+        {
+            try
+            {
+                var qcRequest = await _context.QCRequests.FindAsync(QCRequestId);
+                if (qcRequest == null)
+                {
+                    return NotFound();
+                }
+
+                qcRequest.Product = SerializeObject(qcRequestDto.Product);
+                qcRequest.ProductVendor = SerializeObject(qcRequestDto.ProductVendor);
+                qcRequest.Status = qcRequestDto.Status;
+                qcRequest.AdminMessage = qcRequestDto.AdminMessage;
+                qcRequest.VendorMessage = qcRequestDto.VendorMessage;
+
+                await _context.SaveChangesAsync();
+
+                // Return qcRequestDto as it is in object format
+                return Ok();
+            }
+            catch (Exception)
+            {
+                // Log the exception for further investigation
+                // logger.LogError(ex, "An error occurred while adding the QCRequest.");
+
+                return StatusCode(
+                    500,
+                    "An unexpected error occurred while adding the QCRequest. Please try again later."
                 );
             }
         }
