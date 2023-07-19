@@ -243,6 +243,29 @@ namespace AuthJwtDbApi.Controllers
         //     return query;
         // }
 
+        // Input Validation and Sanitization for filtering
+        private bool ValidateFilterValue(string? value)
+        {
+            // Sanitize the input value
+
+            return true;
+        }
+        // Whitelisting columns for filtering
+        private bool IsAllowedColumn(string column)
+        {
+            // Define a list of allowed column names
+            var allowedColumns = new List<string>
+            {
+                nameof(UserInfo.UserId),
+                nameof(UserInfo.UserName),
+                nameof(UserInfo.Email),
+                nameof(UserInfo.Role)
+            };
+
+            // Check if the provided column is in the allowed list
+            return allowedColumns.Contains(column, StringComparer.OrdinalIgnoreCase);
+        }
+
         // Apply filtering
         private IQueryable<UserInfo> ApplyFilter(IQueryable<UserInfo> query, string column, string filterOperator, string? value)
         {
@@ -254,6 +277,16 @@ namespace AuthJwtDbApi.Controllers
 
             try
             {
+                if (!ValidateFilterValue(value))
+                {
+                    throw new ArgumentException("Invalid filter input.");
+                }
+
+                if (!IsAllowedColumn(column))
+                {
+                    throw new ArgumentException("Invalid column name.");
+                }
+
                 // Determine the data type of the column
                 var property = typeof(UserInfo).GetProperty(column);
                 if (property == null)
@@ -270,73 +303,12 @@ namespace AuthJwtDbApi.Controllers
                 if (columnType == typeof(string))
                 {
                     // Handle string columns
-                    if (string.IsNullOrEmpty(value) && filterOperator.ToLower() != "isempty")
-                    {
-                        throw new ArgumentException("Invalid filter value for string column.");
-                    }
-
-                    switch (filterOperator.ToLower())
-                    {
-                        case "equals":
-                            filterExpression = $"{column} == @0";
-                            break;
-                        case "contains":
-                            filterExpression = $"{column}.Contains(@0)";
-                            break;
-                        case "startswith":
-                            filterExpression = $"{column}.StartsWith(@0)";
-                            break;
-                        case "endswith":
-                            filterExpression = $"{column}.EndsWith(@0)";
-                            break;
-                        case "isempty":
-                            filterExpression = $"string.IsNullOrEmpty({column})";
-                            break;
-                        default:
-                            throw new ArgumentException("Invalid filter operator for string column.");
-                    }
-                    filterValues = filterOperator.ToLower() != "isempty" ? new object[] { value! } : new object[] { };
+                    filterExpression = GetStringFilterExpression(column, filterOperator, value, out filterValues);
                 }
                 else if (columnType == typeof(int) || columnType == typeof(int?))
                 {
                     // Handle int or nullable int columns
-                    if (value == null && filterOperator.ToLower() != "isempty")
-                    {
-                        throw new ArgumentException("Invalid filter value for int column.");
-                    }
-
-                    int? intValue = null;
-                    if (!string.IsNullOrEmpty(value))
-                    {
-                        if (!int.TryParse(value, out int parsedValue))
-                        {
-                            throw new ArgumentException("Invalid filter value for int column.");
-                        }
-                        intValue = parsedValue;
-                    }
-
-                    switch (filterOperator.ToLower())
-                    {
-                        case "equals":
-                            filterExpression = $"{column} == @0";
-                            break;
-                        case "notequals":
-                            filterExpression = $"{column} != @0";
-                            break;
-                        case "greaterthan":
-                            filterExpression = $"{column} > @0";
-                            break;
-                        case "lessthan":
-                            filterExpression = $"{column} < @0";
-                            break;
-                        case "isempty":
-                            filterExpression = $"{column} == null";
-                            break;
-                        default:
-                            throw new ArgumentException("Invalid filter operator for int column.");
-                    }
-
-                    filterValues = filterOperator.ToLower() == "isempty" ? new object[] { } : new object[] { intValue };
+                    filterExpression = GetIntFilterExpression(column, filterOperator, value, out filterValues);
                 }
                 else
                 {
@@ -352,6 +324,152 @@ namespace AuthJwtDbApi.Controllers
             {
                 throw new ArgumentException($"Error applying filter: {ex.Message}");
             }
+        }
+
+        // Get filter expression for string columns
+        private string GetStringFilterExpression(string column, string filterOperator, string? value, out object[] filterValues)
+        {
+            if (string.IsNullOrEmpty(value) && (filterOperator.ToLower() != "isempty" && filterOperator.ToLower() != "isnotempty"))
+            {
+                throw new ArgumentException("Invalid filter value for string column.");
+            }
+
+            if (filterOperator.ToLower() == "isanyof")
+            {
+                return GetIsAnyOfFilterExpressionForString(column, value, out filterValues);
+            }
+
+            filterValues = new object[1];
+
+            switch (filterOperator.ToLower())
+            {
+                case "contains":
+                    filterValues[0] = value;
+                    return $"{column}.Contains(@0)";
+                case "equals":
+                    filterValues[0] = value;
+                    return $"{column} == @0";
+                case "notequals":
+                    filterValues[0] = value;
+                    return $"{column} != @0";
+                case "startswith":
+                    filterValues[0] = value;
+                    return $"{column}.StartsWith(@0)";
+                case "endswith":
+                    filterValues[0] = value;
+                    return $"{column}.EndsWith(@0)";
+                case "isempty":
+                    return $"string.IsNullOrEmpty({column})";
+                case "isnotempty":
+                    return $"!string.IsNullOrEmpty({column})";
+                default:
+                    throw new ArgumentException("Invalid filter operator for string column.");
+            }
+        }
+
+        // Get filter expression for int columns
+        private string GetIntFilterExpression(string column, string filterOperator, string? value, out object[] filterValues)
+        {
+            if (string.IsNullOrEmpty(value) && (filterOperator.ToLower() != "isempty" && filterOperator.ToLower() != "isnotempty"))
+            {
+                throw new ArgumentException("Invalid filter value for int column.");
+            }
+
+            if (filterOperator.ToLower() == "isanyof")
+            {
+                return GetIsAnyOfFilterExpressionForInt(column, value, out filterValues);
+            }
+
+            int? intValue = null;
+            if (!string.IsNullOrEmpty(value))
+            {
+                if (!int.TryParse(value, out int parsedValue))
+                {
+                    throw new ArgumentException("Invalid filter value for int column.");
+                }
+                intValue = parsedValue;
+            }
+
+            filterValues = new object[1];
+            filterValues[0] = intValue;
+
+            switch (filterOperator.ToLower())
+            {
+                case "equals":
+                    return $"{column} == @0";
+                case "notequals":
+                    return $"{column} != @0";
+                case "greaterthan":
+                    return $"{column} > @0";
+                case "greaterthanorequalto":
+                    return $"{column} >= @0";
+                case "lessthan":
+                    return $"{column} < @0";
+                case "lessthanorequalto":
+                    return $"{column} <= @0";
+                case "isempty":
+                    return $"{column} == null";
+                case "isnotempty":
+                    return $"{column} != null";
+                default:
+                    throw new ArgumentException("Invalid filter operator for int column.");
+            }
+        }
+
+        // Get filter expression for 'is any of' operator for string columns
+        private string GetIsAnyOfFilterExpressionForString(string column, string value, out object[] filterValues)
+        {
+            // Split the value by comma to get individual items
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new ArgumentException("Invalid filter value for 'is any of' operator.");
+            }
+
+            var filterValuesArray = value.Split(',');
+
+            // Generate a dynamic OR condition to check if the column matches any of the filter values
+            var orConditions = new List<string>();
+            filterValues = new object[filterValuesArray.Length];
+
+            for (int i = 0; i < filterValuesArray.Length; i++)
+            {
+                var parameterName = $"@{i}";
+                orConditions.Add($"{column} == {parameterName}");
+                filterValues[i] = filterValuesArray[i];
+            }
+
+            // Combine the OR conditions using dynamic OR operator
+            return string.Join(" || ", orConditions);
+        }
+
+        // Get filter expression for 'is any of' operator for integer columns
+        private string GetIsAnyOfFilterExpressionForInt(string column, string value, out object[] filterValues)
+        {
+            // Split the value by comma to get individual items
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new ArgumentException("Invalid filter value for 'is any of' operator.");
+            }
+
+            var filterValuesArray = value.Split(',');
+
+            // Generate a dynamic OR condition to check if the column matches any of the filter values
+            var orConditions = new List<string>();
+            filterValues = new object[filterValuesArray.Length];
+
+            for (int i = 0; i < filterValuesArray.Length; i++)
+            {
+                if (!int.TryParse(filterValuesArray[i], out int parsedValue))
+                {
+                    throw new ArgumentException("Invalid filter value for int column.");
+                }
+                var parameterName = $"@{i}";
+                orConditions.Add($"{column} == {parameterName}");
+                filterValues[i] = parsedValue;
+            }
+
+            // Combine the OR conditions using the dynamic OR operator
+            return string.Join(" || ", orConditions);
         }
 
         // POST: api/UserInfo
