@@ -220,6 +220,7 @@ namespace JwtDbApi.Controllers
             }
         }
 
+
         // GET: api/QCRequests/count-pending
         [HttpGet("count-pending")]
         [Authorize(Roles = "Admin,Vendor")]
@@ -263,12 +264,20 @@ namespace JwtDbApi.Controllers
         {
             try
             {
-                var query = _context.QCRequests.Where(
+                var rejected = _context.QCRequests.Where(
                     qc => qc.VendorId == vendorId && qc.Status == _rejectedStatus
                 );
-                int count = await query.CountAsync();
+                int rejectedCount = await rejected.CountAsync();
+                var pending = _context.QCRequests.Where(
+                    qc => qc.VendorId == vendorId && qc.Status == _pendingStatus
+                );
+                int pendingCount = await pending.CountAsync();
 
-                return Ok(count);
+                return Ok(new
+                {
+                    rejectedCount,
+                    pendingCount
+                });
             }
             catch (Exception)
             {
