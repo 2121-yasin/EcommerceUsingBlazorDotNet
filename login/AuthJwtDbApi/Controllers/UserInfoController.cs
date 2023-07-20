@@ -112,6 +112,115 @@ namespace AuthJwtDbApi.Controllers
         //     }
         // }
 
+        // PUT: api/UserInfo/UpdateName
+        [HttpPut("UpdateName")]
+        public IActionResult UpdateName([FromBody] string newName)
+        {
+            try
+            {
+                // Get the user ID from the JWT token
+                var userId = GetUserIdFromToken();
+
+                // Retrieve the user from the database
+                var user = _context.UserInfo.FirstOrDefault(u => u.UserId == userId);
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+
+                // Update the user's name
+                user.UserName = newName;
+                _context.SaveChanges();
+
+                return Ok("User name updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error updating user name: {ex.Message}");
+            }
+        }
+
+
+        [HttpPut("UpdatePhoneNumber")]
+        public IActionResult UpdatePhoneNumber([FromBody] string phoneNumber)
+        {
+            try
+            {
+                // Get the user ID from the JWT token
+                var userId = GetUserIdFromToken();
+
+                // Retrieve the user from the database
+                var user = _context.UserInfo.FirstOrDefault(u => u.UserId == userId);
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+
+                // Update the phone number
+                user.Phone = phoneNumber;
+                _context.SaveChanges();
+
+                return Ok("Phone number updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error updating phone number: {ex.Message}");
+            }
+        }
+
+        // PUT: api/UserInfo/UpdateAddress
+        // PUT: api/UserInfo/UpdateAddress
+        [HttpPut("UpdateAddress")]
+        public IActionResult UpdateAddress([FromBody] AddressInfo updatedAddress)
+        {
+            try
+            {
+                // Get the user ID from the JWT token
+                var userId = GetUserIdFromToken();
+
+                // Retrieve the user from the database
+                var user = _context.UserInfo.Include(u => u.Address).FirstOrDefault(u => u.UserId == userId);
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+
+                // Update the address information
+                user.Address.Street = updatedAddress.Street;
+                user.Address.City = updatedAddress.City;
+                user.Address.State = updatedAddress.State;
+                user.Address.Pincode = updatedAddress.Pincode;
+
+                // Mark the address entity as Modified
+                _context.Entry(user.Address).State = EntityState.Modified;
+
+                _context.SaveChanges();
+
+                return Ok("Address information updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error updating address: {ex.Message}");
+            }
+        }
+
+
+        // Helper method to get the user ID from the JWT token
+        private int GetUserIdFromToken()
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "id");
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return userId;
+            }
+            throw new InvalidOperationException("User ID not found in the JWT token.");
+        }
+
+
+
+
+
+
         // GET: api/UserInfo/paginated-users
         // GET paginated Users with sorting and filtering
         [HttpGet("paginated-users")]
