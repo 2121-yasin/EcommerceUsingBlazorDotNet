@@ -204,9 +204,9 @@ Console.WriteLine(userId); *@
               {
                 <div class="input-group">
                   <input type="text" class="form-control" @bind="@username" />
-                  <button class="btn btn-primary" @onclick="UpdateUsername">Save</button>
-                  <button class="btn btn-secondary" @onclick="ToggleEditMode">Cancel</button>
                 </div>
+                <button class="btn btn-primary" @onclick="UpdateUsername">Save</button>
+                <button class="btn btn-secondary" @onclick="ToggleEditMode">Cancel</button>
               }
             </div>
             <div class="col-md-8">
@@ -230,9 +230,9 @@ Console.WriteLine(userId); *@
                     {
                       <div class="input-group">
                         <input type="text" class="form-control" @bind="@phone" />
-                        <button class="btn btn-primary" @onclick="UpdatePhoneNumber">Save</button>
-                        <button class="btn btn-secondary" @onclick="TogglePhoneEditMode">Cancel</button>
                       </div>
+                      <button class="btn btn-primary" @onclick="UpdatePhoneNumber">Save</button>
+                      <button class="btn btn-secondary" @onclick="TogglePhoneEditMode">Cancel</button>
                     }
                   </div>
                 </div>
@@ -249,9 +249,9 @@ Console.WriteLine(userId); *@
                     <input type="text" class="form-control" @bind="@city" />
                     <input type="text" class="form-control" @bind="@state" />
                     <input type="text" class="form-control" @bind="@pincode" />
-                    <button class="btn btn-primary" @onclick="UpdateAddressDetails">Save</button>
-                    <button class="btn btn-secondary" @onclick="ToggleAddressEditMode">Cancel</button>
                   </div>
+                  <button class="btn btn-primary" @onclick="UpdateAddressDetails">Save</button>
+                  <button class="btn btn-secondary" @onclick="ToggleAddressEditMode">Cancel</button>
                 }
                 else
                 {
