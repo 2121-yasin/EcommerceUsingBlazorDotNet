@@ -9,6 +9,8 @@
 @inject HttpClient HttpClient
 @using System.Text
 @inject SweetAlertService Swal;
+@using System.Net;
+
 <PageTitle>EShop</PageTitle>
 
 @*<CustomDialog @ref="dialogRef" />*@
@@ -165,6 +167,17 @@
                         ConfirmButtonText = "OK",
                     });
                 }
+                else if (response.StatusCode == HttpStatusCode.BadRequest)
+{
+    // Item already present in the cart
+    var errorResult = await Swal.FireAsync(new SweetAlertOptions
+    {
+        Title = "Alert!!",
+        Text = "Item already present in the cart. If you want to add it again, you can go to the cart and select the quantity.",
+        Icon = SweetAlertIcon.Warning,
+        ConfirmButtonText = "OK",
+    });
+}
                 else
                 {
                     // Failed to add item to the cart
