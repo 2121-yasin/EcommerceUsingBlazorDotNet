@@ -5,4 +5,21 @@
     Layout = "_Layout";
 }
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="_content/CurrieTechnologies.Razor.SweetAlert2/sweetAlert2.min.js"></script>
+<!-- Add this just before your closing </body> tag -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.all.min.js"></script>
+
+@*<script>
+function showModal() {
+var modal = document.querySelector('.modal');
+var bootstrapModal = new bootstrap.Modal(modal);
+bootstrapModal.show();
+}
+
+function closeModal() {
+var modal = document.querySelector('.modal');
+var bootstrapModal = new bootstrap.Modal(modal);
+bootstrapModal.hide();
+}
+</script>*@
 <component type="typeof(App)" render-mode="ServerPrerendered" />

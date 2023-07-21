@@ -19,6 +19,7 @@
 @using System.Text
 @inject HttpClient HttpClient
 @using System.Net.Http.Headers;
+@inject SweetAlertService Swal;
 
 
 
@@ -150,8 +151,17 @@ private async Task AddToCart(Products product)
     var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
     if (string.IsNullOrEmpty(token))
     {
-        var result = await JSRuntime.InvokeAsync<bool>("confirm", "Please login to your account");
-        if (result)
+        var result = await Swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Login Required",
+            Text = "Please login to your account",
+            Icon = SweetAlertIcon.Warning,
+            ShowCancelButton = true,
+            ConfirmButtonText = "Login",
+            CancelButtonText = "No, thanks"
+        });
+
+        if (result.IsConfirmed)
         {
             NavigationManager.NavigateTo($"https://localhost:7085/?ClientId=a0d0b3a2-efa4-47ca-b193-45bdbd950f3a");
             return;
@@ -233,10 +243,20 @@ private async Task ProcessPayment(double totalAmount)
     
     if (string.IsNullOrEmpty(token))
     {
-        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Please login to your account.");
-        if (confirmed)
+        var result = await Swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Login Required",
+            Text = "Please login to your account",
+            Icon = SweetAlertIcon.Warning,
+            ShowCancelButton = true,
+            ConfirmButtonText = "Login",
+            CancelButtonText = "No, thanks"
+        });
+
+        if (result.IsConfirmed)
         {
             NavigationManager.NavigateTo($"https://localhost:7085/?ClientId=a0d0b3a2-efa4-47ca-b193-45bdbd950f3a");
+            return;
         }
     }
     else

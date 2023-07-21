@@ -8,6 +8,7 @@
 @using System.IdentityModel.Tokens.Jwt;
 @inject HttpClient HttpClient
 @using System.Net.Http.Headers
+@inject SweetAlertService Swal;
 <PageTitle>EShop</PageTitle>
 
 @code {
@@ -83,33 +84,34 @@
         NavigationManager.NavigateTo("/");
     }
 
-private async Task GetCartItemCount()
-{
-    var token = await GetTokenFromLocalStorage();
-    HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-    var handler = new JwtSecurityTokenHandler();
-    var decodedToken = handler.ReadJwtToken(token);
-    var userId = decodedToken.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
-    var apiUrl = $"https://localhost:7044/api/cart/ItemCount/{userId}";
-
-    using (var httpClientHandler = new HttpClientHandler())
+    private async Task GetCartItemCount()
     {
-        httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
-        using (var httpClient = new HttpClient(httpClientHandler))
-        {
-            var response = await httpClient.GetAsync(apiUrl);
+        var token = await GetTokenFromLocalStorage();
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var handler = new JwtSecurityTokenHandler();
+        var decodedToken = handler.ReadJwtToken(token);
+        var userId = decodedToken.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+        var apiUrl = $"https://localhost:7044/api/cart/ItemCount/{userId}";
 
-            if (response.IsSuccessStatusCode)
+        using (var httpClientHandler = new HttpClientHandler())
+        {
+            httpClientHandler.ServerCertificateCustomValidationCallback =
+            HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+            using (var httpClient = new HttpClient(httpClientHandler))
             {
-                var count = await response.Content.ReadAsStringAsync();
-                cartItemCount = int.Parse(count);
-                
-                // Notify the components that the cart item count has been updated
-                StateHasChanged();
+                var response = await httpClient.GetAsync(apiUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var count = await response.Content.ReadAsStringAsync();
+                    cartItemCount = int.Parse(count);
+
+                    // Notify the components that the cart item count has been updated
+                    StateHasChanged();
+                }
             }
         }
     }
-}
 
 
     private async Task<List<Products>> GetProduct()
@@ -123,7 +125,8 @@ private async Task GetCartItemCount()
 
         using (var httpClientHandler = new HttpClientHandler())
         {
-            httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+            httpClientHandler.ServerCertificateCustomValidationCallback =
+            HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
             using (var httpClient = new HttpClient(httpClientHandler))
             {
                 var jsonStr = await httpClient.GetStringAsync(baseUrl);
@@ -144,15 +147,21 @@ private async Task GetCartItemCount()
         var token = await GetTokenFromLocalStorage();
         if (string.IsNullOrEmpty(token))
         {
-            var result = await JSRuntime.InvokeAsync<bool>("confirm", "Please login to your account");
-            if (result)
+            var result = await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Login Required",
+                    Text = "Please login to your account",
+                    Icon = SweetAlertIcon.Warning,
+                    ShowCancelButton = true,
+                    ConfirmButtonText = "Login",
+                    CancelButtonText = "No, thanks"
+                });
+
+            if (result.IsConfirmed)
             {
-                NavigationManager.NavigateTo($"https://localhost:7085/?ClientId={clientId}");
+                NavigationManager.NavigateTo($"https://localhost:7085/?ClientId=a0d0b3a2-efa4-47ca-b193-45bdbd950f3a");
+                return;
             }
-        }
-        else
-        {
-            NavigationManager.NavigateTo("/");
         }
     }
 
@@ -164,46 +173,55 @@ private async Task GetCartItemCount()
     </div>
 
     <main>
-      
+
         <div class="top-row px-4">
             <form class="d-flex" role="search" @onsubmit="SearchProducts">
-                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" @bind-value="@searchQuery">
+                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search"
+                    @bind-value="@searchQuery">
                 <button class="btn btn-outline-success" type="submit">Search</button>
             </form>
 
-            
+
             @if (!isLoggedIn)
             {
-<button class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart" @onclick="HandleCartClick">
-    <i class="bi bi-cart4"></i>
-</button>
-            <a href="wishlist" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Wishlist"><i class="bi bi-heart-fill"></i></a>
-                <button class="btn btn-outline-danger my-2 my-sm-0 mx-2" @onclick='() => NavigationManager.NavigateTo($"https://localhost:7085/?ClientId={clientId}")'>Login</button>
+                <button class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip"
+                    data-placement="top" title="View Items in a Cart" @onclick="HandleCartClick">
+                    <i class="bi bi-cart4"></i>
+                </button>
+                <a href="wishlist" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip"
+                    data-placement="top" title="View Wishlist"><i class="bi bi-heart-fill"></i></a>
+                <button class="btn btn-outline-danger my-2 my-sm-0 mx-2"
+                @onclick='() => NavigationManager.NavigateTo($"https://localhost:7085/?ClientId={clientId}")'>Login</button>
             }
             else
             {
-            <a href="@($"/cart?token={token}")" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Items in a Cart"><i class="bi bi-cart4">   
-                 <span id="cartCounter" class="cart-counter">@cartItemCount</span>
-            </i>
-            </a>
-            <a href="@($"/wishlist?token={token}")" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="View Wishlist"><i class="bi bi-heart-fill"></i></a>
-            <a href="@($"/MyOrder?token={token}")" class="btn btn-outline-success border px-3 pt-2 icon-hover mx-2" data-toggle="tooltip" data-placement="top" title="My Orders"><i class="bi bi-bag-fill"></i></a>   
+                <a href="@($"/cart?token={token}")" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2"
+                    data-toggle="tooltip" data-placement="top" title="View Items in a Cart"><i class="bi bi-cart4">
+                        <span id="cartCounter" class="cart-counter">@cartItemCount</span>
+                    </i>
+                </a>
+                <a href="@($"/wishlist?token={token}")" class="btn btn-outline-danger border px-3 pt-2 icon-hover mx-2"
+                    data-toggle="tooltip" data-placement="top" title="View Wishlist"><i class="bi bi-heart-fill"></i></a>
+                <a href="@($"/MyOrder?token={token}")" class="btn btn-outline-success border px-3 pt-2 icon-hover mx-2"
+                    data-toggle="tooltip" data-placement="top" title="My Orders"><i class="bi bi-bag-fill"></i></a>
                 <a href="@($"/profile?token={token}")">
-                    <button  class="btn btn-outline-success " type="button" id="profile-btn"  aria-expanded="false" data-toggle="tooltip" data-placement="top" title="My Profile">
+                    <button class="btn btn-outline-success " type="button" id="profile-btn" aria-expanded="false"
+                        data-toggle="tooltip" data-placement="top" title="My Profile">
                         <i class="bi bi-person-badge"></i>Welcome, @username!
                     </button>
                 </a>
-                 <button class="btn btn-outline-danger my-2 my-sm-0 mx-2" @onclick="Logout">Logout</button>
+                <button class="btn btn-outline-danger my-2 my-sm-0 mx-2" @onclick="Logout">Logout</button>
             }
-            
-          @* <div id="mode" class="toggle btn btn-outline-danger my-2 my-sm-0 mx-2" data-toggle="tooltip" data-placement="top" title="Change Mode">
-                        <i class="bi bi-moon-stars"></i>
-           </div> *@
-    
+
+            @* <div id="mode" class="toggle btn btn-outline-danger my-2 my-sm-0 mx-2" data-toggle="tooltip"
+            data-placement="top" title="Change Mode">
+            <i class="bi bi-moon-stars"></i>
+            </div> *@
+
         </div>
         <article class="content px-4">
             @Body
         </article>
-        
+
     </main>
 </div>

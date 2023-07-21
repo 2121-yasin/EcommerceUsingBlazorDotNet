@@ -10,6 +10,7 @@ using Firebase.Database.Query;
 using FireSharp.Config;
 using FireSharp.Interfaces;
 using FireSharp.Response;
+using CurrieTechnologies.Razor.SweetAlert2;
 
 
 
@@ -20,8 +21,10 @@ using FireSharp.Response;
 var builder = WebApplication.CreateBuilder(args);
 
 
+builder.Services.AddSweetAlert2();
+
 //builder.Services.AddScoped<ICartService, CartService>();
- // Add this line
+// Add this line
 
 //firebase config
 // builder.Services.AddScoped<IFirebaseClient>(_ =>

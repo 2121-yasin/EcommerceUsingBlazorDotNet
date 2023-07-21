@@ -121,8 +121,7 @@ function addToCart(event) {
 
 
 
-//add to wishlist
-function addToWishlist(event) {
+async function addToWishlist(event) {
   event.preventDefault();
   const productId = event.target.dataset.productId;
   const productName = event.target.dataset.productName;
@@ -135,20 +134,46 @@ function addToWishlist(event) {
     return;
   }
 
-  let wishlistItems = JSON.parse(localStorage.getItem("wishlistItems")) || [];
-  let wishlistItem = wishlistItems.find(item => item.id === productId);
-  if (wishlistItem) {
-    // Product already exists in wishlist
-    window.alert("Product already present in wishlist");
-    return;
+  const confirmResult = await Swal.fire({
+    title: "Confirmation",
+    text: "Do you want to add item to wishlist?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "No",
+  });
+
+  if (confirmResult.isConfirmed) {
+    // Proceed with adding the item to the wishlist
+    let wishlistItems = JSON.parse(localStorage.getItem("wishlistItems")) || [];
+    let wishlistItem = wishlistItems.find(item => item.id === productId);
+    if (wishlistItem) {
+      // Product already exists in the wishlist
+      const alertResult = await Swal.fire({
+        title: "Alert!!",
+        text: "Product already present in wishlist",
+        icon: "warning",
+        confirmButtonText: "OK",
+      });
+    } else {
+      // Product doesn't exist in the wishlist, add as a new item
+      wishlistItem = { id: productId, name: productName, price: productPrice, image: productImage };
+      wishlistItems.push(wishlistItem);
+      localStorage.setItem("wishlistItems", JSON.stringify(wishlistItems));
+
+      const successResult = await Swal.fire({
+        title: "Success",
+        text: "Item added to wishlist successfully!",
+        icon: "success",
+        confirmButtonText: "OK",
+      });
+    }
   } else {
-    // Product doesn't exist in wishlist, add as new item
-    wishlistItem = { id: productId, name: productName, price: productPrice, image: productImage };
-    wishlistItems.push(wishlistItem);
-    localStorage.setItem("wishlistItems", JSON.stringify(wishlistItems));
-    window.alert("Item added to wishlist");
+    // User clicked "No," abort the process
+    return;
   }
 }
+
 
 
 
