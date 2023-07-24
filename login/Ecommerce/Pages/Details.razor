@@ -20,6 +20,7 @@
 @inject HttpClient HttpClient
 @using System.Net.Http.Headers;
 @inject SweetAlertService Swal;
+@using System.Net;
 
 
 
@@ -185,23 +186,60 @@ private async Task AddToCart(Products product)
         httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
         using (var httpClient = new HttpClient(httpClientHandler))
         {
-            var response = await httpClient.PostAsync(url, null);
-            var statusCode = response.StatusCode;
-
-            if (response.IsSuccessStatusCode)
+            var confirmResult = await Swal.FireAsync(new SweetAlertOptions
             {
-                await JSRuntime.InvokeVoidAsync("alert", "Item successfully added to the cart.");
+                Title = "Confirmation",
+                Text = "Do you want to add item to cart?",
+                Icon = SweetAlertIcon.Warning,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Yes",
+                CancelButtonText = "No"
+            });
+
+            if (confirmResult.IsConfirmed)
+            {
+                // Proceed with adding the item to the cart
+                var response = await httpClient.PostAsync(url, null);
+                var statusCode = response.StatusCode;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Item added to cart successfully
+                    var successResult = await Swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Success",
+                        Text = "Item added to cart successfully!",
+                        Icon = SweetAlertIcon.Success,
+                        ConfirmButtonText = "OK",
+                    });
+                }
+                else if (response.StatusCode == HttpStatusCode.BadRequest)
+{
+    // Item already present in the cart
+    var errorResult = await Swal.FireAsync(new SweetAlertOptions
+    {
+        Title = "Alert!!",
+        Text = "Item already present in the cart. If you want to add it again, you can go to the cart and select the quantity.",
+        Icon = SweetAlertIcon.Warning,
+        ConfirmButtonText = "OK",
+    });
+}
+                else
+                {
+                    // Failed to add item to the cart
+                    var errorResult = await Swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Alert!!",
+                        Text = "Failed to add item to the cart.",
+                        Icon = SweetAlertIcon.Warning,
+                        ConfirmButtonText = "OK",
+                    });
+                }
             }
             else
             {
-                if (statusCode == System.Net.HttpStatusCode.BadRequest)
-                {
-                    await JSRuntime.InvokeVoidAsync("alert", "Item already present in the cart.");
-                }
-                else
-                {
-                    await JSRuntime.InvokeVoidAsync("alert", "Failed to add item to the cart.");
-                }
+                // User clicked "No," abort the process
+                return;
             }
         }
     }
@@ -317,7 +355,7 @@ private class PaymentDetails
 
 private async Task SendOrderConfirmationEmail(string recipientEmail)
 {
-    var apiKey = ""; // Remove this key before uploading on GitHub
+    var apiKey = "Key"; // Remove this key before uploading on GitHub
     var client = new SendGridClient(apiKey);
     var from = new EmailAddress("honnolliyasin@gmail.com", "E shop");
     var subject = "Order Confirmation";

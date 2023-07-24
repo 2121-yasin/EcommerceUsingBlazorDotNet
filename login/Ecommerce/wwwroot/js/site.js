@@ -185,78 +185,80 @@ function DecodeJwtToken(token) {
 
 window.RazorpayCheckout = {
   createPayment: function(orderId, keyId, totalAmount) {
-      return new Promise((resolve, reject) => {
-          var options = {
-              "key": keyId,
-              "amount": totalAmount * 100,
-              "currency": "INR",
-              "name": "E Shop",
-              "description": "Payment for your order",
-              "image": "../../../Assets/eshop.png",
-              "order_id": orderId,
-              "handler": function(response) {
-                // Call RazorpayPaymentSuccessHandler method on payment success
-                // DotNet.invokeMethodAsync('Ecommerce', 'RazorpayPaymentSuccessHandler', response.razorpay_payment_id);
-                  
-                var paymentDetails = {
-                  paymentId: response.razorpay_payment_id,
-                  // status: response.razorpay_payment_status,
-                  // paymentMethod: response.razorpay_payment_method,
-                  createdAt: new Date().toISOString(),
-                  description: options.description,
-                  customer: options.prefill.name,
-                  email: options.prefill.email,
-                  contact: options.prefill.contact,
-                  street: options.prefill.street,
-                  city: options.prefill.city,
-                  state:options.prefill.state,
-                  pincode:options.prefill.pincode,
-                  totalFee: (options.amount / 100).toFixed(2),
-                  orderId: options.order_id,
-                  notes: JSON.stringify(options.notes)
-                };
-                
-                //resolve(`alert('Payment successful.\\nPayment ID: ${paymentDetails.paymentId}\\nStatus: ${paymentDetails.status}\\nPayment Method: ${paymentDetails.paymentMethod}\\nCreated At: ${paymentDetails.createdAt}\\nDescription: ${paymentDetails.description}\\nCustomer: ${paymentDetails.customer}\\nEmail: ${paymentDetails.email}\\nContact: ${paymentDetails.contact}\\nStreet: ${paymentDetails.street}\\nCity: ${paymentDetails.city}\\nState: ${paymentDetails.state}\\nPincode: ${paymentDetails.pincode}\\nOrder ID: ${paymentDetails.orderId}\\nNotes: ${paymentDetails.notes}\\nTotal Fee Paid: ${paymentDetails.totalFee}')`);
-                //localStorage.setItem('paymentDetails', JSON.stringify(paymentDetails));
-                 // Store paymentDetails in session storage
-                 sessionStorage.setItem('paymentDetails', JSON.stringify(paymentDetails));
-                 resolve(`alert('Payment successful.\\nPayment ID: ${paymentDetails.paymentId}\\nCreated At: ${paymentDetails.createdAt}\\nDescription: ${paymentDetails.description}\\nName: ${paymentDetails.customer}\\nEmail: ${paymentDetails.email}\\nContact: ${paymentDetails.contact}\\nStreet: ${paymentDetails.street}\\nCity: ${paymentDetails.city}\\nState: ${paymentDetails.state}\\nPincode: ${paymentDetails.pincode}\\nOrder ID: ${paymentDetails.orderId}\\nNotes: ${paymentDetails.notes}\\nTotal Fee Paid: ${paymentDetails.totalFee}')`);
-                
-              },
-              "prefill": {
-                  "name": "",
-                  "email": "",
-                  "contact": "",
-                  "street": "",
-                  "city": "",
-                  "state": "",
-                  "pincode": ""
-              },
-              "notes": {
-                  "address": "Razorpay Corporate Office"
-              },
-              "theme": {
-                  "color": "#F37254"
-              }
+    return new Promise((resolve, reject) => {
+      var options = {
+        "key": keyId,
+        "amount": totalAmount * 100,
+        "currency": "INR",
+        "name": "E Shop",
+        "description": "Payment for your order",
+        "image": "../../../Assets/eshop.png",
+        "order_id": orderId,
+        "handler": function(response) {
+          var paymentDetails = {
+            paymentId: response.razorpay_payment_id,
+            createdAt: new Date().toISOString(),
+            description: options.description,
+            customer: options.prefill.name,
+            email: options.prefill.email,
+            contact: options.prefill.contact,
+            street: options.prefill.street,
+            city: options.prefill.city,
+            state: options.prefill.state,
+            pincode: options.prefill.pincode,
+            totalFee: (options.amount / 100).toFixed(2),
+            orderId: options.order_id,
+            notes: JSON.stringify(options.notes)
           };
-          
-          var token = localStorage.getItem('token');
-          var decodedToken = DecodeJwtToken(token);
-          
-          options.prefill.name = decodedToken.UserName;
-          options.prefill.email = decodedToken.Email;
-          options.prefill.contact = decodedToken.Phone;
 
-          options.prefill.street = decodedToken.Street;
-          options.prefill.city = decodedToken.City;
-          options.prefill.state = decodedToken.State;
-          options.prefill.pincode = decodedToken.Pincode;
-          
-          var rzp = new Razorpay(options);
-          rzp.open();
-      });
+          // Store paymentDetails in session storage
+          sessionStorage.setItem('paymentDetails', JSON.stringify(paymentDetails));
+
+          // Show the SweetAlert with payment details
+          Swal.fire({
+            title: "Payment Successful!",
+            html: `Payment ID: ${paymentDetails.paymentId}<br>Created At: ${paymentDetails.createdAt}<br>Description: ${paymentDetails.description}<br>Name: ${paymentDetails.customer}<br>Email: ${paymentDetails.email}<br>Contact: ${paymentDetails.contact}<br>Street: ${paymentDetails.street}<br>City: ${paymentDetails.city}<br>State: ${paymentDetails.state}<br>Pincode: ${paymentDetails.pincode}<br>Order ID: ${paymentDetails.orderId}<br>Notes: ${paymentDetails.notes}<br>Total Fee Paid: ${paymentDetails.totalFee}`,
+            icon: "success",
+            confirmButtonText: "OK"
+          });
+
+          resolve();
+        },
+        "prefill": {
+          "name": "",
+          "email": "",
+          "contact": "",
+          "street": "",
+          "city": "",
+          "state": "",
+          "pincode": ""
+        },
+        "notes": {
+          "address": "Razorpay Corporate Office"
+        },
+        "theme": {
+          "color": "#F37254"
+        }
+      };
+
+      var token = localStorage.getItem('token');
+      var decodedToken = DecodeJwtToken(token);
+
+      options.prefill.name = decodedToken.UserName;
+      options.prefill.email = decodedToken.Email;
+      options.prefill.contact = decodedToken.Phone;
+
+      options.prefill.street = decodedToken.Street;
+      options.prefill.city = decodedToken.City;
+      options.prefill.state = decodedToken.State;
+      options.prefill.pincode = decodedToken.Pincode;
+
+      var rzp = new Razorpay(options);
+      rzp.open();
+    });
   }
 };
+
 
 function updateAmountToPay(amountToPayElement, totalAmount) {
   amountToPayElement.textContent = "Amount to Pay: " + totalAmount;

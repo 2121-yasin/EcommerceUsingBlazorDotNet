@@ -22,64 +22,67 @@
 {
     <div class="row">
         @foreach (var item in cart.Products)
-{
-    <div class="col-lg-3 col-md-4 col-sm-6">
-        <div class="card h-100">
-            <img src="@item.ImageURL" class="card-img-top" alt="Product Image" />
-            <div class="card-body">
-                <h5 class="card-title">@item.ProdName</h5>
-                <p class="card-text">@item.Description</p>
-                <p class="card-text">Price: @(item.Price * item.ProductQuantity)</p>
-                <p class="card-text">
-                    <strong>Status: </strong>
-                    @if (item.Quantity <= 0)
-                    {
-                        <span class="out-of-stock">Out of Stock</span>
-                    }
-                    else if (item.Quantity < 5)
-                    {
-                        <span class="low-stock">Low Stock</span>
-                    }
-                    else
-                    {
-                        <span class="in-stock">In Stock</span>
-                    }
-                </p>
-                <div class="form-group">
-                    <label for="quantitySelect">Quantity:</label>
-                    <select class="form-control" id="quantitySelect" @bind="item.ProductQuantity">
-                        @for (int i = 1; i <= 3; i++)
-                        {
-                            <option value="@i" selected="@i == item.ProductQuantity">@i</option>
-                        }
-                        <option value="-1" selected="@item.ProductQuantity == -1">more..</option>
-                    </select>
-                    @if (item.ProductQuantity == -1)
-                    {
-                        <input type="number" class="form-control mt-2" min="1" @bind="item.ProductQuantity" />
-                    }
+        {
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="card h-100">
+                    <img src="@item.ImageURL" class="card-img-top" alt="Product Image" />
+                    <div class="card-body">
+                        <h5 class="card-title">@item.ProdName</h5>
+                        <p class="card-text">@item.Description</p>
+                        <p class="card-text">Price: @(item.Price * item.ProductQuantity)</p>
+                        <p class="card-text">
+                            <strong>Status: </strong>
+                            @if (item.Quantity <= 0)
+                            {
+                                <span class="out-of-stock">Out of Stock</span>
+                            }
+                            else if (item.Quantity < 5)
+                            {
+                                <span class="low-stock">Low Stock</span>
+                            }
+                            else
+                            {
+                                <span class="in-stock">In Stock</span>
+                            }
+                        </p>
+                        <div class="form-group">
+                            <label for="quantitySelect">Quantity:</label>
+                            <select class="form-control" id="quantitySelect" @bind="item.ProductQuantity">
+                                @for (int i = 1; i <= 3; i++)
+                                {
+                                    <option value="@i" selected="@i == item.ProductQuantity">@i</option>
+                                }
+                                <option value="-1" selected="@item.ProductQuantity == -1">more..</option>
+                            </select>
+                            @if (item.ProductQuantity == -1)
+                            {
+                                <input type="number" class="form-control mt-2" min="1" @bind="item.ProductQuantity" />
+                            }
+                        </div>
+                    </div>
+                    <div class="card-footer text-center">
+                        <button class="btn btn-outline-danger" data-toggle="tooltip" data-placement="top"
+                            title="Remove item from cart" @onclick="() => RemoveItemFromCart(item.Id)">
+                            <i class="bi bi-cart-x" style="font-size: 2rem;"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
-            <div class="card-footer text-center">
-                <button class="btn btn-outline-danger" data-toggle="tooltip" data-placement="top" title="Remove item from cart" @onclick="() => RemoveItemFromCart(item.Id)">
-                    <i class="bi bi-cart-x" style="font-size: 2rem;"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-}
+        }
 
 
 
     </div>
 
-        <div class="row mt-4">
+    <div class="row mt-4">
         <div class="col-lg-12 text-center">
             <h4>Total Price: <span class="total-price">@CalculateTotalPrice(cart.Products)</span></h4>
         </div>
         <div style="text-align: center;">
-  <a @onclick="HandleCheckoutClick" class="btn btn-outline-danger" data-toggle="tooltip" data-placement="top" title="Checkout for Payment Options" style="max-width: 250px;"><i class="bi bi-bag-check" style="font-size: 2rem;"></i></a>
-</div>
+            <a @onclick="HandleCheckoutClick" class="btn btn-outline-danger" data-toggle="tooltip" data-placement="top"
+                title="Checkout for Payment Options" style="max-width: 250px;"><i class="bi bi-bag-check"
+                    style="font-size: 2rem;"></i></a>
+        </div>
     </div>
 }
 else
@@ -95,53 +98,64 @@ else
     private CartModel cart;
     private bool isLoaded;
 
-private async Task HandleCheckoutClick()
-{
-    var totalPrice = CalculateTotalPrice(cart.Products);
-    if (totalPrice == 0)
+    private async Task HandleCheckoutClick()
     {
-        await JSRuntime.InvokeVoidAsync("alert", "Select quantity to proceed to checkout.");
-        return;
-    }
-
-    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
-    if (string.IsNullOrEmpty(token))
-    {
-        var result = await Swal.FireAsync(new SweetAlertOptions
+        var totalPrice = CalculateTotalPrice(cart.Products);
+        if (totalPrice == 0)
         {
-            Title = "Login Required",
-            Text = "Please login to your account",
-            Icon = SweetAlertIcon.Warning,
-            ShowCancelButton = true,
-            ConfirmButtonText = "Login",
-            CancelButtonText = "No, thanks"
-        });
-
-        if (result.IsConfirmed)
-        {
-            NavigationManager.NavigateTo($"https://localhost:7085/?ClientId=a0d0b3a2-efa4-47ca-b193-45bdbd950f3a");
+            await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Alert!!",
+                    Text = "Select quantity to proceed to checkout.",
+                    Icon = SweetAlertIcon.Warning,
+                    ConfirmButtonText = "OK",
+                });
             return;
         }
-    }
 
-    else
-    {
-        var outOfStockProducts = cart.Products.Where(p => p.Quantity <= 0).ToList();
-        if (outOfStockProducts.Any())
+        var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+        if (string.IsNullOrEmpty(token))
         {
-            await JSRuntime.InvokeVoidAsync("alert", "Some products are not in stock. We will notify you once they are back in stock.");
-            var availableProducts = cart.Products.Where(p => p.Quantity > 0).ToList();
-            var productsJson = JsonSerializer.Serialize(availableProducts);
-            NavigationManager.NavigateTo($"/checkout?token={token}&products={productsJson}");
+            var result = await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Login Required",
+                    Text = "Please login to your account",
+                    Icon = SweetAlertIcon.Warning,
+                    ShowCancelButton = true,
+                    ConfirmButtonText = "Login",
+                    CancelButtonText = "No, thanks"
+                });
+
+            if (result.IsConfirmed)
+            {
+                NavigationManager.NavigateTo($"https://localhost:7085/?ClientId=a0d0b3a2-efa4-47ca-b193-45bdbd950f3a");
+                return;
+            }
         }
         else
         {
-            var availableProducts = cart.Products.Where(p => p.Quantity > 0).ToList();
-            var productsJson = JsonSerializer.Serialize(availableProducts);
-            NavigationManager.NavigateTo($"/checkout?token={token}&products={productsJson}");
+            var outOfStockProducts = cart.Products.Where(p => p.Quantity <= 0).ToList();
+            if (outOfStockProducts.Any())
+            {
+                await Swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Alert!!",
+                        Text = "Some products are not in stock. We will notify you once they are back in stock.",
+                        Icon = SweetAlertIcon.Warning,
+                        ConfirmButtonText = "OK",
+                    });
+                var availableProducts = cart.Products.Where(p => p.Quantity > 0).ToList();
+                var productsJson = JsonSerializer.Serialize(availableProducts);
+                NavigationManager.NavigateTo($"/checkout?token={token}&products={productsJson}");
+            }
+            else
+            {
+                var availableProducts = cart.Products.Where(p => p.Quantity > 0).ToList();
+                var productsJson = JsonSerializer.Serialize(availableProducts);
+                NavigationManager.NavigateTo($"/checkout?token={token}&products={productsJson}");
+            }
         }
     }
-}
 
 
 
@@ -165,83 +179,102 @@ private async Task HandleCheckoutClick()
         }
     }
 
-private async Task LoadCartData()
-{
-    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
-    HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-    var handler = new JwtSecurityTokenHandler();
-    var decodedToken = handler.ReadJwtToken(token);
-
-    var userId = decodedToken.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
-
-    var url = $"https://localhost:7044/api/cart/{userId}";
-
-    var updatedCart = await HttpClient.GetFromJsonAsync<CartModel>(url);
-
-    if (updatedCart != null)
-    {
-        cart = updatedCart;
-    }
-
-    StateHasChanged();
-}
-
-
-
-  @* private async Task RemoveItemFromCart(int cartItemId)
-{
-    var result = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to remove this item from the cart?");
-    if (result)
-    {
-        var itemToRemove = cart.Products.FirstOrDefault(item => item.Id == cartItemId);
-        if (itemToRemove != null)
-        {
-            cart.Products.Remove(itemToRemove);
-            StateHasChanged();
-        }
-    }
-}   *@
-
-private async Task RemoveItemFromCart(int cartItemId)
-{
-    var result = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to remove this item from the cart?");
-    if (result)
+    private async Task LoadCartData()
     {
         var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
         HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        var response = await HttpClient.DeleteAsync($"https://localhost:7044/api/cart/RemoveFromCart/{cartItemId}");
+        var handler = new JwtSecurityTokenHandler();
+        var decodedToken = handler.ReadJwtToken(token);
 
-        if (response.IsSuccessStatusCode)
+        var userId = decodedToken.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+
+        var url = $"https://localhost:7044/api/cart/{userId}";
+
+        var updatedCart = await HttpClient.GetFromJsonAsync<CartModel>(url);
+
+        if (updatedCart != null)
         {
-            // Item successfully removed from the cart in the database
-            // Refresh the cart data or update the UI accordingly
-            await LoadCartData();
+            cart = updatedCart;
         }
-        else
-        {
-            // Handle error response
-            // Display an error message or perform appropriate error handling
-        }
+
+        StateHasChanged();
     }
-}
 
 
 
-
-
-
-private decimal CalculateTotalPrice(List<CartItemModel> products)
+    @* private async Task RemoveItemFromCart(int cartItemId)
 {
-    decimal totalPrice = 0;
-    foreach (var item in products)
+var result = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to remove this item from the cart?");
+if (result)
+{
+var itemToRemove = cart.Products.FirstOrDefault(item => item.Id == cartItemId);
+if (itemToRemove != null)
+{
+cart.Products.Remove(itemToRemove);
+StateHasChanged();
+}
+}
+} *@
+
+    private async Task RemoveItemFromCart(int cartItemId)
     {
-        if (item.ProductQuantity > 0)
+        var confirmResult = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Confirmation",
+                Text = "Are you sure you want to remove this item from the cart?",
+                Icon = SweetAlertIcon.Warning,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Yes",
+                CancelButtonText = "No"
+            });
+
+        if (confirmResult.IsConfirmed)
         {
-            totalPrice += item.Price * item.ProductQuantity;
+            var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var response = await HttpClient.DeleteAsync($"https://localhost:7044/api/cart/RemoveFromCart/{cartItemId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Item successfully removed from the cart in the database
+                // Refresh the cart data or update the UI accordingly
+                await LoadCartData();
+
+                // Notify the user about successful removal from cart
+                var successResult = await Swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Success",
+                        Text = "Item removed from cart successfully!",
+                        Icon = SweetAlertIcon.Success,
+                        ConfirmButtonText = "OK",
+                    });
+            }
+            else
+            {
+                // Handle error response
+                // Display an error message or perform appropriate error handling
+            }
         }
     }
-    return totalPrice;
-}
+
+
+
+
+
+
+
+    private decimal CalculateTotalPrice(List<CartItemModel> products)
+    {
+        decimal totalPrice = 0;
+        foreach (var item in products)
+        {
+            if (item.ProductQuantity > 0)
+            {
+                totalPrice += item.Price * item.ProductQuantity;
+            }
+        }
+        return totalPrice;
+    }
 
     public class CartModel
     {
@@ -273,41 +306,45 @@ private decimal CalculateTotalPrice(List<CartItemModel> products)
 {
 @if (cartItems == null || cartItems.Length == 0)
 {
-    <p>Your cart is empty</p>
+<p>Your cart is empty</p>
 }
 else
 {
-   <div class="row">
-    @foreach (var item in cartItems)
-    {
-        <div class="col-lg-3 col-md-6 col-sm-6 d-flex">
-            <div class="shadow-lg card w-100 my-2 shadow-2-strong">
-                <a href="@($"/details/{item.id}")">
-                    <img src="@item.image" alt="@item.name" class="card-img-top" style="aspect-ratio: 1 / 1" />
-                </a>
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">@item.name</h5>
-                    <p class="card-text">Price: @item.price</p>
-                    <p class="card-text">Quantity: @item.quantity</p>
-                    <p class="card-text">Total Price: @item.totalPrice</p>
-                    <div class="card-footer d-flex align-items-end pt-3 px-0 pb-0 mt-auto">
-                        <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" data-toggle="tooltip" data-placement="top" title="Remove item from cart" onclick="@(() => RemoveFromCart(item.id))"><i class="bi bi-cart-x" style="font-size: 2rem;"></i></a>
-                        <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to wishlist"
-                            data-product-id="@item.id"
-                            data-product-image="@item.image"
-                            data-product-name="@item.name"
-                            data-product-price="@item.price"
-                            onclick="addToWishlist(event)">
-                            <i class="bi bi-heart text-danger " style="font-size: 2rem;"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
+<div class="row">
+@foreach (var item in cartItems)
+{
+<div class="col-lg-3 col-md-6 col-sm-6 d-flex">
+<div class="shadow-lg card w-100 my-2 shadow-2-strong">
+<a href="@($"/details/{item.id}")">
+<img src="@item.image" alt="@item.name" class="card-img-top" style="aspect-ratio: 1 / 1" />
+</a>
+<div class="card-body d-flex flex-column">
+<h5 class="card-title">@item.name</h5>
+<p class="card-text">Price: @item.price</p>
+<p class="card-text">Quantity: @item.quantity</p>
+<p class="card-text">Total Price: @item.totalPrice</p>
+<div class="card-footer d-flex align-items-end pt-3 px-0 pb-0 mt-auto">
+<a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" data-toggle="tooltip"
+data-placement="top" title="Remove item from cart" onclick="@(() => RemoveFromCart(item.id))"><i class="bi bi-cart-x"
+style="font-size: 2rem;"></i></a>
+<a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to wishlist"
+data-product-id="@item.id"
+data-product-image="@item.image"
+data-product-name="@item.name"
+data-product-price="@item.price"
+onclick="addToWishlist(event)">
+<i class="bi bi-heart text-danger " style="font-size: 2rem;"></i>
+</a>
+</div>
+</div>
+</div>
+</div>
+}
 </div>
 <div style="text-align: center;">
-  <a @onclick="HandleCheckoutClick" class="btn btn-outline-danger" data-toggle="tooltip" data-placement="top" title="Checkout for Payment Options" style="max-width: 250px;"><i class="bi bi-bag-check" style="font-size: 2rem;"></i></a>
+<a @onclick="HandleCheckoutClick" class="btn btn-outline-danger" data-toggle="tooltip" data-placement="top"
+title="Checkout for Payment Options" style="max-width: 250px;"><i class="bi bi-bag-check" style="font-size:
+2rem;"></i></a>
 </div>
 
 
@@ -315,71 +352,71 @@ else
 }
 
 @code {
-    private bool isRendered;
-    private CartItem[] cartItems;
+private bool isRendered;
+private CartItem[] cartItems;
 
 protected override async Task OnAfterRenderAsync(bool firstRender)
 {
-    var storage = await JSRuntime.InvokeAsync<IJSObjectReference>("eval", "localStorage");
-    var json = await storage.InvokeAsync<string>("getItem", "cartItems");
-    if (!string.IsNullOrEmpty(json))
-    {
-        cartItems = JsonSerializer.Deserialize<CartItem[]>(json);
-    }
-    else
-    {
-        cartItems = new CartItem[0];
-    }
-    isRendered = true;
-    StateHasChanged();
+var storage = await JSRuntime.InvokeAsync<IJSObjectReference>("eval", "localStorage");
+var json = await storage.InvokeAsync<string>("getItem", "cartItems");
+if (!string.IsNullOrEmpty(json))
+{
+cartItems = JsonSerializer.Deserialize<CartItem[]>(json);
+}
+else
+{
+cartItems = new CartItem[0];
+}
+isRendered = true;
+StateHasChanged();
 }
 
 
-    private class CartItem
-    {
-        public string id { get; set; }
-        public string name { get; set; }
-        public string price { get; set; }
-        public string image { get; set; }
-        public int quantity { get; set; }
-        public string totalPrice { get; set; }
-    }
+private class CartItem
+{
+public string id { get; set; }
+public string name { get; set; }
+public string price { get; set; }
+public string image { get; set; }
+public int quantity { get; set; }
+public string totalPrice { get; set; }
+}
 
 
 
 private async Task RemoveFromCart(string id)
 {
-    var cartItemsList = cartItems.ToList();
-    var itemToRemove = cartItemsList.FirstOrDefault(x => x.id == id);
-    if (itemToRemove != null)
-    {
-        cartItemsList.Remove(itemToRemove);
-        cartItems = cartItemsList.ToArray();
-        var storage = await JSRuntime.InvokeAsync<IJSObjectReference>("eval", "localStorage");
-        await storage.InvokeVoidAsync("setItem", "cartItems", JsonSerializer.Serialize(cartItems));
-    }
+var cartItemsList = cartItems.ToList();
+var itemToRemove = cartItemsList.FirstOrDefault(x => x.id == id);
+if (itemToRemove != null)
+{
+cartItemsList.Remove(itemToRemove);
+cartItems = cartItemsList.ToArray();
+var storage = await JSRuntime.InvokeAsync<IJSObjectReference>("eval", "localStorage");
+await storage.InvokeVoidAsync("setItem", "cartItems", JsonSerializer.Serialize(cartItems));
+}
 
-    // Call the JavaScript function to decrease the cart counter
-    await JSRuntime.InvokeVoidAsync("RemoveFromCart", id);
+// Call the JavaScript function to decrease the cart counter
+await JSRuntime.InvokeVoidAsync("RemoveFromCart", id);
 }
 
 
 //checkout page opens only when the user is logged in else it will navigate the user to login registration page
 private async Task HandleCheckoutClick()
 {
-    var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
-    if (string.IsNullOrEmpty(token))
-    {
-        var result = await JSRuntime.InvokeAsync<bool>("confirm", "Please login to your account");
-        if (result)
-        {
-            NavigationManager.NavigateTo($"https://localhost:7085/?ClientId=a0d0b3a2-efa4-47ca-b193-45bdbd950f3a");
-        }
-    }
-    else
-    {
-        NavigationManager.NavigateTo($"/checkout?token={token}");
-    }
+var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+if (string.IsNullOrEmpty(token))
+{
+var result = await JSRuntime.InvokeAsync<bool>("confirm", "Please login to your account");
+if (result)
+{
+NavigationManager.NavigateTo($"https://localhost:7085/?ClientId=a0d0b3a2-efa4-47ca-b193-45bdbd950f3a");
+}
+}
+else
+{
+NavigationManager.NavigateTo($"/checkout?token={token}");
+}
 }
 
 } *@
