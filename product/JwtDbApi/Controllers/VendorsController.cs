@@ -74,6 +74,40 @@ namespace JwtDbApi.Controllers
             }
         }
 
+        // PUT api/vendors/updateProfile/vendorId
+        [HttpPut("updateVendorProfile/{vendorId}")]
+        public async Task<ActionResult> UpdateVendorProfile(int vendorId, [FromBody] VendorDto vendorDto)
+
+        {
+            // Find the vendor by ID
+            var vendor = await _context.Vendors.FindAsync(vendorId);
+            if (vendor == null)
+            {
+                return NotFound(); // Vendor not found
+            }
+
+            // Update the vendor's fields
+            vendor.Name = vendorDto.Name;
+            vendor.ProfilePicURL = vendorDto.ProfilePicURL;
+            vendor.GSTIN = vendorDto.GSTIN;
+            vendor.DeliveryPinCode = vendorDto.DeliveryPinCode;
+
+            try
+            {
+                // Save the changes to the database
+                await _context.SaveChangesAsync();
+                return Ok(); // Success
+            }
+            catch (DbUpdateException)
+            {
+                // Handle any exception that occurs during database update
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    "An error occurred while updating the vendor."
+                );
+            }
+        }
+
         // GET products by vendor
 
         [HttpGet("{id}/products")]

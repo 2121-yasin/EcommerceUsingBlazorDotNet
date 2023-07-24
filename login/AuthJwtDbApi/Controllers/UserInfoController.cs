@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
+using System.Net.Http.Headers;
 using System.Reflection;
 using AuthJwtDbApi.Data;
 using AuthJwtDbApi.DTOs;
@@ -654,6 +655,83 @@ namespace AuthJwtDbApi.Controllers
 
             return NoContent();
         }
+
+        // PUT : api/UserInfo/UpdateVendorInfo/
+        [HttpPut("UpdateVendorInfo/{userId}")]
+        public async Task<ActionResult> UpdateVendorInfo(int userId, UserInfoDto userInfo)
+        {
+            try
+            {
+                // Get the user ID from the JWT token
+                var userIdFromToken = GetUserIdFromToken();
+                if (userIdFromToken != userId)
+                {
+                    return BadRequest("User Id from token and user Id from request body do not match");
+                }
+
+                // Retrieve the user from the database using the user ID
+                var user = await _context.UserInfo.Include(u => u.Address).FirstOrDefaultAsync(u => u.UserId == userIdFromToken);
+
+                // If the user with the specified user ID is not found, return a "Not Found" response
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+                // Update the user's fields with the data from the UserInfoDto object received in the request body
+                user.UserName = userInfo.UserName;
+                user.Phone = userInfo.Phone;
+
+                user.Address.Street = userInfo.Address.Street;
+                user.Address.City = userInfo.Address.City;
+                user.Address.State = userInfo.Address.State;
+                user.Address.Pincode = userInfo.Address.Pincode;
+
+
+                // Create an HTTP client to make a request to the other API
+                using (var httpClient = new HttpClient())
+                {
+                    // Get the current request's authorization header
+                    if (Request.Headers.TryGetValue("Authorization", out var authHeaderValues))
+                    {
+                        // Create an AuthenticationHeaderValue from the StringValues
+                        var authHeader = new AuthenticationHeaderValue("Bearer", authHeaderValues);
+
+                        // Attach the Authorization header to the outgoing request
+                        httpClient.DefaultRequestHeaders.Authorization = authHeader;
+                    }
+                    else
+                    {
+                        // If the Authorization header is not found in the request, return an error response
+                        return BadRequest("Authorization header not found in the request.");
+                    }
+
+
+                    // Send a request to the other API endpoint
+                    var response = await httpClient.PutAsJsonAsync("https://localhost:7044/api/Vendors/updateVendorProfile/{vendorId}", userInfo.Vendor);
+
+                    // Check if the response is successful (HTTP status code 200-299)
+                    if (response.IsSuccessStatusCode)
+                    {
+                        // Save the changes to the database
+                        await _context.SaveChangesAsync();
+
+                        // Return an "Ok" response with a success message
+                        return Ok("User information updated successfully.");
+                    }
+                    else
+                    {
+                        // If the other API call is not successful, return an error response
+                        return BadRequest("Error updating user information. The other API call failed.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // If any error occurs during the update process, return a "Bad Request" response with the error message.
+                return BadRequest($"Error updating user information: {ex.Message}");
+            }
+        }
+
 
         // DELETE: api/UserInfo/5
         [HttpDelete("{id}")]

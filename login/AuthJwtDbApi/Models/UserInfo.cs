@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using AuthJwtDbApi.DTOs;
 
 namespace AuthJwtDbApi.Models
 {
@@ -18,6 +19,11 @@ namespace AuthJwtDbApi.Models
         public string Phone { get; set; }
         public int AddressId { get; set; }
         public AddressInfo Address { get; set; }
+
+        public static implicit operator UserInfo(UserInfoDto v)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 }

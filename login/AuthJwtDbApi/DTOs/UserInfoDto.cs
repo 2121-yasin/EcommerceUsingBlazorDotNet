@@ -10,5 +10,8 @@ namespace AuthJwtDbApi.DTOs
         public string Role { get; set; } = "User";
         public string? Phone { get; set; }
         public AddressInfo? Address { get; set; }
+        public object? Vendor { get; set; } // to be used for updating vendor info
+
+
     }
 }
