@@ -6,11 +6,11 @@ namespace AuthJwtDbApi.DTOs
     {
         public int UserId { get; set; }
         public string? UserName { get; set; }
+        public string? ProfilePicURL { get; set; }
         public string? Email { get; set; }
         public string Role { get; set; } = "User";
         public string? Phone { get; set; }
         public AddressInfo? Address { get; set; }
-        public object? Vendor { get; set; } // to be used for updating vendor info
 
 
     }

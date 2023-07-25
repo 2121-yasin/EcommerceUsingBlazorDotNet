@@ -75,12 +75,12 @@ namespace JwtDbApi.Controllers
         }
 
         // PUT api/vendors/updateProfile/vendorId
-        [HttpPut("updateVendorProfile/{vendorId}")]
-        public async Task<ActionResult> UpdateVendorProfile(int vendorId, [FromBody] VendorDto vendorDto)
+        [HttpPut("updateVendorProfile")]
+        public async Task<ActionResult> UpdateVendorProfile([FromBody] VendorDto vendorDto)
 
         {
             // Find the vendor by ID
-            var vendor = await _context.Vendors.FindAsync(vendorId);
+            var vendor = await _context.Vendors.FindAsync(vendorDto.VendorId);
             if (vendor == null)
             {
                 return NotFound(); // Vendor not found
@@ -88,7 +88,6 @@ namespace JwtDbApi.Controllers
 
             // Update the vendor's fields
             vendor.Name = vendorDto.Name;
-            vendor.ProfilePicURL = vendorDto.ProfilePicURL;
             vendor.GSTIN = vendorDto.GSTIN;
             vendor.DeliveryPinCode = vendorDto.DeliveryPinCode;
 
@@ -96,7 +95,7 @@ namespace JwtDbApi.Controllers
             {
                 // Save the changes to the database
                 await _context.SaveChangesAsync();
-                return Ok(); // Success
+                return Ok("Vendor information updated successfully"); // Success
             }
             catch (DbUpdateException)
             {

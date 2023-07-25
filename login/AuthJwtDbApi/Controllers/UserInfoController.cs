@@ -205,6 +205,43 @@ namespace AuthJwtDbApi.Controllers
             }
         }
 
+        // PUT: api/UserInfo/UpdatePassword
+        [HttpPut("UpdatePassword")]
+        public IActionResult UpdatePassword([FromBody] UpdatePasswordDto updatePassword)
+        {
+            try
+            {
+                // Get the user ID from the JWT token
+                var userId = GetUserIdFromToken();
+                if (userId != updatePassword.UserId)
+                {
+                    return BadRequest("User Id from token and user Id from request body do not match");
+                }
+                // Retrieve the user from the database
+                var user = _context.UserInfo.FirstOrDefault(u => u.UserId == userId);
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+
+                // Update the password
+                var newPassword = BCrypt.Net.BCrypt.HashPassword(updatePassword.NewPassword);
+                var currentPassword = BCrypt.Net.BCrypt.HashPassword(updatePassword.CurrentPassword);
+                if (user.Password != currentPassword)
+                {
+                    return BadRequest("Current password is incorrect");
+                }
+                user.Password = newPassword;
+
+                _context.SaveChanges();
+
+                return Ok("Password updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error updating password: {ex.Message}");
+            }
+        }
 
         // Helper method to get the user ID from the JWT token
         private int GetUserIdFromToken()
@@ -679,6 +716,7 @@ namespace AuthJwtDbApi.Controllers
                 }
                 // Update the user's fields with the data from the UserInfoDto object received in the request body
                 user.UserName = userInfo.UserName;
+                user.ProfilePicURL = userInfo.ProfilePicURL;
                 user.Phone = userInfo.Phone;
 
                 user.Address.Street = userInfo.Address.Street;
@@ -686,44 +724,10 @@ namespace AuthJwtDbApi.Controllers
                 user.Address.State = userInfo.Address.State;
                 user.Address.Pincode = userInfo.Address.Pincode;
 
+                await _context.SaveChangesAsync();
 
-                // Create an HTTP client to make a request to the other API
-                using (var httpClient = new HttpClient())
-                {
-                    // Get the current request's authorization header
-                    if (Request.Headers.TryGetValue("Authorization", out var authHeaderValues))
-                    {
-                        // Create an AuthenticationHeaderValue from the StringValues
-                        var authHeader = new AuthenticationHeaderValue("Bearer", authHeaderValues);
-
-                        // Attach the Authorization header to the outgoing request
-                        httpClient.DefaultRequestHeaders.Authorization = authHeader;
-                    }
-                    else
-                    {
-                        // If the Authorization header is not found in the request, return an error response
-                        return BadRequest("Authorization header not found in the request.");
-                    }
-
-
-                    // Send a request to the other API endpoint
-                    var response = await httpClient.PutAsJsonAsync("https://localhost:7044/api/Vendors/updateVendorProfile/{vendorId}", userInfo.Vendor);
-
-                    // Check if the response is successful (HTTP status code 200-299)
-                    if (response.IsSuccessStatusCode)
-                    {
-                        // Save the changes to the database
-                        await _context.SaveChangesAsync();
-
-                        // Return an "Ok" response with a success message
-                        return Ok("User information updated successfully.");
-                    }
-                    else
-                    {
-                        // If the other API call is not successful, return an error response
-                        return BadRequest("Error updating user information. The other API call failed.");
-                    }
-                }
+                // Return an "Ok" response with a success message
+                return Ok("User information updated successfully.");
             }
             catch (Exception ex)
             {
@@ -776,6 +780,7 @@ namespace AuthJwtDbApi.Controllers
             {
                 UserId = userInfo.UserId,
                 UserName = userInfo.UserName,
+                ProfilePicURL = userInfo.ProfilePicURL,
                 Email = userInfo.Email,
                 Role = userInfo.Role,
                 Phone = userInfo.Phone,
