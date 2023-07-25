@@ -7,6 +7,7 @@
 @inject HttpClient HttpClient
 @using System.Net.Http.Headers;
 @using System.Text
+@inject SweetAlertService Swal;
 
 
 
@@ -65,10 +66,25 @@
     if (response.IsSuccessStatusCode)
     {
       isEditMode = false; // Disable edit mode after successful update
+
+      await Swal.FireAsync(new SweetAlertOptions
+        {
+          Title = "Success",
+          Text = "Username updated successfully!",
+          Icon = SweetAlertIcon.Success,
+          ConfirmButtonText = "OK"
+        });
     }
     else
     {
-      // Handle error if needed
+      // Handle error and show SweetAlert2 error dialog
+      await Swal.FireAsync(new SweetAlertOptions
+        {
+          Title = "Error",
+          Text = "Failed to update username. Please try again later.",
+          Icon = SweetAlertIcon.Error,
+          ConfirmButtonText = "OK"
+        });
     }
   }
 
@@ -94,10 +110,24 @@
     if (response.IsSuccessStatusCode)
     {
       isPhoneEditMode = false; // Disable phone number edit mode after successful update
+      await Swal.FireAsync(new SweetAlertOptions
+        {
+          Title = "Success",
+          Text = "Phone Number updated successfully!",
+          Icon = SweetAlertIcon.Success,
+          ConfirmButtonText = "OK"
+        });
     }
     else
     {
-      // Handle error if needed
+      // Handle error and show SweetAlert2 error dialog
+      await Swal.FireAsync(new SweetAlertOptions
+        {
+          Title = "Error",
+          Text = "Failed to update Phone Number. Please try again later.",
+          Icon = SweetAlertIcon.Error,
+          ConfirmButtonText = "OK"
+        });
     }
   }
 
@@ -133,10 +163,23 @@
       if (response.IsSuccessStatusCode)
       {
         isAddressEditMode = false; // Disable address details edit mode after successful update
+        await Swal.FireAsync(new SweetAlertOptions
+          {
+            Title = "Success",
+            Text = "Address Details updated successfully!",
+            Icon = SweetAlertIcon.Success,
+            ConfirmButtonText = "OK"
+          });
       }
       else
       {
-        // Handle error if needed
+        await Swal.FireAsync(new SweetAlertOptions
+          {
+            Title = "Error",
+            Text = "Failed to update Address Details. Please try again later.",
+            Icon = SweetAlertIcon.Error,
+            ConfirmButtonText = "OK"
+          });
       }
     }
   }
@@ -182,7 +225,6 @@ Console.WriteLine(userId); *@
       StateHasChanged();
     }
   }
-
 }
 <section class="vh-100" style="background-color: #f4f5f7;">
   <div class="container py-5 h-100">

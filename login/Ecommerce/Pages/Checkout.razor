@@ -14,6 +14,7 @@
 @using System.IdentityModel.Tokens.Jwt;
 @inject HttpClient HttpClient
 @using System.Net.Http.Headers
+@inject SweetAlertService Swal;
 
 <h3>Checkout</h3>
 
@@ -456,7 +457,13 @@ z-index: 1;
     {
         if (offerApplied)
         {
-            await JSRuntime.InvokeVoidAsync("alert", "You have already applied an offer code.");
+            await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Offer Already Applied",
+                    Text = "You have already applied an offer code.",
+                    Icon = SweetAlertIcon.Warning,
+                    ConfirmButtonText = "OK"
+                });
             return;
         }
 
@@ -496,7 +503,13 @@ z-index: 1;
                 break;
             default:
                 discountAmount = 0; // no discount
-                await JSRuntime.InvokeVoidAsync("alert", "Invalid offer code");
+                await Swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Invalid Offer Code",
+                        Text = "Invalid offer code",
+                        Icon = SweetAlertIcon.Error,
+                        ConfirmButtonText = "OK"
+                    });
                 break;
         }
 
