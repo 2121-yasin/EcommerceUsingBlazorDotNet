@@ -224,13 +224,15 @@ namespace AuthJwtDbApi.Controllers
                     return NotFound("User not found.");
                 }
 
-                // Update the password
-                var newPassword = BCrypt.Net.BCrypt.HashPassword(updatePassword.NewPassword);
-                var currentPassword = BCrypt.Net.BCrypt.HashPassword(updatePassword.CurrentPassword);
-                if (user.Password != currentPassword)
+                // Verify the current password
+                var isCurrentPasswordCorrect = BCrypt.Net.BCrypt.Verify(updatePassword.CurrentPassword, user.Password);
+                if (!isCurrentPasswordCorrect)
                 {
                     return BadRequest("Current password is incorrect");
                 }
+
+                // Hash the new password
+                var newPassword = BCrypt.Net.BCrypt.HashPassword(updatePassword.NewPassword);
                 user.Password = newPassword;
 
                 _context.SaveChanges();
