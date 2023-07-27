@@ -24,55 +24,61 @@
         @foreach (var item in cart.Products)
         {
             <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="card h-100">
-                    <img src="@item.ImageURL" class="card-img-top" alt="Product Image" />
-                    <div class="card-body">
-                        <h5 class="card-title">@item.ProdName</h5>
-                        <p class="card-text">@item.Description</p>
-                        <p class="card-text">Price: @(item.Price * item.ProductQuantity)</p>
-                        <p class="card-text">
-                            <strong>Status: </strong>
-                            @if (item.Quantity <= 0)
-                            {
-                                <span class="out-of-stock">Out of Stock</span>
-                            }
-                            else if (item.Quantity < 5)
-                            {
-                                <span class="low-stock">Low Stock</span>
-                            }
-                            else
-                            {
-                                <span class="in-stock">In Stock</span>
-                            }
-                        </p>
-                        <div class="form-group">
-                            <label for="quantitySelect">Quantity:</label>
-                            <select class="form-control" id="quantitySelect" @bind="item.ProductQuantity">
-                                @for (int i = 1; i <= 3; i++)
-                                {
-                                    <option value="@i" selected="@i == item.ProductQuantity">@i</option>
-                                }
-                                <option value="-1" selected="@item.ProductQuantity == -1">more..</option>
-                            </select>
-                            @if (item.ProductQuantity == -1)
-                            {
-                                <input type="number" class="form-control mt-2" min="1" @bind="item.ProductQuantity" />
-                            }
-                        </div>
-                    </div>
-                    <div class="card-footer text-center">
-                        <button class="btn btn-outline-danger" data-toggle="tooltip" data-placement="top"
-                            title="Remove item from cart" @onclick="() => RemoveItemFromCart(item.Id)">
-                            <i class="bi bi-cart-x" style="font-size: 2rem;"></i>
-                        </button>
+                <div class="shadow-lg card w-100 my-2 shadow-2-strong card-body d-flex flex-column">
+                            <img src=" @item.ImageURL" class="card-img-top" alt="Product Image" />
+                <div class="card-body">
+                    <h5 class="card-title">@item.ProdName</h5>
+                    <p class="card-text">@item.Description</p>
+                    <p class="card-text">Price: @(item.Price * item.ProductQuantity)</p>
+                    <p class="card-text">
+                        <strong>Status: </strong>
+                @if (item.Quantity <= 0)
+                {
+                        <span class="out-of-stock">Out of Stock</span>
+                }
+                else if (item.Quantity < 5)
+                {
+                        <span class="low-stock">Low Stock</span>
+                }
+                else
+                {
+                        <span class="in-stock">In Stock</span>
+                }
+                    </p>
+                    <div class="form-group">
+                        <label for="quantitySelect">Quantity:</label>
+                        <select class="form-control" id="quantitySelect" @bind="item.ProductQuantity">
+                @for (int i = 1; i <= 3; i++)
+                {
+                            <option value="@i" selected="@i == item.ProductQuantity">@i</option>
+                }
+                            <option value="-1" selected="@item.ProductQuantity == -1">more..</option>
+                        </select>
+                @if (item.ProductQuantity == -1)
+                {
+                        <input type="number" class="form-control mt-2" min="1" @bind="item.ProductQuantity" />
+                }
                     </div>
                 </div>
+                <div class="card-footer text-center">
+                    <button class="btn btn-outline-danger" data-toggle="tooltip" data-placement="top"
+                        title="Remove item from cart" @onclick="() => RemoveItemFromCart(item.Id)">
+                        <i class="bi bi-cart-x" style="font-size: 2rem;"></i>
+                    </button>
+                </div>
             </div>
+        </div>
         }
 
 
 
     </div>
+    <div style="text-align: center;">
+    <button @onclick="ClearCart" class="btn btn-outline-danger" data-toggle="tooltip" data-placement="top" title="Clear Cart">
+        <i class="bi bi-trash" style="font-size: 2rem;"></i>
+    </button>
+</div>
+
 
     <div class="row mt-4">
         <div class="col-lg-12 text-center">
@@ -97,6 +103,53 @@ else
 
     private CartModel cart;
     private bool isLoaded;
+
+private async Task ClearCart()
+{
+    var confirmResult = await Swal.FireAsync(new SweetAlertOptions
+    {
+        Title = "Confirmation",
+        Text = "Are you sure you want to clear the cart?",
+        Icon = SweetAlertIcon.Warning,
+        ShowCancelButton = true,
+        ConfirmButtonText = "Yes, clear it",
+        CancelButtonText = "No, keep it"
+    });
+
+    if (confirmResult.IsConfirmed)
+    {
+        var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "token");
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var handler = new JwtSecurityTokenHandler();
+        var decodedToken = handler.ReadJwtToken(token);
+        var userId = decodedToken.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+
+        var response = await HttpClient.DeleteAsync($"https://localhost:7044/api/cart/ClearCart/{userId}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            // Cart cleared successfully
+            // Refresh the cart data or update the UI accordingly
+            await LoadCartData();
+
+            // Notify the user about successful clearing of the cart
+            var successResult = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Success",
+                Text = "Cart cleared successfully!",
+                Icon = SweetAlertIcon.Success,
+                ConfirmButtonText = "OK",
+            });
+        }
+        else
+        {
+            // Handle error response
+            // Display an error message or perform appropriate error handling
+        }
+    }
+}
+
 
     private async Task HandleCheckoutClick()
     {

@@ -55,12 +55,53 @@
 
             }
         </div>
+        @if (wishlistItems != null && wishlistItems.Length > 0)
+        {
+            <div style="text-align: center;">
+                <button @onclick="ClearWishlist" class="btn btn-outline-danger" data-toggle="tooltip" data-placement="top"
+                    title="Clear Wishlist">
+                    <i class="bi bi-trash" style="font-size: 2rem;"></i>
+                </button>
+            </div>
+        }
     }
 }
 
 @code {
     private bool isRendered;
     private WishListItem[] wishlistItems;
+
+    private async Task ClearWishlist()
+    {
+        var confirmResult = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Confirmation",
+                Text = "Are you sure you want to clear your wishlist?",
+                Icon = SweetAlertIcon.Warning,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Yes, clear it",
+                CancelButtonText = "No, keep it"
+            });
+
+        if (confirmResult.IsConfirmed)
+        {
+            // Proceed with clearing the wishlist
+            wishlistItems = new WishListItem[0];
+            var storage = await JSRuntime.InvokeAsync<IJSObjectReference>("eval", "localStorage");
+            await storage.InvokeVoidAsync("setItem", "wishlistItems", System.Text.Json.JsonSerializer.Serialize(wishlistItems));
+
+            // Notify the user about successful clearing of the wishlist
+            var successResult = await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Success",
+                    Text = "Wishlist cleared successfully!",
+                    Icon = SweetAlertIcon.Success,
+                    ConfirmButtonText = "OK",
+                });
+
+            StateHasChanged();
+        }
+    }
 
     private async Task AddToCart(WishListItem item)
     {
