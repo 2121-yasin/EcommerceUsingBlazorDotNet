@@ -253,6 +253,11 @@ private async Task SearchProducts()
     await LoadProducts();
 }
 
+private async Task ClearSort()
+{
+    selectedSortOrder = ""; // Clear the selectedSortOrder value
+    await LoadProducts();   // Reload products with the default order
+}
 
 
 
@@ -390,7 +395,7 @@ private async Task SearchProducts()
     <div class="ms-auto d-flex align-items-end">
         <label for="search" class="me-2">Search by Name:</label>
         <input id="search" @bind="searchQuery" class="form-control" />
-        <button class="btn btn-primary ms-2" @onclick="SearchProducts">Search</button>
+        <button class="btn btn-outline-secondary" @onclick="SearchProducts">Search</button>
     </div>
     <div class="ms-auto">
         <label for="sortOrder">Sort by:</label>
@@ -398,7 +403,8 @@ private async Task SearchProducts()
             <option value="lowtohigh">Price Low to High</option>
             <option value="hightolow">Price High to Low</option>
         </select>
-        <button class="btn btn-secondary" @onclick="SortProducts">Sort</button>
+        <button class="btn btn-outline-secondary" @onclick="SortProducts">Sort</button>
+        <button class="btn btn-outline-secondary" @onclick="ClearSort">Clear Sort</button>
     </div>
 </div>
 
