@@ -247,5 +247,31 @@ namespace JwtDbApi.Controllers
             return vendor;
         }
 
+        // ProductsController.cs
+
+[HttpGet("sorted")]
+public async Task<ActionResult<IEnumerable<Product>>> GetSortedProducts([FromQuery] string sort)
+{
+    var products = await _context.Products.ToListAsync();
+
+    switch (sort)
+    {
+        case "lowtohigh":
+            products = products.OrderBy(p => p.Price).ToList();
+            break;
+        case "hightolow":
+            products = products.OrderByDescending(p => p.Price).ToList();
+            break;
+        default:
+            break;
+    }
+
+    return products;
+}
+
+
+
+
+
     }
 }

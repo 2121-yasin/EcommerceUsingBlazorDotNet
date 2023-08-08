@@ -19,6 +19,24 @@
     @*private CustomDialog dialogRef;*@
     public List<Products> Product { get; set; }
     private string searchQuery;
+        private string selectedSortOrder = "lowtohigh";
+
+    // Sort products based on the selected order
+    private async Task SortProducts()
+    {
+        // Make an HTTP request to the API to fetch sorted products
+        try
+        {
+            var sortedProducts = await HttpClient.GetFromJsonAsync<List<Products>>($"https://localhost:7044/api/products/sorted?sort={selectedSortOrder}");
+            // Update the Product list with sorted products
+            Product = sortedProducts;
+        }
+        catch (Exception ex)
+        {
+            // Handle any errors
+            Console.WriteLine("Error fetching sorted products: " + ex.Message);
+        }
+    }
 
 
     private string GetStockStatus(int stockQty)
@@ -53,16 +71,17 @@
         await LoadProducts();
     }
 
-    private async Task LoadProducts()
+private async Task LoadProducts()
+{
+    Product = await GetProduct(searchQuery);
+    foreach (var product in Product)
     {
-        Product = await GetProduct();
-        foreach (var product in Product)
-        {
-            product.StockStatus = GetStockStatus(product.StockQty);
-        }
+        product.StockStatus = GetStockStatus(product.StockQty);
     }
+}
 
-    private async Task<List<Products>> GetProduct()
+
+    private async Task<List<Products>> GetProduct(string searchQuery)
     {
         var baseUrl = "https://localhost:7044/api/products/all";
 
@@ -229,6 +248,10 @@
     }
 
 
+private async Task SearchProducts()
+{
+    await LoadProducts();
+}
 
 
 
@@ -363,6 +386,23 @@
     <header class="mb-4">
       <h3>New products</h3>
     </header>
+<div class="d-flex justify-content-between my-3">
+    <div class="ms-auto d-flex align-items-end">
+        <label for="search" class="me-2">Search by Name:</label>
+        <input id="search" @bind="searchQuery" class="form-control" />
+        <button class="btn btn-primary ms-2" @onclick="SearchProducts">Search</button>
+    </div>
+    <div class="ms-auto">
+        <label for="sortOrder">Sort by:</label>
+        <select id="sortOrder" @bind="selectedSortOrder" class="me-2">
+            <option value="lowtohigh">Price Low to High</option>
+            <option value="hightolow">Price High to Low</option>
+        </select>
+        <button class="btn btn-secondary" @onclick="SortProducts">Sort</button>
+    </div>
+</div>
+
+
         @if (Product != null && Product.Any())
         {
             <div class="row">

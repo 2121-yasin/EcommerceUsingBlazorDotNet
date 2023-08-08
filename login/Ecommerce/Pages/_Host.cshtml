@@ -13,19 +13,30 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-mgPhYdEuSwSKO5K+dQ9i5lI8cjPzJ1r8p9Sl+12k4u2/f0C71lg8yLDb2TpF9rYN"
     crossorigin="anonymous"></script>
+<!-- Add this to _Host.cshtml -->
+@*<script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js"></script>
+<script>
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyDzQnX8TJQLtFC2L24CkNqbUaVb6B5EBQE",
+        authDomain: "eshop-7f58a.firebaseapp.com",
+        databaseURL: "https://eshop-7f58a-default-rtdb.firebaseio.com",
+        projectId: "eshop-7f58a",
+        storageBucket: "eshop-7f58a.appspot.com",
+        messagingSenderId: "611103496996",
+        appId: "1:611103496996:web:039b4c4e295f29a6ea71b1"
+    };
 
-
-@*<script>
-function showModal() {
-var modal = document.querySelector('.modal');
-var bootstrapModal = new bootstrap.Modal(modal);
-bootstrapModal.show();
-}
-
-function closeModal() {
-var modal = document.querySelector('.modal');
-var bootstrapModal = new bootstrap.Modal(modal);
-bootstrapModal.hide();
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+</script>*@
+@*<script> function showModal() {
+var modal = document.querySelector('.modal'); var bootstrapModal = new
+bootstrap.Modal(modal); bootstrapModal.show();
+} function closeModal() {
+var modal =
+document.querySelector('.modal'); var bootstrapModal = new bootstrap.Modal(modal); bootstrapModal.hide();
 }
 </script>*@
 <component type="typeof(App)" render-mode="ServerPrerendered" />
