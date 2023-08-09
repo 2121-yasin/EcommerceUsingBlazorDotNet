@@ -19,7 +19,71 @@
     @*private CustomDialog dialogRef;*@
     public List<Products> Product { get; set; }
     private string searchQuery;
-        private string selectedSortOrder = "lowtohigh";
+    private string selectedSortOrder = "lowtohigh";
+    private string selectedSortOrderByRatings = "AllRatings";
+
+private async Task SortProductsByRatings()
+{
+    try
+    {
+        List<Products> sortedProducts;
+
+        // Fetch products based on selected rating filter
+        switch (selectedSortOrderByRatings)
+        {
+            case "RatingsTwoAndAbove":
+                sortedProducts = await GetProductsByRatings(2);
+                break;
+            case "RatingsThreeAndAbove":
+                sortedProducts = await GetProductsByRatings(3);
+                break;
+            case "RatingsFourAndAbove":
+                sortedProducts = await GetProductsByRatings(4);
+                break;
+            default:
+                sortedProducts = await GetProduct(searchQuery);
+                break;
+        }
+
+        // Update the Product list with sorted products
+        Product = sortedProducts;
+
+        // Fetch and update the product ratings for the sorted products
+        foreach (var product in Product)
+        {
+            product.Ratings = await GetProductRatings(product.ProdId);
+        }
+    }
+    catch (Exception ex)
+    {
+        // Handle any errors
+        Console.WriteLine("Error sorting products by ratings: " + ex.Message);
+    }
+}
+
+
+private async Task<List<Products>> GetProductsByRatings(int minRating)
+{
+    var baseUrl = $"https://localhost:7044/api/products/byratings?minRating={minRating}";
+
+    using (var httpClientHandler = new HttpClientHandler())
+    {
+        httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+        using (var httpClient = new HttpClient(httpClientHandler))
+        {
+            var jsonStr = await httpClient.GetStringAsync(baseUrl);
+            var products = JsonConvert.DeserializeObject<List<Products>>(jsonStr);
+            foreach (var product in products)
+            {
+                var vendor = await GetProductVendor(product.ProdId);
+                product.ProductVendorId = vendor?.Id ?? 0;
+            }
+            return products;
+        }
+    }
+}
+
+
 
     // Sort products based on the selected order
     private async Task SortProducts()
@@ -30,6 +94,11 @@
             var sortedProducts = await HttpClient.GetFromJsonAsync<List<Products>>($"https://localhost:7044/api/products/sorted?sort={selectedSortOrder}");
             // Update the Product list with sorted products
             Product = sortedProducts;
+                    // Fetch and update the product ratings for the sorted products
+        foreach (var product in Product)
+        {
+            product.Ratings = await GetProductRatings(product.ProdId);
+        }
         }
         catch (Exception ex)
         {
@@ -77,8 +146,29 @@ private async Task LoadProducts()
     foreach (var product in Product)
     {
         product.StockStatus = GetStockStatus(product.StockQty);
+        
+        // Fetch the ratings for the product
+        product.Ratings = await GetProductRatings(product.ProdId);
     }
 }
+
+
+private async Task<double> GetProductRatings(int productId)
+{
+    var baseUrl = $"https://localhost:7044/api/products/{productId}/ratings";
+
+    using (var httpClientHandler = new HttpClientHandler())
+    {
+        httpClientHandler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+        using (var httpClient = new HttpClient(httpClientHandler))
+        {
+            var jsonStr = await httpClient.GetStringAsync(baseUrl);
+            var ratings = JsonConvert.DeserializeObject<double>(jsonStr);
+            return ratings;
+        }
+    }
+}
+
 
 
     private async Task<List<Products>> GetProduct(string searchQuery)
@@ -250,8 +340,16 @@ private async Task LoadProducts()
 
 private async Task SearchProducts()
 {
-    await LoadProducts();
+    if (selectedSortOrderByRatings == "AllRatings")
+    {
+        await LoadProducts();
+    }
+    else
+    {
+        await SortProductsByRatings();
+    }
 }
+
 
 private async Task ClearSort()
 {
@@ -259,7 +357,11 @@ private async Task ClearSort()
     await LoadProducts();   // Reload products with the default order
 }
 
-
+private async Task ClearSortByRatings()
+{
+    selectedSortOrderByRatings = ""; // Clear the selectedSortOrder value
+    await LoadProducts();   // Reload products with the default order
+}
 
 }
 
@@ -393,10 +495,22 @@ private async Task ClearSort()
     </header>
 <div class="d-flex justify-content-between my-3">
     <div class="ms-auto d-flex align-items-end">
-        <label for="search" class="me-2">Search by Name:</label>
-        <input id="search" @bind="searchQuery" class="form-control" />
+        <label for="search" class="me-2"></label>
+        <input id="search" @bind="searchQuery" class="form-control" placeholder="Search By Name"/>
         <button class="btn btn-outline-secondary" @onclick="SearchProducts">Search</button>
     </div>
+
+        <div class="ms-auto">
+        <label for="sortOrderByRatings">Filter:</label>
+        <select id="sortOrderByRatings" @bind="selectedSortOrderByRatings" class="me-2">
+            <option value="RatingsTwoAndAbove">Ratings 2 & Above</option>
+            <option value="RatingsThreeAndAbove">Ratings 3 & Above</option>
+            <option value="RatingsFourAndAbove">Ratings 4 & Above</option>
+        </select>
+        <button class="btn btn-outline-secondary" @onclick="SortProductsByRatings">Filter</button>
+        <button class="btn btn-outline-secondary" @onclick="ClearSortByRatings">Clear</button>
+    </div>
+
     <div class="ms-auto">
         <label for="sortOrder">Sort by:</label>
         <select id="sortOrder" @bind="selectedSortOrder" class="me-2">
@@ -421,11 +535,20 @@ private async Task ClearSort()
                           <div class="card-body d-flex flex-column">
                             <h5 class="card-title">@product.ProdName</h5>
                             <p class="card-text">@product.Price.ToString("c")</p>
+                            <div class="d-flex justify-content-between">
                                 <p class="card-text">
-                <span style="@(product.StockStatus == "In Stock" ? "color: green;" : (product.StockStatus == "Out of Stock" ? "color: red;" : "color: orange;"))">
-                                            @product.StockStatus
-                </span>
-            </p>
+                                    <span style="@(product.StockStatus == "In Stock" ? "color: green;" : (product.StockStatus == "Out of Stock" ? "color: red;" : "color: orange;"))">
+                                        @product.StockStatus
+                                    </span>
+                                </p>
+                                <div class="product-ratings d-flex align-items-center">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <i class="@(i <= product.Ratings ? "bi bi-star-fill" : "bi bi-star")" style="color:rgb(205, 176, 15); "></i>
+                                    }
+                                    <span>@product.Ratings.ToString("0.0")</span>
+                                </div>
+                            </div>
                             <div class="card-footer d-flex align-items-end pt-3 px-0 pb-0 mt-auto">
 
                                         @* <a href="" class="btn btn-light border px-3 pt-2 icon-hover mx-4 btn-hover-highlight" title="Add to cart"

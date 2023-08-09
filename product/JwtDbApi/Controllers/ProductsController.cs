@@ -270,7 +270,47 @@ public async Task<ActionResult<IEnumerable<Product>>> GetSortedProducts([FromQue
 }
 
 
+[HttpPost("{id}/rate")]
+public async Task<IActionResult> RateProduct(int id, [FromBody] double rating)
+{
+    var product = await _context.Products.FindAsync(id);
+    if (product == null)
+    {
+        return NotFound();
+    }
 
+    // Update the ratings for the product
+    double newAverageRating = (product.StarRatings * product.NumberOfRatings + rating) / (product.NumberOfRatings + 1);
+
+    product.StarRatings = newAverageRating;
+    product.NumberOfRatings++;
+
+    await _context.SaveChangesAsync();
+
+    return Ok();
+}
+
+
+[HttpGet("{id}/ratings")]
+public async Task<IActionResult> GetProductRatings(int id)
+{
+    var product = await _context.Products.FindAsync(id);
+    if (product == null)
+    {
+        return NotFound();
+    }
+
+    // Return the star ratings for the product
+    return Ok(product.StarRatings);
+}
+
+
+[HttpGet("byratings")]
+public async Task<ActionResult<IEnumerable<Product>>> GetProductsByRatings(int minRating)
+{
+    var products = await _context.Products.Where(p => p.StarRatings >= minRating).ToListAsync();
+    return Ok(products);
+}
 
 
     }

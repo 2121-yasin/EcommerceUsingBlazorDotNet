@@ -8,6 +8,8 @@ namespace JwtDbApi.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ProdId { get; set; }
+        public double StarRatings { get; set; } // Average star ratings for the product
+        public int NumberOfRatings { get; set; } // Number of ratings given
 
         // public int ListedBy { get; set; }
 

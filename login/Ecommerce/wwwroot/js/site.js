@@ -263,6 +263,25 @@ window.RazorpayCheckout = {
 function updateAmountToPay(amountToPayElement, totalAmount) {
   amountToPayElement.textContent = "Amount to Pay: " + totalAmount;
 }
+
+window.toggleStarFilled = function(rating) {
+  const starIcons = document.querySelectorAll('.star-icon');
+
+  starIcons.forEach((star,index) => {
+    if(index < rating) {
+      star.classList.add('filled');
+    } else {
+      star.classList.remove('filled');
+    }
+  });
+};
+
+window.storeSelectedRating = function(rating) {
+  localStorage.setItem('selectedRating', rating);
+};
+
+
+
 // function DecodeJwtToken(token) {
 //   var base64Url = token.split('.')[1];
 //   var base64 = base64Url.replace('-', '+').replace('_', '/');

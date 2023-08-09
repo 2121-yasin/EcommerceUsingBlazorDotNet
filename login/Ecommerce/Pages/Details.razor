@@ -131,6 +131,22 @@
         onclick="@(() => ProcessPayment(Product.Price))">
     Proceed for payment &#x20B9;@Product.Price
 </button>
+<div class="product-ratings">
+    <span class="star-icon @(Product.StarRatings >= 1 ? "filled" : "")" @onclick="() => RateProduct(1)"><i class="bi bi-star-fill"></i></span>
+    <span class="star-icon @(Product.StarRatings >= 2 ? "filled" : "")" @onclick="() => RateProduct(2)"><i class="bi bi-star-fill"></i></span>
+    <span class="star-icon @(Product.StarRatings >= 3 ? "filled" : "")" @onclick="() => RateProduct(3)"><i class="bi bi-star-fill"></i></span>
+    <span class="star-icon @(Product.StarRatings >= 4 ? "filled" : "")" @onclick="() => RateProduct(4)"><i class="bi bi-star-fill"></i></span>
+    <span class="star-icon @(Product.StarRatings >= 5 ? "filled" : "")" @onclick="() => RateProduct(5)"><i class="bi bi-star-fill"></i></span>
+</div>
+
+
+
+<div class="product-ratings">
+    <span class="selected-stars">@Product.StarRatings.ToString("0.0")</span>/5
+</div>
+
+
+
 }
 
 
@@ -144,6 +160,47 @@
 
     private RazorpayClient _razorpayClient;
     private string _orderId;
+
+private async Task RateProduct(int rating)
+{
+    // Call the API to update the product rating
+    var apiUrl = $"https://localhost:7044/api/products/{Product.ProdId}/rate";
+    var content = new StringContent(JsonConvert.SerializeObject(rating), Encoding.UTF8, "application/json");
+    var response = await HttpClient.PostAsync(apiUrl, content);
+
+    if (response.IsSuccessStatusCode)
+    {
+        // Update the local rating and re-render the component
+        //Product.StarRatings = rating;
+        StateHasChanged();
+    }
+    else
+    {
+        // Handle error scenario
+    }
+                    // Store the selected rating in localStorage
+        await JSRuntime.InvokeVoidAsync("storeSelectedRating", rating);
+        
+        // Toggle the "filled" class on the clicked star
+        await JSRuntime.InvokeVoidAsync("toggleStarFilled", rating);
+}
+
+private async Task<double> GetProductRatings(int productId)
+{
+    var apiUrl = $"https://localhost:7044/api/products/{productId}/ratings";
+    var response = await HttpClient.GetAsync(apiUrl);
+
+    if (response.IsSuccessStatusCode)
+    {
+        var ratings = await response.Content.ReadAsStringAsync();
+        return double.Parse(ratings);
+    }
+    else
+    {
+        // Handle error scenario
+        return 0; // Default value
+    }
+}
 
     
 
@@ -486,12 +543,40 @@ htmlContent += @"<tr>
 }
 
 
-   protected override async Task OnInitializedAsync()
-    {
-        var id = Convert.ToInt32(Regex.Match(NavigationManager.Uri, @"\d+$").Value);
-        //Console.WriteLine(id);
-        Product = await GetProductById(id);
+protected override async Task OnInitializedAsync()
+{
+    var id = Convert.ToInt32(Regex.Match(NavigationManager.Uri, @"\d+$").Value);
+    Product = await GetProductById(id);
+
+    // Fetch the product ratings from the API
+    Product.StarRatings = await GetProductRatings(id);
+        // Get the selected rating from localStorage
+    @*var selectedRating = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "selectedRating");
+
+    if (!string.IsNullOrEmpty(selectedRating)) {
+        var rating = int.Parse(selectedRating);
+        // Set the filled class on star icons based on the selected rating
+        await JSRuntime.InvokeVoidAsync("toggleStarFilled", rating);
+    }*@
+    
+}
+
+private bool isRendered = false;
+protected override async Task OnAfterRenderAsync(bool firstRender) {
+    if (firstRender && !isRendered) {
+        // Get the selected rating from localStorage
+        var selectedRating = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "selectedRating");
+        
+        if (!string.IsNullOrEmpty(selectedRating)) {
+            var rating = int.Parse(selectedRating);
+            // Set the filled class on star icons based on the selected rating
+            await JSRuntime.InvokeVoidAsync("toggleStarFilled", rating);
+        }
+        
+        isRendered = true;
     }
+}
+
 
 
 

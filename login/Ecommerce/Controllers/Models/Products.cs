@@ -21,6 +21,9 @@ namespace Ecommerce.Models
         public int StockQty { get; set; }  
         public string StockStatus { get; set; }
         public int ProductVendorId { get; set; }
+        public double StarRatings { get; set; } // Average star ratings for the product
+        public int NumberOfRatings { get; set; } // Number of ratings given
+        public double Ratings { get; set; }
     }
 }
 
